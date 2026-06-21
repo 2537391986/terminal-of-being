@@ -1,0 +1,12 @@
+{
+  "name": "terminal-of-being",
+  "version": "0.1.0",
+  "description": "存在终端 Terminal of Being - 终端风格挂机刷宝 RPG",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "echo '直接用浏览器打开 index.html 即可' && start index.html"
+  },
+  "keywords": ["game", "idle", "rpg", "philosophy", "ascii"],
+  "license": "MIT"
+}

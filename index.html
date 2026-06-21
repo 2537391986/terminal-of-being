@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>存在终端 Terminal of Being</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
+
+<!-- iOS Web App -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="存在终端">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ 终端窗口标题栏 ═══ -->
+  <div id="terminal-titlebar">
+    <div class="title-left">
+      <span class="win-btn close"></span>
+      <span class="win-btn minimize"></span>
+      <span class="win-btn maximize"></span>
+      <span class="title-text">存在终端 v0.7</span>
+    </div>
+    <div class="title-right">
+      <span>root@being</span>
+      <span class="title-sep">|</span>
+      <span id="title-stage">STAGE 1</span>
+      <span class="title-sep">|</span>
+      <span class="status-dot"></span>
+      <span>RUNNING</span>
+    </div>
+  </div>
+
+  <!-- ═══ 顶部 HUD ═══ -->
+  <header id="hud">
+    <div class="hud-row hud-primary">
+      <div class="hud-group">
+        <span class="hud-label">LV</span>
+        <b id="level">1</b>
+      </div>
+      <div class="hud-group">
+        <span class="hud-label">EXP</span>
+        <b id="exp">0 / 20</b>
+      </div>
+      <div class="hud-group">
+        <span class="hud-label">STAGE</span>
+        <b id="stage">1</b>
+      </div>
+      <div class="hud-group">
+        <span class="hud-label">金币</span>
+        <b id="gold">0</b>
+      </div>
+      <div class="hud-group">
+        <span class="hud-label">敌</span>
+        <b id="enemy-count">0</b>
+      </div>
+      <div class="wave-state" id="wave-state">>> 概念展开中</div>
+    </div>
+    <div class="hud-row hud-resources">
+      <div class="resource-line">
+        <span class="hud-label">HP</span>
+        <b id="player-hp">100 / 100</b>
+        <div class="hp-bar-mini"><span id="player-hp-bar" style="width:100%"></span></div>
+      </div>
+      <div class="resource-line">
+        <span class="hud-label">MP</span>
+        <b id="player-mp">30 / 30</b>
+      </div>
+    </div>
+    <!-- 属性速览行 -->
+    <div class="hud-row hud-stats-row">
+      <span id="hud-atk-label" title="">断言</span> <b id="hud-atk">10</b>
+      <span class="stat-sep">·</span>
+      <span id="hud-def-label" title="">边界</span> <b id="hud-def">2</b>
+      <span class="stat-sep">·</span>
+      <span id="hud-aspd-label" title="">频率</span> <b id="hud-aspd">1.00</b>
+      <span class="stat-sep">·</span>
+      <span id="hud-crit-label" title="">洞见</span> <b id="hud-crit">5.0%</b>
+    </div>
+  </header>
+
+  <!-- ═══ 终端状态行 ═══ -->
+  <div id="terminal-status">
+    <span class="prompt">root@being:~$</span>
+    <span class="status-text" id="terminal-status-text">运行中...</span>
+    <span class="cursor"></span>
+  </div>
+
+  <!-- ═══ Canvas 战斗区 ═══ -->
+  <main id="combat">
+    <canvas id="combat-canvas" width="800" height="320"></canvas>
+  </main>
+
+  <!-- ═══ 日志 ═══ -->
+  <section id="log"></section>
+
+  <!-- ═══ 底部按钮栏 ═══ -->
+  <footer id="footer">
+    <button id="btn-inventory">[inv] 装置</button>
+    <button id="btn-codex">[codex] 范畴</button>
+    <button id="btn-save">[save] 锚定</button>
+    <button id="btn-terms" title="切换属性术语: 哲学←→游戏">[terms] 术语</button>
+    <button id="btn-test-drop">[drop] 测试</button>
+    <button id="btn-clear">[reset] 归零</button>
+    <span class="footer-hint">存在者在语言中筑居 · 概念即战场</span>
+  </footer>
+</div>
+
+<!-- ═══ 背包面板 ═══ -->
+<div id="inventory-panel" class="overlay-panel">
+  <div class="panel-header">
+    <h2>装置 · 装备管理</h2>
+    <div class="panel-buttons">
+      <button id="btn-sort">[sort]</button>
+      <button id="btn-close-inv">[close] Esc</button>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="panel-left">
+      <div id="inv-content"></div>
+    </div>
+    <div class="panel-right">
+      <div id="item-detail">
+        <p class="detail-hint">选中装备查看详情</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 图鉴面板 ═══ -->
+<div id="codex-panel" class="overlay-panel">
+  <div class="panel-header">
+    <h2>范畴 · 概念图鉴</h2>
+    <div class="panel-buttons">
+      <button id="btn-close-codex">[close] Esc</button>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="panel-left">
+      <div id="codex-content"></div>
+    </div>
+    <div class="panel-right">
+      <div id="codex-detail">
+        <p class="detail-hint">选中概念查看详情</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js?v=20260622-0005"></script>
+</body>
+</html>
