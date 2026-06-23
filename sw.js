@@ -2,7 +2,7 @@
 // 修复：原来逻辑在版本不一致时直接 self-destruct，导致每次部署都清空离线缓存。
 // 现在改为：新 SW 安装时先缓存资源 → activate 时清除旧版本缓存 → skipWaiting 接管。
 
-const CACHE_VERSION = 'tob-v0.8.1';
+const CACHE_VERSION = 'tob-v0.8.3';
 const CACHE_ASSETS = [
   './',
   './index.html',

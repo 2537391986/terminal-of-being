@@ -170,6 +170,10 @@ export function updateHUD() {
     waveEl.style.color = isCombat ? '#cc0000' : '';
   }
 
+  // ── 战斗画布氛围光 ──
+  const combatEl = document.getElementById('combat');
+  if (combatEl) combatEl.classList.toggle('in-combat', isCombat);
+
   // ── 经验条（ASCII 填充）──
   const expPct = Math.max(0, Math.min(1, state.player.exp / (state.player.expToNext || 1)));
   safeText('exp', `${Math.floor(state.player.exp)} / ${state.player.expToNext || 0}`);
@@ -184,6 +188,13 @@ export function updateHUD() {
   // ── ONTOLOGICAL METRICS ──
   safeText('hud-aspd', (s.aspd || 1).toFixed(2));
   safeText('hud-crit', ((s.crit || 0) * 100).toFixed(1) + '%');
+
+  // ── 紧凑属性条（中等屏幕可见）──
+  safeText('ss-atk', Math.floor(s.atk));
+  safeText('ss-def', Math.floor(s.def));
+  safeText('ss-crit', ((s.crit || 0) * 100).toFixed(1) + '%');
+  safeText('ss-aspd', (s.aspd || 1).toFixed(2));
+
   const statusText = isCombat
     ? `STAGE ${state.stage} · ${world.waveEnemiesLeft} REM`
     : `REST · STAGE ${state.stage}`;
@@ -193,6 +204,9 @@ export function updateHUD() {
   const now = new Date();
   safeText('current-time', now.toTimeString().split(' ')[0]);
   safeText('current-date', now.toISOString().split('T')[0]);
+
+  // ── 伪系统指标（每 3 秒微动）──
+  updateFakeMetrics();
 
   updateLog();
 }
@@ -210,3 +224,33 @@ function updateAsciiBar(id, pct) {
   const filled = Math.round(clamped * 10);
   el.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
 }
+
+// ============================================================
+// 伪系统指标（纯装饰）
+// ============================================================
+let _lastMetricsTime = 0;
+const METRICS_INTERVAL = 3000;
+
+function updateFakeMetrics() {
+  const now = Date.now();
+  if (now - _lastMetricsTime < METRICS_INTERVAL) return;
+  _lastMetricsTime = now;
+
+  const memEl = document.getElementById('sys-mem');
+  const cpuEl = document.getElementById('sys-cpu');
+  const procEl = document.getElementById('sys-proc');
+
+  if (memEl) {
+    const mem = 48 + Math.floor(Math.random() * 80);
+    memEl.textContent = `MEM:${mem}M`;
+  }
+  if (cpuEl) {
+    const cpu = 1 + Math.floor(Math.random() * 11);
+    cpuEl.textContent = `CPU:${cpu}%`;
+  }
+  if (procEl) {
+    const proc = 5 + Math.floor(Math.random() * 6);
+    procEl.textContent = `PROC:${proc}`;
+  }
+}
+

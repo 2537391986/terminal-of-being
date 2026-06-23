@@ -431,7 +431,24 @@ function bindUI() {
     };
   }
 
-  _saveIntervalId = setInterval(saveGame, AUTO_SAVE_INTERVAL);
+  // 全局 ESC — 关闭任何打开的浮层面板
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      for (const panel of document.querySelectorAll('.overlay-panel.show')) {
+        panel.classList.remove('show');
+      }
+    }
+  });
+
+  _saveIntervalId = setInterval(() => {
+    saveGame();
+    // 自动保存视觉反馈：标题栏短暂闪烁
+    const header = document.getElementById('terminal-header');
+    if (header) {
+      header.style.textShadow = '0 0 8px rgba(255,255,255,0.6)';
+      setTimeout(() => { header.style.textShadow = ''; }, 500);
+    }
+  }, AUTO_SAVE_INTERVAL);
 
   // 页面卸载时清理 interval
   window.addEventListener('beforeunload', () => {

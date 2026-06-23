@@ -23,7 +23,7 @@ export function initInventoryUI() {
     renderPanel();
   };
   document.getElementById('btn-close-inv').onclick = () => {
-    panelEl.style.display = 'none';
+    panelEl.classList.remove('show');
   };
 
   // 事件委托：点击背包物品 / 装备栏 / 详情按钮
@@ -31,17 +31,21 @@ export function initInventoryUI() {
   detailEl.addEventListener('click', handleDetailClick);
 
   // 默认隐藏
-  panelEl.style.display = 'none';
+  panelEl.classList.remove('show');
 }
 
 export function togglePanel() {
-  const visible = panelEl.style.display !== 'none';
-  panelEl.style.display = visible ? 'none' : 'flex';
-  if (!visible) renderPanel();
+  const visible = panelEl.classList.contains('show');
+  if (visible) {
+    panelEl.classList.remove('show');
+  } else {
+    panelEl.classList.add('show');
+    renderPanel();
+  }
 }
 
 export function renderPanel() {
-  if (!panelEl || panelEl.style.display === 'none') return;
+  if (!panelEl || !panelEl.classList.contains('show')) return;
 
   const container = document.getElementById('inv-content');
   if (!container) return;
@@ -90,6 +94,21 @@ export function renderPanel() {
 
   // 渲染详情(如果有选中)
   renderDetail();
+
+  // ── 更新底栏 ──
+  const footerEl = document.getElementById('inv-footer');
+  if (footerEl) {
+    let equipped = 0;
+    for (const s of Object.keys(SLOTS)) {
+      if (s === 'ring') {
+        equipped += (state.equipment.ring || []).filter(Boolean).length;
+      } else {
+        if (state.equipment[s]) equipped++;
+      }
+    }
+    const totalSlots = Object.keys(SLOTS).length + 1;
+    footerEl.textContent = `slots: ${equipped}/${totalSlots} equipped · inv: ${state.inventory.length}/${INVENTORY_MAX} · last sort: default`;
+  }
 }
 
 function renderEquipSlot(slot, slotInfo, item, ringIdx = -1) {

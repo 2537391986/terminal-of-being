@@ -15,7 +15,7 @@ export function initCodexUI() {
 
   document.getElementById('btn-codex').onclick = togglePanel;
   document.getElementById('btn-close-codex').onclick = () => {
-    panelEl.style.display = 'none';
+    panelEl.classList.remove('show');
   };
 
   // 事件委托：点击概念卡片
@@ -24,17 +24,21 @@ export function initCodexUI() {
     codexContent.addEventListener('click', handleCodexClick);
   }
 
-  panelEl.style.display = 'none';
+  panelEl.classList.remove('show');
 }
 
 function togglePanel() {
-  const visible = panelEl.style.display !== 'none';
-  panelEl.style.display = visible ? 'none' : 'flex';
-  if (!visible) renderPanel();
+  const visible = panelEl.classList.contains('show');
+  if (visible) {
+    panelEl.classList.remove('show');
+  } else {
+    panelEl.classList.add('show');
+    renderPanel();
+  }
 }
 
 export function renderPanel() {
-  if (!panelEl || panelEl.style.display === 'none') return;
+  if (!panelEl || !panelEl.classList.contains('show')) return;
 
   const container = document.getElementById('codex-content');
   if (!container) return;
@@ -44,6 +48,8 @@ export function renderPanel() {
 
   if (unlocked.length === 0) {
     container.innerHTML = '<p class="codex-empty">尚未解锁任何概念。<br>击杀怪物来解锁它们的哲学内涵。</p>';
+    const footerEl = document.getElementById('codex-footer');
+    if (footerEl) footerEl.textContent = `concepts: 0 unlocked · archive: offline`;
     return;
   }
 
@@ -76,6 +82,13 @@ export function renderPanel() {
 
   // 如果有选中项,渲染详情
   renderDetail();
+
+  // ── 更新底栏 ──
+  const footerEl = document.getElementById('codex-footer');
+  if (footerEl) {
+    const unlocked = (state.unlockedCodex || []).length;
+    footerEl.textContent = `concepts: ${unlocked} unlocked · archive: offline`;
+  }
 }
 
 function renderDetail() {

@@ -21,9 +21,16 @@
 <div id="app">
 
   <header id="terminal-header">
-    <span class="h-left">SYS:TERMINAL-OF-BEING v0.15</span>
-    <span class="h-right">STATUS:OBSERVING <span class="blink">●</span> <span id="current-time">00:00:00</span></span>
+    <span class="h-left">SYS:TERMINAL-OF-BEING v0.15 <span class="h-metrics"><span id="sys-mem">MEM:64M</span> <span id="sys-cpu">CPU:2%</span> <span id="sys-proc">PROC:7</span></span></span>
+    <span class="h-right"><span id="terminal-status-text">STATUS:OBSERVING</span> <span class="blink">●</span> <span id="current-time">00:00:00</span></span>
   </header>
+
+  <div id="stats-strip">
+    <div class="ss-item"><span class="ss-k">ATK</span><span class="ss-v" id="ss-atk">10</span></div>
+    <div class="ss-item"><span class="ss-k">DEF</span><span class="ss-v" id="ss-def">2</span></div>
+    <div class="ss-item"><span class="ss-k">CRIT</span><span class="ss-v" id="ss-crit">5.0%</span></div>
+    <div class="ss-item"><span class="ss-k">ASPD</span><span class="ss-v" id="ss-aspd">1.00</span></div>
+  </div>
 
   <div id="top-row">
     <div class="col-left">
@@ -48,10 +55,10 @@
 
     <div class="col-right">
       <div class="ct">EPISTEME · 认识论</div>
-      <div class="prop"><span class="k">ATK<span class="phi">断言力</span></span><span class="v" id="hud-atk">10</span></div>
-      <div class="prop"><span class="k">DEF<span class="phi">边界性</span></span><span class="v" id="hud-def">2</span></div>
-      <div class="prop"><span class="k">CRIT<span class="phi">洞见</span></span><span class="v" id="hud-crit">5.0%</span></div>
-      <div class="prop"><span class="k">ASPD<span class="phi">频率</span></span><span class="v" id="hud-aspd">1.00</span></div>
+      <div class="prop"><span class="k"><span id="hud-atk-label">ATK</span><span class="phi">断言力</span></span><span class="v" id="hud-atk">10</span></div>
+      <div class="prop"><span class="k"><span id="hud-def-label">DEF</span><span class="phi">边界性</span></span><span class="v" id="hud-def">2</span></div>
+      <div class="prop"><span class="k"><span id="hud-crit-label">CRIT</span><span class="phi">洞见</span></span><span class="v" id="hud-crit">5.0%</span></div>
+      <div class="prop"><span class="k"><span id="hud-aspd-label">ASPD</span><span class="phi">频率</span></span><span class="v" id="hud-aspd">1.00</span></div>
       <div class="prop"><span class="k">DATE</span><span class="v" id="current-date">2026-06-23</span></div>
     </div>
   </div>
@@ -88,6 +95,7 @@
       <div id="inv-content"></div>
       <div id="item-detail"><p class="detail-hint">> select device to view details</p></div>
     </div>
+    <div class="panel-footer" id="inv-footer">slots: 0/8 equipped · inv: 0/40 · last sort: default</div>
   </div>
 </div>
 
@@ -102,6 +110,7 @@
       <div id="codex-content"></div>
       <div id="codex-detail"><p class="detail-hint">> select concept to view details</p></div>
     </div>
+    <div class="panel-footer" id="codex-footer">concepts: 0 unlocked · archive: offline</div>
   </div>
 </div>
 
@@ -119,6 +128,7 @@
       <div id="sp-body" class="sp-body"></div>
       <div class="sp-hint">> 3 points per level. [+] allocate, [-] reclaim.</div>
     </div>
+    <div class="panel-footer" id="talent-footer">lv.1 · 0 pts available · 0 allocated</div>
   </div>
 </div>
 
@@ -134,6 +144,6 @@
   </div>
 </div>
 
-<script type="module" src="js/main.js?v=20260624-v019"></script>
+<script type="module" src="js/main.js?v=20260624-v022"></script>
 </body>
 </html>

@@ -139,6 +139,19 @@ function renderPanel() {
       </div>
     `;
   }).join('');
+
+  // ── 更新底栏 ──
+  const footerEl = document.getElementById('talent-footer');
+  if (footerEl) {
+    const lv = state.player.level || 1;
+    const pts = state.player.statPoints || 0;
+    let allocated = 0;
+    for (const key of Object.keys(cs)) {
+      const cfg = SPENDABLE_STATS.find(s => s.key === key);
+      if (cfg) allocated += Math.round((cs[key] || 0) / cfg.perPoint);
+    }
+    footerEl.textContent = `lv.${lv} · ${pts} pts available · ${allocated} allocated`;
+  }
 }
 
 /** 检查是否有未分配点数（供 HUD 闪烁提示用） */
