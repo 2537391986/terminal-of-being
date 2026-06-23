@@ -369,6 +369,3 @@ export const GORE_GRAVITY = 800;
 
 // 飘字上升速度 (px/s)
 export const DAMAGE_TEXT_RISE_SPEED = 40;
-
-// 地面 Y 坐标 (与 world.js GROUND_Y 对齐)
-export const GROUND_LINE_Y = 280;

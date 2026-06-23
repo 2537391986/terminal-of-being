@@ -17,6 +17,8 @@ export function updateWorldSize() {
   CANVAS_H = h;
   PLAYER_X = Math.floor(w * 0.30);
   PLAYER_Y = Math.floor(h * 0.84);
+  // 地面线：位于玩家脚下方约 5% 画布高度处（原比例 280/320 ≈ 0.875）
+  GROUND_Y = Math.floor(h * 0.89);
 }
 
 // 世界对象(不参与存档,运行时重建)
@@ -47,5 +49,5 @@ export const world = {
   lastTime: 0,
 };
 
-// 血渣落地的"地面" y
-export const GROUND_Y = 280;
+// 血渣落地的"地面" y — 由 updateWorldSize() 动态计算
+export let GROUND_Y = 280;

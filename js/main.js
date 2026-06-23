@@ -8,7 +8,7 @@
 import { state, initialState, mergeState } from './core/state.js';
 import { loadGame, saveGame } from './core/save.js';
 import {
-  world, PLAYER_X, PLAYER_Y, updateWorldSize, SCROLL_SPEED,
+  world, PLAYER_X, PLAYER_Y, GROUND_Y, updateWorldSize, SCROLL_SPEED,
 } from './core/world.js';
 import {
   hitEnemy, getTimeScale, damageEnemy, damagePlayer,
@@ -31,7 +31,7 @@ import {
   DROP_LIFETIME, AUTO_SAVE_INTERVAL,
   MELEE_RANGE, MELEE_INTERVAL, RANGED_RANGE, WAVE_REST_MIN_MS,
   ENEMY_CULL_X, PROJECTILE_HIT_RADIUS, PROJECTILE_CULL_X, DROP_CULL_X,
-  GROUND_LINE_Y, PARTICLE_GRAVITY, GORE_GRAVITY, DAMAGE_TEXT_RISE_SPEED,
+  PARTICLE_GRAVITY, GORE_GRAVITY, DAMAGE_TEXT_RISE_SPEED,
   DYING_TIMER_MS,
 } from './data/constants.js';
 import {
@@ -347,7 +347,7 @@ function loop(now) {
       g.vy += GORE_GRAVITY * (delta / 1000);
       g.x += g.vx * (delta / 1000);
       g.y += g.vy * (delta / 1000);
-      if (g.y >= GROUND_LINE_Y - 4) { g.y = GROUND_LINE_Y - 4; g.vy = 0; g.vx = 0; g.landed = true; }
+      if (g.y >= GROUND_Y - 4) { g.y = GROUND_Y - 4; g.vy = 0; g.vx = 0; g.landed = true; }
     }
     g.x -= scrollDelta;
     g.life -= delta;

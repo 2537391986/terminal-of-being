@@ -565,6 +565,8 @@ body::before {
 @media (max-width:540px) {
   #top-row { grid-template-columns:1fr; }
   .col-left { display:grid; grid-template-columns:1fr 1fr; }
+  /* 右栏同步显示为两列 */
+  .col-right { display:grid; grid-template-columns:1fr 1fr; padding:4px 10px; font-size:12px; line-height:1.4; overflow-y:auto; }
   .bar { display:none; }
   #log { height:80px; }
   .panel-frame { max-height:94vh; }
@@ -584,13 +586,21 @@ body::before {
     grid-template-rows:auto 1fr auto;
     gap:0;
   }
+  /* 左右栏公共：恢复显示 + 紧缩 */
   .col-left, .col-right {
+    display:block;
     padding:4px 10px;
     font-size:12px;
     line-height:1.4;
     overflow-y:auto;
   }
-  /* 左栏横排两列，节省垂直空间 */
+  /* 右栏在移动端显示为两列（与左栏对称）*/
+  .col-right {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0 12px;
+  }
+  /* 左栏也横排两列，节省垂直空间 */
   .col-left {
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -601,18 +611,21 @@ body::before {
     padding-bottom:2px;
     margin-bottom:4px;
   }
-  /* 画布区域自适应高度 */
-  #game-area {
-    min-height:220px;
+  /* 画布区域必须撑满剩余空间 */
+  #combat {
+    min-height:200px;
+    flex:1;
   }
-  /* 按钮栏：可横向滚动，触摸友好 */
+  /* 按钮栏：可横向滚动，触摸友好，不可压缩 */
   #button-bar {
     overflow-x:auto;
     flex-wrap:nowrap;
     -webkit-overflow-scrolling:touch;
     scrollbar-width:none;
-    padding:4px 6px;
-    gap:4px;
+    padding:6px 8px;
+    gap:6px;
+    flex-shrink:0;
+    min-height:40px;
   }
   #button-bar::-webkit-scrollbar { display:none; }
   #button-bar button {
@@ -657,6 +670,10 @@ body::before {
     padding:3px 6px;
   }
   .col-left {
+    grid-template-columns:1fr;
+  }
+  /* 超小屏右栏也变单列 */
+  .col-right {
     grid-template-columns:1fr;
   }
   #log { height:80px; font-size:11px; }
