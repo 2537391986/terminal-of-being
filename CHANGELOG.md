@@ -1,5 +1,25 @@
 # CHANGELOG — 存在终端 Terminal of Being
 
+## v0.9.2 (2026-06-23) — 桌面优先放大 + Canvas 响应式
+
+### 🖥️ 桌面优先放大
+- 基础字号 11px → 15px，侧栏 180px → 240px
+- 面板宽度 720px → 860px，日志区 100px → 130px
+- 按钮栏 padding 加大， terminal-header 加高
+- ASCII 进度条字号 10px → 12px
+
+### 📐 Canvas 填满战斗区
+- `#combat-canvas { width:100%; height:100%; object-fit:contain; }`
+- `world.js`: `CANVAS_W/H` 改 `let`，新增 `updateWorldSize()`
+- `main.js`: `updateCanvasSize()` 初始化 + resize 监听
+- `renderer.js`: 全文件 `CANVAS_W/H` → `world.canvas.width/height`
+- `encounter.js`: 敌人生成位置 → `world.canvas?.width`
+- 支持 `devicePixelRatio`，高清屏不模糊
+
+### 🐛 Bug 修复
+- `renderer.js`: 移除模块加载时 `initBg()` 调用（canvas 未就绪）
+- `main.js`: `initBg()` 改为 canvas 就绪后调用
+
 ## v0.9.1 (2026-06-23) — 极简暗黑终端 + 弹窗 bug 修复
 
 ### 🎨 UI 重新简化
