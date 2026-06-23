@@ -5,6 +5,7 @@ import { state } from '../core/state.js';
 import { SPENDABLE_STATS, STAT_LABELS, STAT_PLAIN_LABELS } from '../data/constants.js';
 import { recalcStats } from '../systems/stats.js';
 import { getFinalStats } from '../systems/effects.js';
+import { animateClose } from '../utils/html.js';
 
 let panelEl = null;
 let _syncCallback = null; // 同步属性回调
@@ -49,7 +50,7 @@ export function openPanel() {
 
 export function closePanel() {
   if (!panelEl) return;
-  panelEl.classList.remove('show');
+  animateClose(panelEl);
 }
 
 export function togglePanel() {

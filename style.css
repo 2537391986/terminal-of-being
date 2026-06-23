@@ -1,7 +1,8 @@
 /* ============================================================
-   style.css — 存在终端 v0.18
+   style.css — 存在终端 v0.19
    黑底白字 CRT 终端 · 零分割线 · 磷光文字 · 桌面优先
    GDD v1.0 布局优化 + 响应式断点重构 + 触摸反馈 + CRT 暗角
+   bugfix: backdrop-filter fallback, mobile 100dvh, panel close anim, etc.
    ============================================================ */
 
 :root {
@@ -23,6 +24,9 @@
 
 html, body {
   height:100%;
+  height:100dvh;
+  width:100%;
+  position:fixed;
   overflow:hidden;
   background:var(--bg);
   color:var(--white);
@@ -57,7 +61,8 @@ body::before {
 
 /* ═══ 主容器 ═══ */
 #app {
-  height:100vh;
+  height:100%;
+  height:100dvh;
   display:flex;
   flex-direction:column;
   position:relative;
@@ -289,11 +294,16 @@ body::before {
   position:fixed;
   inset:0;
   z-index:200;
-  background:rgba(0,0,0,0.88);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  background:rgba(0,0,0,0.94);
   align-items:center;
   justify-content:center;
+}
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+  .overlay-panel {
+    background:rgba(0,0,0,0.88);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
 }
 .overlay-panel.show { display:flex; }
 @keyframes pageIn { 0%{opacity:0} 100%{opacity:1} }
@@ -316,6 +326,14 @@ body::before {
     0 0 80px rgba(0,0,0,0.8),
     0 30px 60px rgba(0,0,0,0.6);
   animation:pageRise 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+/* 面板关闭动画 */
+.panel-frame.closing {
+  animation:pageFall 0.3s cubic-bezier(0.4,0,1,1) both;
+}
+@keyframes pageFall {
+  0%   { opacity:1; transform:translateY(0) scale(1); }
+  100% { opacity:0; transform:translateY(14px) scale(0.97); }
 }
 
 /* 面板头 — 终端标题栏 */
@@ -345,7 +363,7 @@ body::before {
   font-size:12px;
   padding:4px 10px;
   cursor:pointer;
-  transition:color 0.12s;
+  transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
   letter-spacing:1px;
 }
 .panel-header button:hover, .panel-ctrls button:hover { color:var(--white); }
@@ -359,6 +377,9 @@ body::before {
   border-top:1px solid #0d0d0d;
   flex-shrink:0;
   font-family:var(--mono);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 /* 面板体 — 列表区 420px · 详情区限宽 ═══ */
@@ -583,7 +604,8 @@ body::before {
 .detail-actions { display:flex; gap:8px; margin-top:12px; }
 .btn-equip, .btn-discard {
   flex:1; padding:7px; background:transparent; color:var(--dim);
-  border:none; font-family:var(--mono); font-size:13px; cursor:pointer; transition:color 0.12s;
+  border:none; font-family:var(--mono); font-size:13px; cursor:pointer;
+  transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
 }
 .btn-equip::before, .btn-discard::before { content:'['; }
 .btn-equip::after, .btn-discard::after { content:']'; }
@@ -608,12 +630,11 @@ body::before {
 .sp-btn {
   width:30px; height:30px; background:transparent; border:none;
   font-family:var(--mono); font-size:18px; color:var(--dim); cursor:pointer;
-  transition:color 0.12s;
+  transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
 }
 .sp-btn::before { content:'['; }
 .sp-btn::after { content:']'; }
 .sp-btn:hover { color:var(--white); }
-.sp-btn:active { transform:scale(0.92); }
 .sp-hint {
   margin-top:12px; padding-top:10px;
   font-size:11px; color:var(--darker);
@@ -745,7 +766,6 @@ body::after {
 }
 @media (max-width:900px) {
   #top-row { grid-template-columns:160px 1fr; }
-  #stats-strip { display:none; }
   .btn-core .key { display:none; }
   .btn-tool { display:none; }
   .panel-body { grid-template-columns:1fr; }
@@ -757,6 +777,7 @@ body::after {
 }
 @media (max-width:768px) {
   html, body { font-size:14px; }
+  #app { animation:none; }
   #terminal-header { padding:6px 12px; }
   .h-left { font-size:13px; letter-spacing:2px; }
   .h-metrics { display:none; }

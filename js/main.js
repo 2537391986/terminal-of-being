@@ -239,6 +239,7 @@ function loop(now) {
         hitEnemy(enemy, dmg, isCrit);
         if (enemy.hp <= 0 && !enemy.dying) {
           enemy.dying = true;
+          enemy.dyingTimer = DYING_TIMER_MS;
           onEnemyDeath(enemy);
         }
       }
@@ -278,6 +279,7 @@ function loop(now) {
     // 被卷轴抛出 — 等同于击杀，走完整的 onEnemyDeath 流程
     if (enemy.x < ENEMY_CULL_X) {
       enemy.dying = true;
+      enemy.dyingTimer = DYING_TIMER_MS;
       enemy.scrollCulled = true;
       log(`[存在卷轴] ${enemy.name} 被抛入不可追溯的过去`);
       onEnemyDeath(enemy);
@@ -325,6 +327,7 @@ function loop(now) {
         }
         if (enemy.hp <= 0 && !enemy.dying) {
           enemy.dying = true;
+          enemy.dyingTimer = DYING_TIMER_MS;
           onEnemyDeath(enemy);
         }
         if (!proj.pierce) break;

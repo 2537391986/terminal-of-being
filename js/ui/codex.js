@@ -4,7 +4,7 @@
 
 import { state } from '../core/state.js';
 import { CONCEPTS, findConcept } from '../data/concepts.js';
-import { escapeHtml } from '../utils/html.js';
+import { escapeHtml, animateClose } from '../utils/html.js';
 
 let panelEl = null;
 let selectedId = null;
@@ -14,9 +14,7 @@ export function initCodexUI() {
   if (!panelEl) return;
 
   document.getElementById('btn-codex').onclick = togglePanel;
-  document.getElementById('btn-close-codex').onclick = () => {
-    panelEl.classList.remove('show');
-  };
+  document.getElementById('btn-close-codex').onclick = () => animateClose(panelEl);
 
   // 事件委托：点击概念卡片
   const codexContent = document.getElementById('codex-content');
@@ -30,7 +28,7 @@ export function initCodexUI() {
 function togglePanel() {
   const visible = panelEl.classList.contains('show');
   if (visible) {
-    panelEl.classList.remove('show');
+    animateClose(panelEl);
   } else {
     panelEl.classList.add('show');
     renderPanel();

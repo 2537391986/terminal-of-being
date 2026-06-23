@@ -6,7 +6,7 @@ import { state } from '../core/state.js';
 import { RARITIES, SLOTS, STAT_LABELS, INVENTORY_MAX } from '../data/constants.js';
 import { equipItem, unequipItem, discardItem, sortInventory, rarityWeight } from '../systems/equipment.js';
 import { recalcStats, formatStat } from '../systems/stats.js';
-import { escapeHtml } from '../utils/html.js';
+import { escapeHtml, animateClose } from '../utils/html.js';
 
 let panelEl = null;
 let detailEl = null;
@@ -22,9 +22,7 @@ export function initInventoryUI() {
     sortInventory();
     renderPanel();
   };
-  document.getElementById('btn-close-inv').onclick = () => {
-    panelEl.classList.remove('show');
-  };
+  document.getElementById('btn-close-inv').onclick = () => animateClose(panelEl);
 
   // 事件委托：点击背包物品 / 装备栏 / 详情按钮
   document.getElementById('inv-content').addEventListener('click', handleInvClick);
@@ -37,7 +35,7 @@ export function initInventoryUI() {
 export function togglePanel() {
   const visible = panelEl.classList.contains('show');
   if (visible) {
-    panelEl.classList.remove('show');
+    animateClose(panelEl);
   } else {
     panelEl.classList.add('show');
     renderPanel();

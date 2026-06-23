@@ -436,6 +436,11 @@ export function flushBossDamageBuffer(now) {
       // 合并窗口到期，结算缓冲伤害
       if (enemy.damageBuffer > 0) {
         enemy.hp -= enemy.damageBuffer;
+        // ★ BUG-02 修复：扣血后检查死亡
+        if (enemy.hp <= 0 && !enemy.dying) {
+          enemy.dying = true;
+          enemy.dyingTimer = DYING_TIMER_MS;
+        }
         world.damageTexts.push({
           x: enemy.x, y: enemy.y - 18,
           value: Math.floor(enemy.damageBuffer),

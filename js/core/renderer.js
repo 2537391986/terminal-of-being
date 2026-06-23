@@ -228,8 +228,6 @@ export function render(now) {
   ctx.translate(_shakeVec.x, _shakeVec.y);
 
   // ── 1. 清屏 ──
-  ctx.fillStyle = getColor('--bg-panel');
-  // 清屏
   ctx.fillStyle = getColorAlpha('--bg', 0.92);
   ctx.fillRect(-10, -10, (world.canvas?.width || 800) + 20, (world.canvas?.height || 320) + 20);
 
