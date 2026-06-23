@@ -124,21 +124,31 @@ export const AFFIXES = [
   { stat: 'rarityFind', value: 0.06, isPercent: true, weight: 2, flavor: '超验的' },
 ];
 
+// 修复4：暂时屏蔽未实装的废属性词缀
+// cooldownRed：主动技能/蓝条系统 v0.9+ 才会实装，现在出了=白占词缀槽
+// maxMp：法力消耗系统 v0.9+ 才会实装
+const DISABLED_STATS = new Set(['cooldownRed', 'maxMp']);
+
+// 过滤词缀池：排除禁用属性
+function filterDisabled(pool) {
+  return pool.filter(a => !DISABLED_STATS.has(a.stat));
+}
+
 // 按稀有度筛选可用词缀（防止 common 出百分比词缀）
 export function getAffixPoolForRarity(rarity) {
   switch (rarity) {
     case 'common':
-      return AFFIXES.filter(a => !a.isPercent && a.value <= 5);
+      return filterDisabled(AFFIXES.filter(a => !a.isPercent && a.value <= 5));
     case 'magic':
-      return AFFIXES.filter(a => !a.isPercent);
+      return filterDisabled(AFFIXES.filter(a => !a.isPercent));
     case 'rare':
     case 'epic':
-      return AFFIXES;
+      return filterDisabled(AFFIXES);
     case 'legendary':
     case 'mythic':
-      return AFFIXES.filter(a => a.weight <= 5 || a.isPercent);
+      return filterDisabled(AFFIXES.filter(a => a.weight <= 5 || a.isPercent));
     default:
-      return AFFIXES;
+      return filterDisabled(AFFIXES);
   }
 }
 

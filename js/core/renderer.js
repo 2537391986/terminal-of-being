@@ -2,6 +2,7 @@
 // Canvas 2D 渲染器 — 从 main.js 提取 (v6.2 架构拆分)
 // 统一管理所有绘制调用, main.js 只调用 render(now)
 // v7.1: 装备外观系统 + 武器特有攻击效果
+// v0.8.1: shakeOff 改为静态复用对象，消灭 getShakeOffset() 每帧 new {x,y} 的 GC 压力
 
 import { world, PLAYER_X, PLAYER_Y, CANVAS_W, CANVAS_H, GROUND_Y, SCROLL_SPEED } from './world.js';
 import { getShakeOffset } from '../systems/combat.js';
@@ -49,6 +50,12 @@ export function refreshColorCache() {
     delete _colorCache[key];
   }
 }
+
+// ============================================================
+// 修复7：静态复用向量对象 — 消除 60fps 下每帧 new {} 的 GC 压力
+// ============================================================
+// 每帧复用同一个对象，写入坐标后直接读取，不产生短命临时对象
+const _shakeVec = { x: 0, y: 0 };
 
 // ============================================================
 // 背景动画
@@ -211,10 +218,11 @@ function drawPlayer(ctx, now) {
  */
 export function render(now) {
   const ctx = world.ctx;
-  const shakeOff = getShakeOffset();
+  // 修复7：直接写入静态复用对象，避免每帧 new {x, y}
+  getShakeOffset(_shakeVec);
 
   ctx.save();
-  ctx.translate(shakeOff.x, shakeOff.y);
+  ctx.translate(_shakeVec.x, _shakeVec.y);
 
   // ── 1. 清屏 ──
   ctx.fillStyle = getColor('--bg-panel');

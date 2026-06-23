@@ -244,12 +244,19 @@ export function expToNext(level) {
   return Math.floor(20 * Math.pow(level, 1.45));
 }
 
+// === 敌人移速上限 ===
+// 对数曲线上限：防止高层怪物瞬间与玩家重叠
+// 计算基础: 55 + 45 * log10(1 + stage * 0.3)，此值约在 stage=100 时达到 ~118
+export const ENEMY_SPEED_MAX = 120;
+
 // === 敌人属性公式(stage = 当前层数) ===
+// def 字段保留供旧代码兼容，但实际伤害计算改用 defPct（见 encounter.js makeEnemy）
+// defPct = min(0.85, def / (def + 50))  —— 软上限机制，永远不会造成 0 伤
 export function enemyStats(stage) {
   return {
     hp:   30 * Math.pow(stage, 1.35),
     atk:  4  * Math.pow(stage, 1.18),
-    def:  1  + Math.pow(stage, 1.05),
+    def:  1  + Math.pow(stage, 1.05),  // 原始防御值（用于 defPct 计算）
     exp:  5  * Math.pow(stage, 1.15),
     gold: 3  * Math.pow(stage, 1.10),
   };

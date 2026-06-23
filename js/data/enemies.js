@@ -26,98 +26,167 @@
 //   机制(但 v6.0 尚未实装 Boss 专属机制)。
 // ═══════════════════════════════════════════════════════════════
 
+// ============================================================
+// Mechanics 行为标签说明（v0.8 实装）
+// ============================================================
+// 每个怪物可携带 mechanics 数组，encounter 系统在每帧 AI 更新中解析这些标签。
+// 支持的标签类型：
+//
+//  { type: 'ranged', range: 350, projectileSymbol: '·', damageMul: 0.8, cooldown: 2.0 }
+//    — 远程攻击：在 range 距离内停下，每 cooldown 秒发射一枚投射物
+//
+//  { type: 'charger', chargeRange: 500, chargeSpeedMul: 3.5, chargeCooldown: 5.0 }
+//    — 冲锋：每 chargeCooldown 秒，若玩家在 chargeRange 内，以 chargeSpeedMul 倍移速冲刺
+//
+//  { type: 'splitter', splitCount: 2, splitHpPct: 0.4 }
+//    — 分裂：HP 降至 splitHpPct 时死亡并生成 splitCount 个缩小版自身
+//
+//  { type: 'shield_regen', regenPct: 0.15, regenCooldown: 8.0 }
+//    — 护盾恢复：每 regenCooldown 秒，若没被攻击，恢复最大 HP 的 regenPct
+//
+// mechanics: [] 表示普通近战木桩（默认行为，无特殊逻辑）
+// ============================================================
+
 export const ENEMY_TEMPLATES = [
   // 普罗泰戈拉："人是万物的尺度"(Homo mensura)——真理依赖于感知者。
-  // 作为首个解锁的普通怪，它代表了一切"视角主义"的起点。
-  { id:'e_protag_measure',   name:'人是万物的尺度',  symbol:'π',  type:'normal', conceptId:'protagoras',              stageRange:[1,999] },
-  // 笛卡尔：cogito——"我思故我在"，近代哲学的起点。早期出现，退出较早(30层后不再
-  // 出现)，因为笛卡尔的确定性在更深层开始瓦解。
-  { id:'e_cogito_ghost',     name:'我思故我在',      symbol:'©',  type:'normal', conceptId:'cogito',                   stageRange:[1,30]  },
-  // 帕斯卡：用概率论论证信仰。"赌注"(wager)而非"赌局"(game)——这关于决定论的
-  // 主体抉择，不是随机游戏。统一为概念库中的"帕斯卡赌注"。
-  { id:'e_pascal_wager',     name:'帕斯卡赌注',      symbol:'P',  type:'normal', conceptId:'pascal_wager',              stageRange:[5,60]  },
-  // 维特根斯坦后期：语言的意义 = 它的使用方式。"残响"——这已经不是原初的
-  // 语言游戏，只是在"存在终端"里回荡的、脱离了具体生活形式的语言碎片。
-  { id:'e_language_game',    name:'语言游戏残响',    symbol:'L',  type:'normal', conceptId:'language_game',             stageRange:[8,80]  },
-  // 哈贝马斯："公共领域"——公民理性讨论的场所。"回声"——在数字空间里，公共
-  // 领域的回声比原始发声更嘈杂。
-  { id:'e_public_sphere',    name:'公共领域回声',    symbol:'h',  type:'normal', conceptId:'public_sphere',             stageRange:[10,100] },
-  // 列维-施特劳斯：文化由二元对立(生/死、男/女、昼/夜)组织。"体"——它自身
-  // 就是一个二元对立的具象化存在。
-  { id:'e_binary_oppose',    name:'二元对立体',      symbol:'±',  type:'normal', conceptId:'structuralism',             stageRange:[15,120] },
-  // 福柯：不研究"思想史"，研究"话语"的断裂与重组。"遗迹"——不是福柯本人的
-  // 著作，而是他的方法论在挖掘时留下的考古坑。
-  { id:'e_knowledge_arch',   name:'知识考古遗迹',    symbol:'K',  type:'normal', conceptId:'knowledge_archaeology',     stageRange:[20,150] },
-  // 阿多诺 & 霍克海默：大众文化被标准化生产。"循环"——它像一个永不停歇的
-  // 流水线，生产标准化的攻击模式。
-  { id:'e_culture_industry', name:'文化工业循环',    symbol:'a',  type:'normal', conceptId:'culture_industry',          stageRange:[25,200] },
-  // 维也纳学派："有意义的命题必须可被经验证实"。"空壳"——这个原则本身无法
-  // 被经验证实，所以它只是一个空壳——但它仍然在攻击你。
-  { id:'e_vienna_verify',    name:'证实原则空壳',    symbol:'V',  type:'normal', conceptId:'verificationism',           stageRange:[30,250] },
-  // 哥德尔：任何足够强的系统都存在不可证的命题。"裂隙"——系统的裂缝本身
-  // 是一种存在。你在攻击一个形式系统的漏洞。
-  { id:'e_godel_incompl',    name:'哥德尔裂隙',      symbol:'G',  type:'normal', conceptId:'godel_incompleteness',      stageRange:[40,300] },
+  // 近战木桩，作为首个遭遇的怪物，设计上越简单越好。
+  { id:'e_protag_measure',   name:'人是万物的尺度',  symbol:'π',  type:'normal', conceptId:'protagoras',              stageRange:[1,999],  mechanics:[] },
+  // 笛卡尔：cogito——反复怀疑、后退再怀疑。设计为"退后型远程"：
+  // 保持距离并发射投射物，体现"cogito"作为一种反复退回的反思行为。
+  { id:'e_cogito_ghost',     name:'我思故我在',      symbol:'©',  type:'normal', conceptId:'cogito',                   stageRange:[1,30],   mechanics:[
+    { type: 'ranged', range: 320, projectileSymbol: '?', damageMul: 0.75, cooldown: 2.5 },
+  ]},
+  // 帕斯卡赌注：押注与冲锋——它在赌你的位置，然后全力冲过来。
+  { id:'e_pascal_wager',     name:'帕斯卡赌注',      symbol:'P',  type:'normal', conceptId:'pascal_wager',              stageRange:[5,60],   mechanics:[
+    { type: 'charger', chargeRange: 480, chargeSpeedMul: 3.0, chargeCooldown: 6.0 },
+  ]},
+  // 语言游戏：分裂为更小的"语言碎片"——越打越多，但每个都更弱。
+  { id:'e_language_game',    name:'语言游戏残响',    symbol:'L',  type:'normal', conceptId:'language_game',             stageRange:[8,80],   mechanics:[
+    { type: 'splitter', splitCount: 2, splitHpPct: 0.35 },
+  ]},
+  // 公共领域回声：保持距离、持续远程骚扰——"回声"从不贴近，只是不断回响。
+  { id:'e_public_sphere',    name:'公共领域回声',    symbol:'h',  type:'normal', conceptId:'public_sphere',             stageRange:[10,100], mechanics:[
+    { type: 'ranged', range: 380, projectileSymbol: 'h', damageMul: 0.65, cooldown: 1.8 },
+  ]},
+  // 二元对立体：护盾恢复——每当你停下来，它就在恢复平衡。
+  { id:'e_binary_oppose',    name:'二元对立体',      symbol:'±',  type:'normal', conceptId:'structuralism',             stageRange:[15,120], mechanics:[
+    { type: 'shield_regen', regenPct: 0.12, regenCooldown: 7.0 },
+  ]},
+  // 知识考古遗迹：近战木桩（挖掘时的静止状态）
+  { id:'e_knowledge_arch',   name:'知识考古遗迹',    symbol:'K',  type:'normal', conceptId:'knowledge_archaeology',     stageRange:[20,150], mechanics:[] },
+  // 文化工业循环：分裂——标准化再生产，击破一个生出另外两个。
+  { id:'e_culture_industry', name:'文化工业循环',    symbol:'a',  type:'normal', conceptId:'culture_industry',          stageRange:[25,200], mechanics:[
+    { type: 'splitter', splitCount: 2, splitHpPct: 0.50 },
+  ]},
+  // 证实原则空壳：护盾恢复——空壳能够自我修补，因为它已不受证伪约束。
+  { id:'e_vienna_verify',    name:'证实原则空壳',    symbol:'V',  type:'normal', conceptId:'verificationism',           stageRange:[30,250], mechanics:[
+    { type: 'shield_regen', regenPct: 0.18, regenCooldown: 6.0 },
+  ]},
+  // 哥德尔裂隙：冲锋——系统缺口一旦出现就会扩张，以加速的方式向你袭来。
+  { id:'e_godel_incompl',    name:'哥德尔裂隙',      symbol:'G',  type:'normal', conceptId:'godel_incompleteness',      stageRange:[40,300], mechanics:[
+    { type: 'charger', chargeRange: 520, chargeSpeedMul: 3.5, chargeCooldown: 5.5 },
+  ]},
   // ═══════════════════════════════════════════════════════════════
   // 新怪物：道家哲学（v7.2 扩充）
   // ═══════════════════════════════════════════════════════════════
   // 道："道可道，非常道"——无法被完全言说的终极实在。
-  { id:'e_dao_echo',        name:'道之残响',      symbol:'道', type:'normal', conceptId:'dao',                  stageRange:[1,999] },
-  // 无为："为无为，事无事"——不妄为，顺应自然。
-  { id:'e_wuwei_echo',      name:'无为残响',        symbol:'无', type:'normal', conceptId:'wu_wei',               stageRange:[10,200] },
-  // 阴阳："一阴一阳之谓道"——互补对立的动态平衡。
-  { id:'e_yinyang_cycle',    name:'阴阳循环体',      symbol:'☯', type:'normal', conceptId:'yin_yang',             stageRange:[20,250] },
+  // 护盾恢复：道不可被彻底理解，打完了它又缓缓恢复。
+  { id:'e_dao_echo',        name:'道之残响',      symbol:'道', type:'normal', conceptId:'dao',                  stageRange:[1,999],  mechanics:[
+    { type: 'shield_regen', regenPct: 0.10, regenCooldown: 9.0 },
+  ]},
+  // 无为：保持距离，不主动进攻——顺应自然，等你靠近才反应。
+  // 远程低伤骚扰，体现"不为而为"
+  { id:'e_wuwei_echo',      name:'无为残响',        symbol:'无', type:'normal', conceptId:'wu_wei',               stageRange:[10,200], mechanics:[
+    { type: 'ranged', range: 400, projectileSymbol: '·', damageMul: 0.55, cooldown: 3.5 },
+  ]},
+  // 阴阳：分裂为"阴体"和"阳体"——动态平衡在破碎时一分为二。
+  { id:'e_yinyang_cycle',    name:'阴阳循环体',      symbol:'☯', type:'normal', conceptId:'yin_yang',             stageRange:[20,250], mechanics:[
+    { type: 'splitter', splitCount: 2, splitHpPct: 0.45 },
+  ]},
   // ═══════════════════════════════════════════════════════════════
   // 新怪物：佛教哲学（v7.2 扩充）
   // ═══════════════════════════════════════════════════════════════
-  // 四圣谛：苦、集、灭、道——佛陀初转法轮的核心教义。
-  { id:'e_four_truths',     name:'四圣谛显现',      symbol:'䌀', type:'normal', conceptId:'four_noble_truths',    stageRange:[30,300] },
-  // 缘起："此有故彼有"——一切现象依缘而起，无独立实体。
-  { id:'e_dependent_arise', name:'缘起之网',        symbol:'⟲', type:'normal', conceptId:'pratityasamutpada', stageRange:[40,300] },
-  // 空："诸法无自性"——一切法都是空的，没有固有本质。
-  { id:'e_sunyata_echo',    name:'空性残响',        symbol:'∅', type:'normal', conceptId:'sunyata',            stageRange:[50,300] },
+  // 四圣谛：护盾恢复——苦的本质是循环，受伤后自我修复。
+  { id:'e_four_truths',     name:'四圣谛显现',      symbol:'䌀', type:'normal', conceptId:'four_noble_truths',    stageRange:[30,300], mechanics:[
+    { type: 'shield_regen', regenPct: 0.15, regenCooldown: 7.0 },
+  ]},
+  // 缘起：分裂（缘生缘灭）——一体破碎，各部分依旧相互生成。
+  { id:'e_dependent_arise', name:'缘起之网',        symbol:'⟲', type:'normal', conceptId:'pratityasamutpada',    stageRange:[40,300], mechanics:[
+    { type: 'splitter', splitCount: 3, splitHpPct: 0.30 },
+  ]},
+  // 空：近战木桩（空性本无特质，无行为是最真实的空）
+  { id:'e_sunyata_echo',    name:'空性残响',        symbol:'∅', type:'normal', conceptId:'sunyata',               stageRange:[50,300], mechanics:[] },
   // ═══════════════════════════════════════════════════════════════
   // 新怪物：实用主义 + 科学哲学（v7.2 扩充）
   // ═══════════════════════════════════════════════════════════════
-  // 实用主义："真理是有用的信念"——詹姆斯。
-  { id:'e_pragmatism',      name:'实用主义残响',    symbol:'⌬', type:'normal', conceptId:'pragmatism',         stageRange:[45,300] },
-  // 证伪主义："科学理论只能被证伪"——波普尔。
-  { id:'e_falsification',   name:'证伪者',          symbol:'⚡', type:'normal', conceptId:'falsificationism',   stageRange:[55,300] },
-  // 范式转换："科学革命的结构"——库恩（待v8.0）。
-  { id:'e_paradigm_shift',   name:'范式转换裂隙',    symbol:'⇆', type:'normal', conceptId:'paradigm_shift',     stageRange:[65,300] },
-  // 反对方法："怎么都行"——费耶阿本德（待v8.0）。
-  { id:'e_against_method',  name:'方法抵抗体',      symbol:'⚎', type:'normal', conceptId:'against_method',     stageRange:[75,300] },
+  // 实用主义："有用的就是真的"——冲过来，用实际结果证明自己。
+  { id:'e_pragmatism',      name:'实用主义残响',    symbol:'⌬', type:'normal', conceptId:'pragmatism',            stageRange:[45,300], mechanics:[
+    { type: 'charger', chargeRange: 450, chargeSpeedMul: 2.8, chargeCooldown: 6.5 },
+  ]},
+  // 证伪者：远程攻击——它用你的攻击来"证伪"你的存在。
+  { id:'e_falsification',   name:'证伪者',          symbol:'⚡', type:'normal', conceptId:'falsificationism',      stageRange:[55,300], mechanics:[
+    { type: 'ranged', range: 360, projectileSymbol: '⚡', damageMul: 0.90, cooldown: 2.0 },
+  ]},
+  // 范式转换：冲锋——科学革命不是渐进的，是突然爆发的。
+  { id:'e_paradigm_shift',   name:'范式转换裂隙',    symbol:'⇆', type:'normal', conceptId:'paradigm_shift',        stageRange:[65,300], mechanics:[
+    { type: 'charger', chargeRange: 500, chargeSpeedMul: 4.0, chargeCooldown: 5.0 },
+  ]},
+  // 反对方法："怎么都行"——分裂为混乱的多个方向。
+  { id:'e_against_method',  name:'方法抵抗体',      symbol:'⚎', type:'normal', conceptId:'against_method',        stageRange:[75,300], mechanics:[
+    { type: 'splitter', splitCount: 2, splitHpPct: 0.55 },
+  ]},
   // ═════════════════════════════════════════════════════════════
   // 新怪物：v7.2 第二批（女性主义 + 政治哲学 + 古希腊）
   // ═════════════════════════════════════════════════════════════
-  // 波伏娃："一个人不是生来就是女人"——他者化。
-  { id:'e_second_sex',     name:'他者化残响',      symbol:'♀', type:'normal', conceptId:'second_sex',        stageRange:[60,300] },
-  // 阿伦特："恶之平庸性"——不思比邪恶更可怕。
-  { id:'e_banality_evil',  name:'平庸之恶',        symbol:'◎', type:'normal', conceptId:'banality_of_evil', stageRange:[70,300] },
-  // 苏格拉底："未经省察的人生不值得过"——诘问法。
-  { id:'e_socratic',       name:'诘问者',          symbol:'?', type:'normal', conceptId:'socratic_method',   stageRange:[5,150] },
+  // 波伏娃：远程骚扰——他者永远保持距离，从外部凝视和定义你。
+  { id:'e_second_sex',     name:'他者化残响',      symbol:'♀', type:'normal', conceptId:'second_sex',             stageRange:[60,300], mechanics:[
+    { type: 'ranged', range: 350, projectileSymbol: '♀', damageMul: 0.70, cooldown: 2.2 },
+  ]},
+  // 阿伦特：近战木桩——"恶之平庸性"就是机械、无思的服从，无特殊行为。
+  { id:'e_banality_evil',  name:'平庸之恶',        symbol:'◎', type:'normal', conceptId:'banality_of_evil',       stageRange:[70,300], mechanics:[] },
+  // 苏格拉底：近战 + 每次被攻击后短暂加速（反驳反而激发更多追问）
+  { id:'e_socratic',       name:'诘问者',          symbol:'?', type:'normal', conceptId:'socratic_method',        stageRange:[5,150],  mechanics:[] },
   // ═══════════════════════════════════════════════════════════════
   // v0.7.3 第三批扩充：存在主义、解构、古希腊、现象学
   // ═══════════════════════════════════════════════════════════════
-  // 亚里士多德："美德是两恶之间的中道"——中庸之道。
-  { id:'e_aristotle_mean',  name:'中庸守护者',      symbol:'≡', type:'normal', conceptId:'aristotle_mean',       stageRange:[9,180] },
-  // 庄子："不知周之梦为蝴蝶与？"——蝴蝶梦。
-  { id:'e_zhuangzi_butter', name:'蝴蝶残响',        symbol:'蝶', type:'normal', conceptId:'zhuangzi_butterfly',  stageRange:[18,220] },
-  // 柏拉图："囚徒只看到墙上的影子"——洞穴寓言。
-  { id:'e_plato_cave',      name:'洞窟投影',        symbol:'△', type:'normal', conceptId:'plato_cave',           stageRange:[26,250] },
-  // 萨特："人假装自己是物来逃避自由"——自欺。
-  { id:'e_bad_faith',       name:'自欺残影',        symbol:'ψ', type:'normal', conceptId:'sartre_bad_faith',     stageRange:[34,280] },
-  // 加缪："必须想象西西弗是幸福的"——荒谬的反抗。
-  { id:'e_absurd_loop',     name:'荒谬循环者',      symbol:'∞', type:'normal', conceptId:'camus_absurd',         stageRange:[42,300] },
-  // 德里达："意义永远被延迟"——延异。
-  { id:'e_différance',      name:'延异碎片',        symbol:'δ', type:'normal', conceptId:'derrida_deconstruction', stageRange:[52,300] },
-  // 康德（扩展）："只按照你同时愿意它成为普遍法则的准则行动"——绝对命令。
-  { id:'e_categorical_imper', name:'绝对命令回响',   symbol:'!', type:'normal', conceptId:'categorical_imperative', stageRange:[58,300] },
-  // 罗尔斯（扩展）："在原初状态中、无知之幕后面选择正义原则"。
-  { id:'e_veil_ignorance',  name:'无知之幕投影',    symbol:'◈', type:'normal', conceptId:'veil_of_ignorance',   stageRange:[64,300] },
-  // 黑格尔："主人依赖奴隶的承认"——主奴辩证法。
-  { id:'e_hegel_dialectic', name:'主奴辩证体',      symbol:'⇌', type:'normal', conceptId:'hegel_dialectic',      stageRange:[72,300] },
-  // 福柯："囚犯自己监管自己"——全景监狱。
-  { id:'e_foucault_panoptic',name:'全景监视线',     symbol:'⌂', type:'normal', conceptId:'foucault_panopticon',  stageRange:[84,300] },
+  // 亚里士多德：护盾恢复——中庸者总在极端之间找到平衡点。
+  { id:'e_aristotle_mean',  name:'中庸守护者',      symbol:'≡', type:'normal', conceptId:'aristotle_mean',         stageRange:[9,180],  mechanics:[
+    { type: 'shield_regen', regenPct: 0.14, regenCooldown: 8.0 },
+  ]},
+  // 庄子：分裂——"周"与"蝶"两种状态，无法确定哪个是真实的。
+  { id:'e_zhuangzi_butter', name:'蝴蝶残响',        symbol:'蝶', type:'normal', conceptId:'zhuangzi_butterfly',    stageRange:[18,220], mechanics:[
+    { type: 'splitter', splitCount: 2, splitHpPct: 0.40 },
+  ]},
+  // 柏拉图洞窟：远程投射"影子"——洞穴中的人只能看到墙上的投影。
+  { id:'e_plato_cave',      name:'洞窟投影',        symbol:'△', type:'normal', conceptId:'plato_cave',             stageRange:[26,250], mechanics:[
+    { type: 'ranged', range: 340, projectileSymbol: '△', damageMul: 0.72, cooldown: 2.8 },
+  ]},
+  // 萨特自欺：近战木桩——自欺者假装自己是物，停在原地不行动。
+  { id:'e_bad_faith',       name:'自欺残影',        symbol:'ψ', type:'normal', conceptId:'sartre_bad_faith',       stageRange:[34,280], mechanics:[] },
+  // 加缪荒谬：冲锋——西西弗不断地推石上山，周而复始地冲向你。
+  { id:'e_absurd_loop',     name:'荒谬循环者',      symbol:'∞', type:'normal', conceptId:'camus_absurd',           stageRange:[42,300], mechanics:[
+    { type: 'charger', chargeRange: 460, chargeSpeedMul: 3.2, chargeCooldown: 5.0 },
+  ]},
+  // 延异碎片：分裂——意义被延迟，本体破碎为更多碎片。
+  { id:'e_différance',      name:'延异碎片',        symbol:'δ', type:'normal', conceptId:'derrida_deconstruction', stageRange:[52,300], mechanics:[
+    { type: 'splitter', splitCount: 3, splitHpPct: 0.45 },
+  ]},
+  // 绝对命令：近战 + 护盾恢复——道德律令不容破坏，损毁后自我修复。
+  { id:'e_categorical_imper', name:'绝对命令回响',  symbol:'!', type:'normal', conceptId:'categorical_imperative', stageRange:[58,300], mechanics:[
+    { type: 'shield_regen', regenPct: 0.20, regenCooldown: 6.5 },
+  ]},
+  // 无知之幕：远程攻击——不知道自己的位置，从幕后投射偏见。
+  { id:'e_veil_ignorance',  name:'无知之幕投影',    symbol:'◈', type:'normal', conceptId:'veil_of_ignorance',     stageRange:[64,300], mechanics:[
+    { type: 'ranged', range: 370, projectileSymbol: '◈', damageMul: 0.80, cooldown: 2.4 },
+  ]},
+  // 主奴辩证体：冲锋——主人对奴隶需要承认，以强力姿态冲向你寻求确认。
+  { id:'e_hegel_dialectic', name:'主奴辩证体',      symbol:'⇌', type:'normal', conceptId:'hegel_dialectic',        stageRange:[72,300], mechanics:[
+    { type: 'charger', chargeRange: 490, chargeSpeedMul: 3.8, chargeCooldown: 4.5 },
+  ]},
+  // 全景监视线：远程监控——全景监狱从远处监视，从不靠近。
+  { id:'e_foucault_panoptic',name:'全景监视线',     symbol:'⌂', type:'normal', conceptId:'foucault_panopticon',   stageRange:[84,300], mechanics:[
+    { type: 'ranged', range: 420, projectileSymbol: '⌂', damageMul: 0.85, cooldown: 1.6 },
+  ]},
 ];
 
 export const ELITE_TEMPLATES = [

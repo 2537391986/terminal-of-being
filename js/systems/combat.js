@@ -32,6 +32,9 @@ let slowMoEnd = 0;
 
 // 击中反馈:顿帧 + 血渣(更多) + 击退
 export function hitEnemy(enemy, dmg, isCrit) {
+  // 0. 记录受击时间（供 shield_regen Mechanics 行为使用）
+  enemy._lastHitTime = performance.now();
+
   // 1. 顿帧
   enemy.hitStun = HIT_STUN_MS;
   enemy.flashUntil = Date.now() + (isCrit ? CRIT_FLASH_MS : HIT_FLASH_MS);
@@ -124,13 +127,18 @@ export function updateShake(deltaMs) {
   }
 }
 
-// 获取屏幕震动偏移(纯读取)
-export function getShakeOffset() {
-  if (shakeDuration <= 0) return { x: 0, y: 0 };
-  return {
-    x: (Math.random() - 0.5) * shakeIntensity * 2,
-    y: (Math.random() - 0.5) * shakeIntensity * 2,
-  };
+// 获取屏幕震动偏移
+// 修复7：接受可选的 out 对象直接写入，避免每帧 new {x,y}（调用方传入复用对象即可）
+export function getShakeOffset(out) {
+  const target = out || { x: 0, y: 0 };
+  if (shakeDuration <= 0) {
+    target.x = 0;
+    target.y = 0;
+  } else {
+    target.x = (Math.random() - 0.5) * shakeIntensity * 2;
+    target.y = (Math.random() - 0.5) * shakeIntensity * 2;
+  }
+  return target;
 }
 
 // 重置
@@ -177,7 +185,10 @@ export function damageEnemy(enemy, rawDmg, isCrit, critDmg = 1.5, lifesteal = 0,
   }
 
   const effectiveDmg = isCrit ? dmg * critDmg : dmg;
-  let finalDmg = Math.max(1, effectiveDmg - enemy.def * 0.5);
+  // 修复5：改用 defPct 百分比减伤，消灭"敌人防御 > 攻击 → 固定 1 伤"软锁
+  // defPct 在 encounter.js 生成时已按 min(0.85, def/(def+50)) 计算
+  const reduction = enemy.defPct != null ? enemy.defPct : 0;
+  let finalDmg = Math.max(1, Math.floor(effectiveDmg * (1 - reduction)));
 
   // ★ 统觉统一场：伤害合并窗口（debounce 式）
   // 所有在 mergeWindow 内的伤害合并为一次结算

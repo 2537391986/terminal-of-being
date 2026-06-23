@@ -11,7 +11,7 @@ import {
 import { findConcept } from '../data/concepts.js';
 import {
   enemyStats, LEVEL_UP, POINTS_PER_LEVEL, expToNext,
-  ELITE_MUL, BOSS_MUL, DROP_LIFETIME,
+  ELITE_MUL, BOSS_MUL, DROP_LIFETIME, ENEMY_SPEED_MAX,
 } from '../data/constants.js';
 import { generateItem, shouldDropLoot, dropMessage } from './loot.js';
 import { isInventoryFull } from './equipment.js';
@@ -64,6 +64,14 @@ export function makeEnemyById(templateId) {
   if (enemyType === 'boss')   { hpMul = BOSS_MUL.hp; atkMul = BOSS_MUL.atk; defMul = BOSS_MUL.def; }
   if (enemyType === 'elite')  { hpMul = ELITE_MUL.hp; atkMul = ELITE_MUL.atk; defMul = ELITE_MUL.def; }
 
+  // 修复2：经验/金币加成从 finalStats 读取（而非 state.player 裸值）
+  const fs = state.player.finalStats || state.player;
+  const expMul  = enemyType === 'boss' ? 5 : enemyType === 'elite' ? 2 : 1;
+  const goldMul = expMul;
+
+  // 修复5：移速使用对数曲线 + 硬上限
+  const baseSpeed = Math.min(ENEMY_SPEED_MAX, 55 + 45 * Math.log10(1 + stage * 0.3));
+
   const enemy = {
     id: Date.now() + Math.random(),
     name: tmpl.name,
@@ -74,16 +82,20 @@ export function makeEnemyById(templateId) {
     x: CANVAS_W + 30 + Math.random() * 40,
     y: PLAYER_Y,
     vx: 0, vy: 0,
-    baseSpeed: 55 + stage * 1.5,
+    baseSpeed,
     hp: es.hp * hpMul, maxHp: es.hp * hpMul,
-    atk: es.atk * atkMul, def: es.def * defMul,
+    atk: es.atk * atkMul,
+    // 修复5：防御转换为减伤系数（0~0.85），而非与 atk 直接比大小
+    defPct: Math.min(0.85, es.def * defMul / (es.def * defMul + 50)),
     aspd: 1.5,
-    expReward: (es.exp) * (enemyType === 'boss' ? 5 : enemyType === 'elite' ? 2 : 1) * (1 + (state.player.expGain || 0)),
-    goldReward: Math.floor(es.gold * (enemyType === 'boss' ? 5 : enemyType === 'elite' ? 2 : 1) * (1 + (state.player.goldGain || 0))),
+    expReward: Math.floor(es.exp * expMul * (1 + (fs.expGain || 0))),
+    goldReward: Math.floor(es.gold * goldMul * (1 + (fs.goldGain || 0))),
     attackCooldown: 0, hitStun: 0, flashUntil: 0,
     dying: false, dyingTimer: 0, dyingAlpha: 1, dead: false,
     crit:  enemyType === 'boss' ? 0.08 : enemyType === 'elite' ? 0.05 : 0.03,
     critDmg: enemyType === 'boss' ? 2.0 : enemyType === 'elite' ? 1.8 : 1.5,
+    // 行为标签（从模板读取）
+    mechanics: tmpl.mechanics || [],
   };
 
   if (enemyType === 'boss') {
@@ -121,6 +133,14 @@ function makeEnemy(offsetX) {
   if (enemyType === 'boss') { hpMul = BOSS_MUL.hp; atkMul = BOSS_MUL.atk; defMul = BOSS_MUL.def; }
   else if (enemyType === 'elite') { hpMul = ELITE_MUL.hp; atkMul = ELITE_MUL.atk; defMul = ELITE_MUL.def; }
 
+  // 修复2：经验/金币加成从 finalStats 读取
+  const fs = state.player.finalStats || state.player;
+  const expMul  = isBoss ? 5 : isElite ? 2 : 1;
+  const goldMul = expMul;
+
+  // 修复5：移速使用对数曲线 + 硬上限，防 100 层后瞬间贴脸
+  const baseSpeed = Math.min(ENEMY_SPEED_MAX, 55 + 45 * Math.log10(1 + stage * 0.3));
+
   const enemy = {
     id: Date.now() + Math.random(),
     name: tmpl.name,
@@ -131,19 +151,23 @@ function makeEnemy(offsetX) {
     x: CANVAS_W + 30 + offsetX + Math.random() * 40,
     y: PLAYER_Y,
     vx: 0, vy: 0,
-    baseSpeed: 55 + stage * 1.5,
+    baseSpeed,
     hp: es.hp * hpMul, maxHp: es.hp * hpMul,
-    atk: es.atk * atkMul, def: es.def * defMul,
+    atk: es.atk * atkMul,
+    // 修复5：防御转换为减伤系数（上限 0.85），彻底消灭"def > atk → 固定 1 伤"
+    defPct: Math.min(0.85, (es.def * defMul) / (es.def * defMul + 50)),
     aspd: 1.5,
-    expReward: (es.exp) * (isBoss ? 5 : isElite ? 2 : 1) * (1 + (state.player.expGain || 0)),
-    goldReward: Math.floor(es.gold * (isBoss ? 5 : isElite ? 2 : 1) * (1 + (state.player.goldGain || 0))),
+    expReward: Math.floor(es.exp * expMul * (1 + (fs.expGain || 0))),
+    goldReward: Math.floor(es.gold * goldMul * (1 + (fs.goldGain || 0))),
     attackCooldown: 0,
     hitStun: 0, flashUntil: 0,
     dying: false, dyingTimer: 0, dyingAlpha: 1,
     dead: false,
-    // 敌人洞见率（可被物自体之盾降低）
+    // 敌人洞见率
     crit:  enemyType === 'boss' ? 0.08 : enemyType === 'elite' ? 0.05 : 0.03,
     critDmg: enemyType === 'boss' ? 2.0 : enemyType === 'elite' ? 1.8 : 1.5,
+    // 行为标签（v0.8 Mechanics 系统）
+    mechanics: tmpl.mechanics || [],
   };
 
   // ★ Boss 阶段初始化
@@ -171,6 +195,7 @@ function makeEnemy(offsetX) {
 function makeSummonedEnemy(tmpl, offsetX) {
   const stage = state.stage;
   const es = enemyStats(stage);
+  const baseSpeed = Math.min(ENEMY_SPEED_MAX, 55 + 45 * Math.log10(1 + stage * 0.3));
   return {
     id: Date.now() + Math.random(),
     name: tmpl.name + '（残影）',
@@ -181,9 +206,10 @@ function makeSummonedEnemy(tmpl, offsetX) {
     x: CANVAS_W + 30 + offsetX,
     y: PLAYER_Y,
     vx: 0, vy: 0,
-    baseSpeed: 55 + stage * 1.5,
+    baseSpeed,
     hp: Math.round(es.hp * 0.5), maxHp: Math.round(es.hp * 0.5),
-    atk: Math.round(es.atk * 0.7), def: Math.round(es.def * 0.7),
+    atk: Math.round(es.atk * 0.7),
+    defPct: Math.min(0.85, (es.def * 0.7) / (es.def * 0.7 + 50)),
     aspd: 1.5,
     expReward: Math.floor(es.exp * 0.5),
     goldReward: Math.floor(es.gold * 0.5),
@@ -193,6 +219,7 @@ function makeSummonedEnemy(tmpl, offsetX) {
     dead: false,
     crit: 0.03, critDmg: 1.5,
     isSummoned: true,
+    mechanics: [],
   };
 }
 
@@ -372,6 +399,140 @@ export function onPlayerDeath() {
   world.scrollDistance = 0;
   resetCombatFeedback();
   setTimeout(startWave, 500);
+}
+
+// ============================================================
+// Mechanics 行为系统（v0.8）
+// ============================================================
+// 由 main.js 游戏循环在"敌人 AI 推进"阶段每帧调用。
+// 根据 enemy.mechanics 数组中的标签执行对应行为逻辑。
+// 所有定时器存储在 enemy._mechTimers 上（惰性初始化）。
+
+/**
+ * 更新单个敌人的 Mechanics 行为
+ * @param {Object} enemy  - 敌人对象（含 mechanics 数组）
+ * @param {number} delta  - 帧时间 (ms)
+ * @param {Object} stats  - 玩家 finalStats（用于计算投射物伤害）
+ */
+export function updateEnemyAI(enemy, delta, stats) {
+  if (!enemy.mechanics || enemy.mechanics.length === 0) return;
+  if (!enemy._mechTimers) enemy._mechTimers = {};
+
+  const dt = delta / 1000; // 转秒
+
+  for (const mech of enemy.mechanics) {
+    switch (mech.type) {
+
+      // ── 远程攻击：在 range 外停下，每 cooldown 秒发射投射物 ──
+      case 'ranged': {
+        const dist = enemy.x - PLAYER_X;
+        // 如果玩家在射程内：停止移动（通过 hitStun 借用）并计时发射
+        if (dist > 0 && dist <= mech.range) {
+          // 阻止常规推进（通过给 hitStun 一个很小值保持停止效果）
+          enemy._stopForRanged = true;
+          const key = `ranged_${mech.range}`;
+          enemy._mechTimers[key] = (enemy._mechTimers[key] || 0) + dt;
+          if (enemy._mechTimers[key] >= mech.cooldown) {
+            enemy._mechTimers[key] = 0;
+            // 发射投射物
+            world.projectiles.push({
+              x: enemy.x - 10,
+              y: enemy.y,
+              vx: -200,
+              vy: (Math.random() - 0.5) * 40,
+              dmg: enemy.atk * (mech.damageMul || 0.8),
+              dead: false,
+              symbol: mech.projectileSymbol || '·',
+              color: '#ff6666',
+              pierce: false,
+              pierced: new Set(),
+              isEnemyProjectile: true, // 标记为敌方弹
+            });
+          }
+        } else {
+          enemy._stopForRanged = false;
+        }
+        break;
+      }
+
+      // ── 冲锋攻击：每 chargeCooldown 秒，若玩家在范围内，高速冲刺 ──
+      case 'charger': {
+        const key = 'charger';
+        enemy._mechTimers[key] = (enemy._mechTimers[key] || 0) + dt;
+        // 充能计时
+        if (!enemy._charging && enemy._mechTimers[key] >= mech.chargeCooldown) {
+          const dist = enemy.x - PLAYER_X;
+          if (dist > 0 && dist <= mech.chargeRange) {
+            // 触发冲锋
+            enemy._charging = true;
+            enemy._mechTimers[key] = 0;
+            enemy.vx = -enemy.baseSpeed * (mech.chargeSpeedMul - 1); // 叠加额外速度
+            // 0.6 秒后结束冲锋
+            enemy._chargeDuration = 0.6;
+          }
+        }
+        if (enemy._charging) {
+          enemy._chargeDuration -= dt;
+          if (enemy._chargeDuration <= 0) {
+            enemy._charging = false;
+            enemy.vx = 0;
+          }
+        }
+        break;
+      }
+
+      // ── 分裂：HP 降至 splitHpPct 时死亡并生成多个缩小版自身 ──
+      case 'splitter': {
+        if (!enemy._splitDone && enemy.hp / enemy.maxHp <= mech.splitHpPct) {
+          enemy._splitDone = true;
+          const count = mech.splitCount || 2;
+          for (let i = 0; i < count; i++) {
+            const splitEnemy = {
+              ...enemy,
+              id: Date.now() + Math.random() + i,
+              hp: enemy.maxHp * 0.25,
+              maxHp: enemy.maxHp * 0.25,
+              atk: enemy.atk * 0.6,
+              defPct: enemy.defPct * 0.7,
+              baseSpeed: enemy.baseSpeed * 1.2,
+              x: enemy.x + (i - (count - 1) / 2) * 30,
+              dying: false, dead: false,
+              dyingTimer: 0, dyingAlpha: 1,
+              vx: (Math.random() - 0.5) * 150,
+              mechanics: [], // 分裂体不再分裂
+              _splitDone: true,
+              _mechTimers: {},
+              expReward: Math.floor(enemy.expReward * 0.3),
+              goldReward: Math.floor(enemy.goldReward * 0.3),
+              // Boss 阶段数据清除，避免继承
+              phaseData: null, type: 'normal',
+              name: enemy.name + '碎片',
+            };
+            world.enemies.push(splitEnemy);
+            world.waveEnemiesLeft += 1;
+          }
+          // 触发分裂后立即死亡（不给经验，已通过分裂体给）
+          enemy.hp = 0;
+          enemy.expReward = 0;
+          enemy.goldReward = 0;
+        }
+        break;
+      }
+
+      // ── 护盾恢复：若最近 regenCooldown 秒未受击，恢复 regenPct 最大HP ──
+      case 'shield_regen': {
+        const key = 'shield_regen';
+        // 追踪最后受击时间（被攻击时由 combat.js hitEnemy 设置 enemy._lastHitTime）
+        const lastHit = enemy._lastHitTime || 0;
+        const timeSinceHit = (performance.now() - lastHit) / 1000;
+        if (timeSinceHit >= mech.regenCooldown && enemy.hp < enemy.maxHp) {
+          const regen = enemy.maxHp * mech.regenPct;
+          enemy.hp = Math.min(enemy.maxHp, enemy.hp + regen * dt);
+        }
+        break;
+      }
+    }
+  }
 }
 
 // ============================================================

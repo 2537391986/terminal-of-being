@@ -89,7 +89,33 @@ export const initialState = () => ({
 export const state = initialState();
 
 /**
- * 合并更新 state（不允许替换整个对象）
- * @param {Object} partial - 要合并的部分状态
+ * 深度合并两个对象——不替换嵌套对象，只更新叶节点值。
+ * 数组视为原子值，直接替换（不做合并）。
+ * @param {Object} target - 被写入的目标对象（会被 mutate）
+ * @param {Object} source - 来源补丁
  */
-export const mergeState = (partial) => { Object.assign(state, partial); };
+function deepMerge(target, source) {
+  for (const key of Object.keys(source)) {
+    const sv = source[key];
+    const tv = target[key];
+    if (
+      sv !== null &&
+      typeof sv === 'object' &&
+      !Array.isArray(sv) &&
+      tv !== null &&
+      typeof tv === 'object' &&
+      !Array.isArray(tv)
+    ) {
+      deepMerge(tv, sv);
+    } else {
+      target[key] = sv;
+    }
+  }
+}
+
+/**
+ * 合并更新 state（深度合并，安全更新嵌套属性）。
+ * 例：mergeState({ player: { hp: 50 } }) 只更新 hp，不抹掉 customStats/equipment。
+ * @param {Object} partial - 要合并的部分状态（可嵌套）
+ */
+export const mergeState = (partial) => { deepMerge(state, partial); };

@@ -21,6 +21,7 @@ import { initCodexUI } from './ui/codex.js';
 import {
   registerCallbacks as registerEncounterCallbacks,
   startWave, onEnemyDeath, updateDrops, onPlayerDeath, spawnHitParticle, endWave,
+  updateEnemyAI,
 } from './systems/encounter.js';
 import { render } from './core/renderer.js';
 import {
@@ -224,9 +225,11 @@ function loop(now) {
       if (enemy.dyingTimer <= 0) enemy.dead = true;
       continue;
     }
+    // Mechanics AI 解析（ranged/charger/splitter/shield_regen）
+    updateEnemyAI(enemy, delta, stats);
     if (enemy.hitStun > 0) {
       enemy.hitStun -= delta;
-    } else {
+    } else if (!enemy._stopForRanged) {
       enemy.x -= enemy.baseSpeed * (delta / 1000);
     }
     enemy.x += enemy.vx * (delta / 1000);
@@ -260,6 +263,11 @@ function loop(now) {
     proj.x += proj.vx * (delta / 1000);
     proj.x -= scrollDelta;
     proj.y += (proj.vy || 0) * (delta / 1000);
+    // 敌方弹丸不碰撞敌人（由 ranged AI 发射，将来做玩家碰撞检测）
+    if (proj.isEnemyProjectile) {
+      if (proj.x > CANVAS_W + PROJECTILE_CULL_X || proj.x < -PROJECTILE_CULL_X) proj.dead = true;
+      continue;
+    }
     for (const enemy of world.enemies) {
       if (enemy.dead) continue;
       if (Math.hypot(proj.x - enemy.x, proj.y - enemy.y) < PROJECTILE_HIT_RADIUS) {
