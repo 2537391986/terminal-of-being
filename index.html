@@ -7,9 +7,14 @@
 
 <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#050505">
+<meta name="theme-color" content="#080600">
 
-<!-- Favicon (内联 SVG，避免 404) -->
+<!-- Google Fonts: VT323 (80s CRT bitmap font for Latin) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+<!-- Favicon -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>Б⌠┬</text></svg>">
 
 <!-- iOS Web App -->
@@ -21,103 +26,141 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app">
 
-  <!-- ═══ 终端窗口标题栏 ═══ -->
-  <div id="terminal-titlebar">
-    <div class="title-left">
-      <span class="win-btn close"></span>
-      <span class="win-btn minimize"></span>
-      <span class="win-btn maximize"></span>
-      <span class="title-text">存在终端 v0.7.5</span>
+<!-- ═══════════════════════════════════════════════
+     CRT 显示器外壳（物理层）
+     ═══════════════════════════════════════════════ -->
+<div id="crt-chassis">
+  <!-- 外壳上方散热孔 -->
+  <div class="crt-vents-top"></div>
+
+  <!-- CRT 屏幕区域 -->
+  <div id="crt-screen">
+    <!-- 扫描线 -->
+    <span class="crt-fx crt-scanlines"></span>
+    <!-- 四角暗角 -->
+    <span class="crt-fx crt-vignette"></span>
+    <!-- 荧光微闪 -->
+    <span class="crt-fx crt-flicker"></span>
+
+    <!-- ═══ 游戏内容 ═══ -->
+    <div id="app">
+
+      <!-- 标题栏 -->
+      <div id="terminal-titlebar">
+        <div class="title-left">
+          <span class="title-text">存在终端 v0.8.0-crt</span>
+        </div>
+        <div class="title-right">
+          <span id="title-stage">STAGE 1</span>
+          <span class="title-sep"></span>
+          <span class="status-dot"></span>
+          <span>RUNNING</span>
+        </div>
+      </div>
+
+      <!-- HUD 状态面板 -->
+      <div id="hud">
+        <!-- 上行：核心数值 -->
+        <div class="hud-row hud-stats-row">
+          <div class="hud-cell"><span class="hud-label">LV</span> <b id="level">1</b></div>
+          <div class="hud-cell"><span class="hud-label">EXP</span> <b id="exp">0 / 20</b></div>
+          <div class="hud-cell"><span class="hud-label">STAGE</span> <b id="stage">1</b></div>
+          <div class="hud-cell"><span class="hud-label">GOLD</span> <b id="gold">0</b></div>
+          <div class="hud-cell"><span class="hud-label">ENEMY</span> <b id="enemy-count">0</b></div>
+          <div class="hud-cell wave-cell" id="wave-state">>> 概念展开中</div>
+        </div>
+
+        <!-- 下行：HP/MP 双条 -->
+        <div class="hud-row hud-bars-row">
+          <!-- HP -->
+          <div class="hud-bar-item">
+            <span class="hud-label">HP</span>
+            <div class="hud-bar-track">
+              <div class="hud-bar-fill hud-bar-hp" id="player-hp-bar" style="width:100%"></div>
+            </div>
+            <b id="player-hp">100 / 100</b>
+          </div>
+          <!-- MP -->
+          <div class="hud-bar-item">
+            <span class="hud-label">MP</span>
+            <div class="hud-bar-track">
+              <div class="hud-bar-fill hud-bar-mp" id="player-mp-bar" style="width:100%"></div>
+            </div>
+            <b id="player-mp">30 / 30</b>
+          </div>
+        </div>
+
+        <!-- 属性速览 -->
+        <div class="hud-row hud-substats-row">
+          <span id="hud-atk-label" title="">断言</span>
+          <b id="hud-atk">10</b>
+          <span class="stat-sep"></span>
+          <span id="hud-def-label" title="">边界</span>
+          <b id="hud-def">2</b>
+          <span class="stat-sep"></span>
+          <span id="hud-aspd-label" title="">频率</span>
+          <b id="hud-aspd">1.00</b>
+          <span class="stat-sep"></span>
+          <span id="hud-crit-label" title="">洞见</span>
+          <b id="hud-crit">5.0%</b>
+        </div>
+      </div>
+
+      <!-- 上半部分割线 -->
+      <div class="crt-divider">&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;</div>
+
+      <!-- 战斗画布 -->
+      <div id="combat">
+        <canvas id="combat-canvas" width="800" height="320"></canvas>
+      </div>
+
+      <!-- 下半部分割线 -->
+      <div class="crt-divider">&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;</div>
+
+      <!-- 终端状态行 -->
+      <div id="terminal-status">
+        <span class="prompt">root@being:~$</span>
+        <span class="status-text" id="terminal-status-text">运行中...</span>
+        <span class="cursor"></span>
+      </div>
+
+      <!-- 战斗日志 -->
+      <section id="log"></section>
+
+      <!-- 底部功能键 -->
+      <footer id="footer">
+        <button id="btn-inventory">F1 装置</button>
+        <button id="btn-codex">F2 范畴</button>
+        <button id="btn-statpoints" class="sp-hud-btn">F3 天赋<span id="sp-badge" class="sp-badge" style="display:none"></span></button>
+        <button id="btn-save">F4 锚定</button>
+        <button id="btn-terms" title="切换属性术语: 哲学↔游戏">F5 术语</button>
+        <button id="btn-test-drop">F6 测试</button>
+        <button id="btn-clear">F7 归零</button>
+        <span class="footer-hint">存在者在语言中筑居 · 概念即战场</span>
+      </footer>
+
+    </div><!-- /#app -->
+  </div><!-- /#crt-screen -->
+
+  <!-- 外壳下方：电源灯 + 品牌标签 -->
+  <div class="crt-chassis-bottom">
+    <div class="crt-led-area">
+      <span class="crt-led"></span>
+      <span class="crt-led-label">POWER</span>
     </div>
-    <div class="title-right">
-      <span>root@being</span>
-      <span class="title-sep">|</span>
-      <span id="title-stage">STAGE 1</span>
-      <span class="title-sep">|</span>
-      <span class="status-dot"></span>
-      <span>RUNNING</span>
+    <div class="crt-badge">
+      <span class="crt-brand">存在终端</span>
+      <span class="crt-model">CRT-85</span>
     </div>
   </div>
+</div><!-- /#crt-chassis -->
 
-  <!-- ═══ 顶部 HUD ═══ -->
-  <header id="hud">
-    <div class="hud-row hud-primary">
-      <div class="hud-group">
-        <span class="hud-label">LV</span>
-        <b id="level">1</b>
-      </div>
-      <div class="hud-group">
-        <span class="hud-label">EXP</span>
-        <b id="exp">0 / 20</b>
-      </div>
-      <div class="hud-group">
-        <span class="hud-label">STAGE</span>
-        <b id="stage">1</b>
-      </div>
-      <div class="hud-group">
-        <span class="hud-label">金币</span>
-        <b id="gold">0</b>
-      </div>
-      <div class="hud-group">
-        <span class="hud-label">敌</span>
-        <b id="enemy-count">0</b>
-      </div>
-      <div class="wave-state" id="wave-state">>> 概念展开中</div>
-    </div>
-    <div class="hud-row hud-resources">
-      <div class="resource-line">
-        <span class="hud-label">HP</span>
-        <b id="player-hp">100 / 100</b>
-        <div class="hp-bar-mini"><span id="player-hp-bar" style="width:100%"></span></div>
-      </div>
-      <div class="resource-line">
-        <span class="hud-label">MP</span>
-        <b id="player-mp">30 / 30</b>
-      </div>
-    </div>
-    <!-- 属性速览行 -->
-    <div class="hud-row hud-stats-row">
-      <span id="hud-atk-label" title="">断言</span> <b id="hud-atk">10</b>
-      <span class="stat-sep">·</span>
-      <span id="hud-def-label" title="">边界</span> <b id="hud-def">2</b>
-      <span class="stat-sep">·</span>
-      <span id="hud-aspd-label" title="">频率</span> <b id="hud-aspd">1.00</b>
-      <span class="stat-sep">·</span>
-      <span id="hud-crit-label" title="">洞见</span> <b id="hud-crit">5.0%</b>
-    </div>
-  </header>
+<!-- ═══════════════════════════════════════════════
+     浮层面板（高于 CRT 外壳）
+     ═══════════════════════════════════════════════ -->
 
-  <!-- ═══ 终端状态行 ═══ -->
-  <div id="terminal-status">
-    <span class="prompt">root@being:~$</span>
-    <span class="status-text" id="terminal-status-text">运行中...</span>
-    <span class="cursor"></span>
-  </div>
-
-  <!-- ═══ Canvas 战斗区 ═══ -->
-  <main id="combat">
-    <canvas id="combat-canvas" width="800" height="320"></canvas>
-  </main>
-
-  <!-- ═══ 日志 ═══ -->
-  <section id="log"></section>
-
-  <!-- ═══ 底部按钮栏 ═══ -->
-  <footer id="footer">
-    <button id="btn-inventory">[inv] 装置</button>
-    <button id="btn-codex">[codex] 范畴</button>
-    <button id="btn-statpoints" class="sp-hud-btn">[alloc] 天赋<span id="sp-badge" class="sp-badge" style="display:none"></span></button>
-    <button id="btn-save">[save] 锚定</button>
-    <button id="btn-terms" title="切换属性术语: 哲学←→游戏">[terms] 术语</button>
-    <button id="btn-test-drop">[drop] 测试</button>
-    <button id="btn-clear">[reset] 归零</button>
-    <span class="footer-hint">存在者在语言中筑居 · 概念即战场</span>
-  </footer>
-</div>
-
-<!-- ═══ 背包面板 ═══ -->
+<!-- 装置面板 -->
 <div id="inventory-panel" class="overlay-panel">
   <div class="panel-header">
     <h2>装置 · 装备管理</h2>
@@ -138,7 +181,7 @@
   </div>
 </div>
 
-<!-- ═══ 图鉴面板 ═══ -->
+<!-- 范畴面板 -->
 <div id="codex-panel" class="overlay-panel">
   <div class="panel-header">
     <h2>范畴 · 概念图鉴</h2>
@@ -158,7 +201,7 @@
   </div>
 </div>
 
-<!-- ═══ 天赋面板（属性点分配） ═══ -->
+<!-- 天赋面板 -->
 <div id="statpoints-panel" class="overlay-panel">
   <div class="panel-header">
     <h2>天赋 · 属性分配</h2>
@@ -170,13 +213,12 @@
   <div class="panel-body">
     <div id="sp-body" class="sp-body"></div>
     <div class="sp-hint">
-      每升一级获得 <b>3</b> 天赋点。点击 <b>+</b> 分配，<b>−</b> 回收。<br>
-      属性点可随时重新分配，不会消耗。
+      每升一级获得 <b>3</b> 天赋点。点击 <b>+</b> 分配，<b>-</b> 回收。
     </div>
   </div>
 </div>
 
-<!-- 自定义确认弹窗（替代 confirm()） -->
+<!-- 确认弹窗 -->
 <div id="confirm-modal" class="modal-overlay" style="display:none">
   <div class="modal-box">
     <p id="confirm-message" class="modal-message"></p>
@@ -187,6 +229,6 @@
   </div>
 </div>
 
-<script type="module" src="js/main.js?v=20260623-0100"></script>
+<script type="module" src="js/main.js?v=20260623-crt"></script>
 </body>
 </html>

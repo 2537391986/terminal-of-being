@@ -162,6 +162,8 @@ export function updateHUD() {
 
   const pPct = Math.max(0, (state.player.hp / (state.player.maxHp || 1))) * 100;
   safeStyle('player-hp-bar', 'width', pPct + '%');
+  const mPct = Math.max(0, ((state.player.mp || 0) / (state.player.maxMp || 30))) * 100;
+  safeStyle('player-mp-bar', 'width', mPct + '%');
 
   const isCombat = world.waveState === 'combat';
   const waveText = isCombat
