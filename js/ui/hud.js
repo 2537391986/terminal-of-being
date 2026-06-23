@@ -148,45 +148,58 @@ export function updateHUD() {
   if (!s) return;
 
   const safeText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  const safeStyle = (id, prop, val) => { const el = document.getElementById(id); if (el) el.style[prop] = val; };
 
-  safeText('stage', state.stage);
-  safeText('level', state.player.level);
-  safeText('gold', state.player.gold);
-  safeText('exp', `${Math.floor(state.player.exp)} / ${state.player.expToNext}`);
+  // ── SYSTEM STATUS（左栏）──
   safeText('player-hp', `${Math.max(0, Math.floor(state.player.hp))} / ${state.player.maxHp}`);
   safeText('player-mp', `${Math.floor(state.player.mp || 0)} / ${state.player.maxMp || 30}`);
-
-  // 终端标题栏阶段信息
-  safeText('title-stage', `STAGE ${state.stage}`);
-
-  const pPct = Math.max(0, (state.player.hp / (state.player.maxHp || 1))) * 100;
-  safeStyle('player-hp-bar', 'width', pPct + '%');
-  const mPct = Math.max(0, ((state.player.mp || 0) / (state.player.maxMp || 30))) * 100;
-  safeStyle('player-mp-bar', 'width', mPct + '%');
-
-  const isCombat = world.waveState === 'combat';
-  const waveText = isCombat
-    ? `>> 辩驳中 (${Math.max(0, world.waveEnemiesLeft)}命题待否证)`
-    : '>> 概念展开中…';
-  safeText('wave-state', waveText);
-  const waveColor = isCombat ? '#ff4444' : '#888';
-  safeStyle('wave-state', 'color', waveColor);
-  const waveEl = document.getElementById('wave-state');
-  if (waveEl) waveEl.classList.toggle('active', isCombat);
-  safeText('enemy-count', Math.max(0, world.waveEnemiesLeft));
-
-  // 终端状态行
-  const statusText = isCombat
-    ? `涌现第 ${state.stage} 层 · ${world.waveEnemiesLeft} 个命题待否证`
-    : `休息中 · 准备进入第 ${state.stage} 层`;
-  safeText('terminal-status-text', statusText);
-
-  // 属性速览行 — 数值
+  safeText('level', state.player.level);
   safeText('hud-atk', Math.floor(s.atk));
   safeText('hud-def', Math.floor(s.def));
+
+  // ── SESSION INFO（右栏）──
+  safeText('stage', state.stage);
+  safeText('gold', Math.floor(state.player.gold));
+  safeText('enemy-count', Math.max(0, world.waveEnemiesLeft));
+
+  const isCombat = world.waveState === 'combat';
+  const waveText = isCombat ? 'IN COMBAT' : 'EXPANDING';
+  safeText('wave-state', waveText);
+  const waveEl = document.getElementById('wave-state');
+  if (waveEl) {
+    waveEl.classList.toggle('active', isCombat);
+    waveEl.style.color = isCombat ? '#cc0000' : '';
+  }
+
+  // ── BEING INTENSITY 分段进度条 ──
+  const expPct = Math.max(0, Math.min(1, state.player.exp / (state.player.expToNext || 1)));
+  safeText('exp', `${Math.floor(expPct * 100)}%`);
+  safeText('exp-to-next', state.player.expToNext || 0);
+  updateSegmentedBar(expPct);
+
+  // ── ONTOLOGICAL METRICS ──
   safeText('hud-aspd', (s.aspd || 1).toFixed(2));
   safeText('hud-crit', ((s.crit || 0) * 100).toFixed(1) + '%');
+  const statusText = isCombat
+    ? `STAGE ${state.stage} · ${world.waveEnemiesLeft} REM`
+    : `REST · STAGE ${state.stage}`;
+  safeText('terminal-status-text', statusText);
+
+  // ── 页脚时间 ──
+  const now = new Date();
+  safeText('current-time', now.toTimeString().split(' ')[0]);
+  safeText('current-date', now.toISOString().split('T')[0]);
 
   updateLog();
+}
+
+let _segCache = { count: -1 };
+function updateSegmentedBar(pct) {
+  const bar = document.getElementById('exp-bar');
+  if (!bar) return;
+  const segs = bar.querySelectorAll('.segment');
+  if (segs.length !== _segCache.count) {
+    _segCache = { count: segs.length, list: Array.from(segs) };
+  }
+  const n = Math.round(pct * segs.length);
+  _segCache.list.forEach((seg, i) => seg.classList.toggle('filled', i < n));
 }
