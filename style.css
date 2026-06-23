@@ -575,3 +575,89 @@ body::before {
 @media (max-height:900px) and (min-height:751px) {
   #log { height:150px; }
 }
+
+/* ═══ 移动端深度优化 ═══ */
+@media (max-width:768px) {
+  /* 三栏变单栏，画布优先 */
+  #top-row {
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr auto;
+    gap:0;
+  }
+  .col-left, .col-right {
+    padding:4px 10px;
+    font-size:12px;
+    line-height:1.4;
+    overflow-y:auto;
+  }
+  /* 左栏横排两列，节省垂直空间 */
+  .col-left {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0 12px;
+  }
+  .col-left .ct, .col-right .ct {
+    font-size:11px;
+    padding-bottom:2px;
+    margin-bottom:4px;
+  }
+  /* 画布区域自适应高度 */
+  #game-area {
+    min-height:220px;
+  }
+  /* 按钮栏：可横向滚动，触摸友好 */
+  #button-bar {
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding:4px 6px;
+    gap:4px;
+  }
+  #button-bar::-webkit-scrollbar { display:none; }
+  #button-bar button {
+    flex-shrink:0;
+    min-width:54px;
+    height:36px;
+    font-size:11px;
+    padding:4px 8px;
+  }
+  #button-bar .key { font-size:9px; }
+  /* 面板全屏 */
+  .overlay-panel .panel-frame {
+    max-height:98vh;
+    max-width:100vw;
+    border-radius:0;
+    margin:0;
+  }
+  .panel-body {
+    grid-template-columns:1fr;
+  }
+  #inv-content, #codex-content {
+    max-height:40vh;
+  }
+  /* 日志区 */
+  #log {
+    height:100px;
+    font-size:12px;
+  }
+}
+
+@media (max-width:480px) {
+  html { font-size:13px; }
+  #terminal-header {
+    padding:6px 10px;
+    font-size:12px;
+  }
+  .h-left { letter-spacing:1px; }
+  #button-bar button {
+    min-width:48px;
+    height:32px;
+    font-size:10px;
+    padding:3px 6px;
+  }
+  .col-left {
+    grid-template-columns:1fr;
+  }
+  #log { height:80px; font-size:11px; }
+}

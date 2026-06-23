@@ -76,7 +76,7 @@ export function initBg() {
       alpha: 0.04 + Math.random() * 0.04,
     });
   }
-initBg();
+}
 
 let _lastBgTime = 0;
 
