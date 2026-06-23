@@ -170,11 +170,16 @@ export function updateHUD() {
     waveEl.style.color = isCombat ? '#cc0000' : '';
   }
 
-  // ── BEING INTENSITY 分段进度条 ──
+  // ── 经验条 ──
   const expPct = Math.max(0, Math.min(1, state.player.exp / (state.player.expToNext || 1)));
-  safeText('exp', `${Math.floor(expPct * 100)}%`);
-  safeText('exp-to-next', state.player.expToNext || 0);
-  updateSegmentedBar(expPct);
+  safeText('exp', `${Math.floor(state.player.exp)} / ${state.player.expToNext || 0}`);
+  updateBar('exp-bar', expPct);
+
+  // ── HP / MP 条 ──
+  const hpPct = Math.max(0, state.player.hp / (state.player.maxHp || 1));
+  const mpPct = Math.max(0, (state.player.mp || 0) / (state.player.maxMp || 30));
+  updateBar('player-hp-bar', hpPct);
+  updateBar('player-mp-bar', mpPct);
 
   // ── ONTOLOGICAL METRICS ──
   safeText('hud-aspd', (s.aspd || 1).toFixed(2));
@@ -192,14 +197,7 @@ export function updateHUD() {
   updateLog();
 }
 
-let _segCache = { count: -1 };
-function updateSegmentedBar(pct) {
-  const bar = document.getElementById('exp-bar');
-  if (!bar) return;
-  const segs = bar.querySelectorAll('.segment');
-  if (segs.length !== _segCache.count) {
-    _segCache = { count: segs.length, list: Array.from(segs) };
-  }
-  const n = Math.round(pct * segs.length);
-  _segCache.list.forEach((seg, i) => seg.classList.toggle('filled', i < n));
+function updateBar(id, pct) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = (pct * 100).toFixed(1) + '%';
 }

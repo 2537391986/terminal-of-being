@@ -1,5 +1,25 @@
 # CHANGELOG — 存在终端 Terminal of Being
 
+## v0.9.1 (2026-06-23) — 极简暗黑终端 + 弹窗 bug 修复
+
+### 🎨 UI 重新简化
+- **去壳**：移除 CRT 外壳(#crt-chassis)、扫描线、暗角、反光层、控制面板
+- **全屏内容**：黑底(#0c0c0c) + 灰白文字，全 viewport 终端
+- **三栏布局**：左(HPMp/等级/金币) | 中(战斗画布) | 右(阶段/波次/属性)
+- **连续进度条**：HP(红)、MP(绿)、EXP(灰) 三条 bar 统一风格
+- **底部双行**：战斗日志 + CLI prompt(root@being:~$ _)
+- **按钮栏**：暗色模块按钮，极简边框
+- **面板**：暗色 panel-frame，fadeIn 150ms 动画
+
+### 🐛 Bug 修复
+- **弹窗关不掉**：`.overlay-panel` 默认 `display: none` + `.show` class → `flex`
+  (statPoints 之前用 classList.add('show') 但 CSS 无此规则)
+
+### 🔧 代码改动
+- `index.html`：重写（~130 行），简化结构，保留全部 DOM id
+- `style.css`：重写（~280 行），极简暗色终端变量体系
+- `hud.js`：分段条→连续条(updateBar)，新增 HP/MP bar 每帧更新
+
 ## v0.9.0-paper (2026-06-23) — 纸白 CRT 终端风格重设计
 
 ### 🎨 UI 从零重设计
