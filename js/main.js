@@ -8,7 +8,7 @@
 import { state, initialState, mergeState } from './core/state.js';
 import { loadGame, saveGame } from './core/save.js';
 import {
-  world, PLAYER_X, PLAYER_Y, CANVAS_W, CANVAS_H, SCROLL_SPEED,
+  world, PLAYER_X, PLAYER_Y, updateWorldSize, SCROLL_SPEED,
 } from './core/world.js';
 import {
   hitEnemy, getTimeScale, damageEnemy, damagePlayer,
@@ -23,7 +23,7 @@ import {
   startWave, onEnemyDeath, updateDrops, onPlayerDeath, spawnHitParticle, endWave,
   updateEnemyAI,
 } from './systems/encounter.js';
-import { render } from './core/renderer.js';
+import { render, initBg } from './core/renderer.js';
 import {
   registerGetStats, updateHUD, refreshHUDLabels, log,
 } from './ui/hud.js';
@@ -76,6 +76,28 @@ function customConfirm(message) {
 let _saveIntervalId = null;
 
 // ============================================================
+// Canvas 尺寸同步 — 战斗区填满可用空间
+// ============================================================
+function updateCanvasSize() {
+  const combat = document.getElementById('combat');
+  const cvs = world.canvas;
+  if (!combat || !cvs) return;
+  const rect = combat.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  // 使用整数尺寸，避免子像素模糊
+  const w = Math.floor(rect.width * dpr);
+  const h = Math.floor(rect.height * dpr);
+  if (cvs.width !== w || cvs.height !== h) {
+    cvs.width = w;
+    cvs.height = h;
+    cvs.style.width = '100%';
+    cvs.style.height = '100%';
+    updateWorldSize();
+    initBg();
+  }
+}
+
+// ============================================================
 // 初始化
 // ============================================================
 function init() {
@@ -84,11 +106,11 @@ function init() {
   recalcStats();
   syncPlayerStats();
 
-  // Canvas
+  // Canvas — 填满战斗区，像素尺寸 = CSS 尺寸
   world.canvas = document.getElementById('combat-canvas');
   world.ctx = world.canvas.getContext('2d');
-  world.canvas.width = CANVAS_W;
-  world.canvas.height = CANVAS_H;
+  updateCanvasSize();
+  window.addEventListener('resize', () => updateCanvasSize());
   world.lastTime = performance.now();
   world.scrollDistance = 0;
 
@@ -265,7 +287,7 @@ function loop(now) {
     proj.y += (proj.vy || 0) * (delta / 1000);
     // 敌方弹丸不碰撞敌人（由 ranged AI 发射，将来做玩家碰撞检测）
     if (proj.isEnemyProjectile) {
-      if (proj.x > CANVAS_W + PROJECTILE_CULL_X || proj.x < -PROJECTILE_CULL_X) proj.dead = true;
+      if (proj.x > (world.canvas?.width || 800) + PROJECTILE_CULL_X || proj.x < -PROJECTILE_CULL_X) proj.dead = true;
       continue;
     }
     for (const enemy of world.enemies) {
@@ -291,7 +313,7 @@ function loop(now) {
         if (!proj.pierce) break;
       }
     }
-    if (proj.x > CANVAS_W + PROJECTILE_CULL_X || proj.x < -PROJECTILE_CULL_X) proj.dead = true;
+    if (proj.x > (world.canvas?.width || 800) + PROJECTILE_CULL_X || proj.x < -PROJECTILE_CULL_X) proj.dead = true;
   }
 
   // ── 掉落物更新 ──

@@ -2,11 +2,22 @@
 // 全局世界状态 + 常量
 
 // 玩家在屏幕上的固定 x 位置(卷轴游戏中玩家视觉位置不变)
-export const PLAYER_X = 240;
-export const PLAYER_Y = 268;
-export const CANVAS_W = 800;
-export const CANVAS_H = 320;
+// 不再硬编码 — 由 initWorldSize() 根据画布实际尺寸动态计算
+export let PLAYER_X = 240;
+export let PLAYER_Y = 268;
+export let CANVAS_W = 800;
+export let CANVAS_H = 320;
 export const SCROLL_SPEED = 60;  // 卷轴滚动速度 px/s(无怪时慢速推进)
+
+/** 根据画布实际像素尺寸更新所有坐标常量 */
+export function updateWorldSize() {
+  const w = world.canvas?.width || 800;
+  const h = world.canvas?.height || 320;
+  CANVAS_W = w;
+  CANVAS_H = h;
+  PLAYER_X = Math.floor(w * 0.30);
+  PLAYER_Y = Math.floor(h * 0.84);
+}
 
 // 世界对象(不参与存档,运行时重建)
 // state 从 state.js 直接引入,不在此代理

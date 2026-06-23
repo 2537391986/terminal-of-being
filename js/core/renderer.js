@@ -4,7 +4,7 @@
 // v7.1: 装备外观系统 + 武器特有攻击效果
 // v0.8.1: shakeOff 改为静态复用对象，消灭 getShakeOffset() 每帧 new {x,y} 的 GC 压力
 
-import { world, PLAYER_X, PLAYER_Y, CANVAS_W, CANVAS_H, GROUND_Y, SCROLL_SPEED } from './world.js';
+import { world, PLAYER_X, PLAYER_Y, GROUND_Y, SCROLL_SPEED } from './world.js';
 import { getShakeOffset } from '../systems/combat.js';
 import { state } from './state.js';
 import { getWeaponType, DEFAULT_WEAPON } from '../data/weaponTypes.js';
@@ -62,17 +62,20 @@ const _shakeVec = { x: 0, y: 0 };
 // ============================================================
 const bgChars = [];
 
-function initBg() {
-  for (let i = 0; i < 15; i++) {
+/** 初始化背景字符（canvas 就绪后调用） */
+export function initBg() {
+  const W = world.canvas?.width || 800;
+  const H = world.canvas?.height || 320;
+  bgChars.length = 0;
+  for (let i = 0; i < 20; i++) {
     bgChars.push({
-      x: Math.random() * CANVAS_W,
-      y: Math.random() * CANVAS_H,
+      x: Math.random() * W,
+      y: Math.random() * H,
       symbol: ['\u00B7', '\u00B0', '\u02D9'][Math.floor(Math.random() * 3)],
       speed: 15 + Math.random() * 20,
       alpha: 0.04 + Math.random() * 0.04,
     });
   }
-}
 initBg();
 
 let _lastBgTime = 0;
@@ -83,7 +86,7 @@ function drawBackground(ctx, now) {
   ctx.font = '12px monospace';
   for (const c of bgChars) {
     c.x -= (SCROLL_SPEED + c.speed) * dt;
-    if (c.x < -5) { c.x = CANVAS_W + 5; c.y = Math.random() * CANVAS_H; }
+    if (c.x < -5) { c.x = (world.canvas?.width || 800) + 5; c.y = Math.random() * (world.canvas?.height || 320); }
     ctx.fillStyle = `rgba(0, 255, 136, ${c.alpha})`;
     ctx.fillText(c.symbol, c.x, c.y);
   }
@@ -226,14 +229,16 @@ export function render(now) {
 
   // ── 1. 清屏 ──
   ctx.fillStyle = getColor('--bg-panel');
-  ctx.fillRect(-10, -10, CANVAS_W + 20, CANVAS_H + 20);
+  // 清屏
+  ctx.fillStyle = getColorAlpha('--bg', 0.92);
+  ctx.fillRect(-10, -10, (world.canvas?.width || 800) + 20, (world.canvas?.height || 320) + 20);
 
   // ── 2. 地面线 ──
   ctx.strokeStyle = getColor('--dim');
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, GROUND_Y);
-  ctx.lineTo(CANVAS_W, GROUND_Y);
+  ctx.lineTo((world.canvas?.width || 800), GROUND_Y);
   ctx.stroke();
 
   // ── 3. 背景滚动符 ──

@@ -3,7 +3,7 @@
 // 依赖 combat.js 的视觉反馈函数, 通过回调使用 log/HUD
 
 import { state } from '../core/state.js';
-import { world, PLAYER_X, PLAYER_Y, CANVAS_W, GROUND_Y } from '../core/world.js';
+import { world, PLAYER_X, PLAYER_Y, GROUND_Y } from '../core/world.js';
 import {
   pickEnemyTemplate, pickEliteTemplate, pickBossTemplate,
   BOSS_PHASE_DATA, ENEMY_TEMPLATES, ELITE_TEMPLATES, BOSS_TEMPLATES,
@@ -79,7 +79,7 @@ export function makeEnemyById(templateId) {
     type: enemyType,
     conceptId: tmpl.conceptId,
     conceptTerm: findConcept(tmpl.conceptId)?.term || tmpl.name,
-    x: CANVAS_W + 30 + Math.random() * 40,
+    x: (world.canvas?.width || 800) + 30 + Math.random() * 40,
     y: PLAYER_Y,
     vx: 0, vy: 0,
     baseSpeed,
@@ -148,7 +148,7 @@ function makeEnemy(offsetX) {
     type: enemyType,
     conceptId: tmpl.conceptId,
     conceptTerm: findConcept(tmpl.conceptId)?.term || tmpl.name,
-    x: CANVAS_W + 30 + offsetX + Math.random() * 40,
+    x: (world.canvas?.width || 800) + 30 + offsetX + Math.random() * 40,
     y: PLAYER_Y,
     vx: 0, vy: 0,
     baseSpeed,
@@ -203,7 +203,7 @@ function makeSummonedEnemy(tmpl, offsetX) {
     type: 'normal',
     conceptId: tmpl.conceptId,
     conceptTerm: findConcept(tmpl.conceptId)?.term || tmpl.name,
-    x: CANVAS_W + 30 + offsetX,
+    x: (world.canvas?.width || 800) + 30 + offsetX,
     y: PLAYER_Y,
     vx: 0, vy: 0,
     baseSpeed,

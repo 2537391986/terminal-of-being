@@ -170,16 +170,16 @@ export function updateHUD() {
     waveEl.style.color = isCombat ? '#cc0000' : '';
   }
 
-  // ── 经验条 ──
+  // ── 经验条（ASCII 填充）──
   const expPct = Math.max(0, Math.min(1, state.player.exp / (state.player.expToNext || 1)));
   safeText('exp', `${Math.floor(state.player.exp)} / ${state.player.expToNext || 0}`);
-  updateBar('exp-bar', expPct);
+  updateAsciiBar('exp-bar', expPct);
 
-  // ── HP / MP 条 ──
+  // ── HP / MP 条（ASCII 填充）──
   const hpPct = Math.max(0, state.player.hp / (state.player.maxHp || 1));
   const mpPct = Math.max(0, (state.player.mp || 0) / (state.player.maxMp || 30));
-  updateBar('player-hp-bar', hpPct);
-  updateBar('player-mp-bar', mpPct);
+  updateAsciiBar('player-hp-bar', hpPct);
+  updateAsciiBar('player-mp-bar', mpPct);
 
   // ── ONTOLOGICAL METRICS ──
   safeText('hud-aspd', (s.aspd || 1).toFixed(2));
@@ -200,4 +200,13 @@ export function updateHUD() {
 function updateBar(id, pct) {
   const el = document.getElementById(id);
   if (el) el.style.width = (pct * 100).toFixed(1) + '%';
+}
+
+/** ASCII 进度条：10 格 █/░ 填充 */
+function updateAsciiBar(id, pct) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const clamped = Math.max(0, Math.min(1, pct));
+  const filled = Math.round(clamped * 10);
+  el.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
 }

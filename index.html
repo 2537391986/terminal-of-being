@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
 <title>存在终端 Terminal of Being</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>◉</text></svg>">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,79 +19,72 @@
 <body>
 
 <div id="app">
+
   <header id="terminal-header">
-    <span class="h-left">TERMINAL OF BEING v0.9.1</span>
-    <span class="h-right">SYSTEM ONLINE</span>
+    <span class="h-left">SYS:TERMINAL-OF-BEING v0.15</span>
+    <span class="h-right">STATUS:OBSERVING <span class="blink">●</span> <span id="current-time">00:00:00</span></span>
   </header>
 
   <div id="top-row">
-    <div class="stats-box">
-      <div class="row"><span>HP</span><span id="player-hp">100/100</span></div>
-      <div class="bar-track"><div class="bar-fill hp-fill" id="player-hp-bar"></div></div>
-      <div class="row"><span>MP</span><span id="player-mp">30/30</span></div>
-      <div class="bar-track"><div class="bar-fill mp-fill" id="player-mp-bar"></div></div>
-      <div class="row"><span>LVL</span><span id="level">1</span></div>
-      <div class="row"><span>GOLD</span><span id="gold">0</span></div>
+    <div class="col-left">
+      <div class="ct">ONTOLOGY · 存在论</div>
+      <div class="prop"><span class="k">HP<span class="phi">存在强度</span></span><span class="v" id="player-hp">100/100</span></div>
+      <div class="bar" id="player-hp-bar">██████████</div>
+      <div class="prop"><span class="k">MP<span class="phi">范畴力</span></span><span class="v" id="player-mp">30/30</span></div>
+      <div class="bar" id="player-mp-bar">██████████</div>
+      <div class="prop"><span class="k">LV<span class="phi">辩证阶段</span></span><span class="v" id="level">1</span></div>
+      <div class="prop"><span class="k">GOLD<span class="phi">凝结物</span></span><span class="v" id="gold">0</span></div>
+      <div class="prop"><span class="k">EXP<span class="phi">存在体验</span></span><span class="v" id="exp">0/20</span></div>
+      <div class="bar" id="exp-bar">░░░░░░░░░░</div>
+      <div class="ct">SESSION · 会话</div>
+      <div class="prop"><span class="k">STAGE</span><span class="v" id="stage">1</span></div>
+      <div class="prop"><span class="k">WAVE</span><span class="v" id="wave-state">EXPANDING</span></div>
+      <div class="prop"><span class="k">ENEMIES</span><span class="v" id="enemy-count">0</span></div>
     </div>
 
     <div id="combat">
-      <canvas id="combat-canvas" width="800" height="280"></canvas>
+      <canvas id="combat-canvas" width="800" height="320"></canvas>
     </div>
 
-    <div class="stats-box">
-      <div class="row"><span>STAGE</span><span id="stage">1</span></div>
-      <div class="row"><span>WAVE</span><span id="wave-state">EXPANDING</span></div>
-      <div class="row"><span>ENEMIES</span><span id="enemy-count">0</span></div>
-      <div class="row"><span>ATK</span><span id="hud-atk">10</span></div>
-      <div class="row"><span>DEF</span><span id="hud-def">2</span></div>
-      <div class="row"><span>ASPD</span><span id="hud-aspd">1.00</span></div>
-      <div class="row"><span>CRIT</span><span id="hud-crit">5.0%</span></div>
+    <div class="col-right">
+      <div class="ct">EPISTEME · 认识论</div>
+      <div class="prop"><span class="k">ATK<span class="phi">断言力</span></span><span class="v" id="hud-atk">10</span></div>
+      <div class="prop"><span class="k">DEF<span class="phi">边界性</span></span><span class="v" id="hud-def">2</span></div>
+      <div class="prop"><span class="k">CRIT<span class="phi">洞见</span></span><span class="v" id="hud-crit">5.0%</span></div>
+      <div class="prop"><span class="k">ASPD<span class="phi">频率</span></span><span class="v" id="hud-aspd">1.00</span></div>
+      <div class="prop"><span class="k">DATE</span><span class="v" id="current-date">2026-06-23</span></div>
     </div>
   </div>
 
-  <div id="exp-line">
-    <span>EXP</span>
-    <span id="exp">0/20</span>
-    <div class="exp-track"><div class="exp-fill" id="exp-bar"></div></div>
-  </div>
+  <div id="log"></div>
 
-  <div id="bottom-row">
-    <div id="log"></div>
-    <div class="cli">root@being:~$ <span class="cursor">_</span></div>
-  </div>
+  <div class="cli">root@being:~$ <span class="cursor">█</span></div>
 
   <div id="button-bar">
-    <button id="btn-inventory">[F1]装置</button>
-    <button id="btn-codex">[F2]范畴</button>
-    <button id="btn-statpoints">
-      [F3]天赋<span id="sp-badge" class="sp-badge" style="display:none"></span>
-    </button>
-    <button id="btn-save">[F4]锚定</button>
-    <button id="btn-terms">[F5]术语</button>
-    <button id="btn-test-drop">[F6]测试</button>
-    <button id="btn-clear">[F7]归零</button>
+    <button id="btn-inventory"><span class="key">F1</span><span class="cmd">DEVICE</span></button>
+    <button id="btn-codex"><span class="key">F2</span><span class="cmd">CODEX</span></button>
+    <button id="btn-statpoints"><span class="key">F3</span><span class="cmd">TALENT</span><span id="sp-badge" class="sp-badge" style="display:none"></span></button>
+    <button id="btn-save"><span class="key">F4</span><span class="cmd">SAVE</span></button>
+    <button id="btn-terms"><span class="key">F5</span><span class="cmd">TERMS</span></button>
+    <button id="btn-test-drop"><span class="key">F6</span><span class="cmd">TEST</span></button>
+    <button id="btn-clear"><span class="key">F7</span><span class="cmd">WIPE</span></button>
   </div>
 
-  <footer id="terminal-footer">
-    <span id="current-time">00:00:00</span>
-    <span class="f-center">存在者在语言中筑居</span>
-    <span id="current-date">2026-06-23</span>
-  </footer>
 </div>
 
 <!-- 装置面板 -->
 <div id="inventory-panel" class="overlay-panel">
   <div class="panel-frame">
     <div class="panel-header">
-      <span class="panel-title">DEVICE MANAGEMENT</span>
+      <span class="panel-title">being@terminal:~$ <b>device</b></span>
       <div class="panel-ctrls">
-        <button id="btn-sort">[SORT]</button>
-        <button id="btn-close-inv">[CLOSE]</button>
+        <button id="btn-sort">/sort</button>
+        <button id="btn-close-inv">[ESC]</button>
       </div>
     </div>
     <div class="panel-body">
       <div id="inv-content"></div>
-      <div id="item-detail"><p class="detail-hint">Select device to view details</p></div>
+      <div id="item-detail"><p class="detail-hint">> select device to view details</p></div>
     </div>
   </div>
 </div>
@@ -100,12 +93,12 @@
 <div id="codex-panel" class="overlay-panel">
   <div class="panel-frame">
     <div class="panel-header">
-      <span class="panel-title">CONCEPT CODEX</span>
-      <button id="btn-close-codex">[CLOSE]</button>
+      <span class="panel-title">being@terminal:~$ <b>codex</b></span>
+      <button id="btn-close-codex">[ESC]</button>
     </div>
     <div class="panel-body">
       <div id="codex-content"></div>
-      <div id="codex-detail"><p class="detail-hint">Select concept to view details</p></div>
+      <div id="codex-detail"><p class="detail-hint">> select concept to view details</p></div>
     </div>
   </div>
 </div>
@@ -114,15 +107,15 @@
 <div id="statpoints-panel" class="overlay-panel">
   <div class="panel-frame">
     <div class="panel-header">
-      <span class="panel-title">TALENT ALLOCATION</span>
+      <span class="panel-title">being@terminal:~$ <b>talent</b></span>
       <div class="panel-ctrls">
-        <span>POINTS: <b id="sp-points">0</b></span>
-        <button id="btn-close-sp">[CLOSE]</button>
+        <span>PTS: <b id="sp-points">0</b></span>
+        <button id="btn-close-sp">[ESC]</button>
       </div>
     </div>
     <div class="panel-body">
       <div id="sp-body" class="sp-body"></div>
-      <div class="sp-hint">3 points per level. [+] allocate, [-] reclaim.</div>
+      <div class="sp-hint">> 3 points per level. [+] allocate, [-] reclaim.</div>
     </div>
   </div>
 </div>
@@ -130,15 +123,15 @@
 <!-- 确认弹窗 -->
 <div id="confirm-modal" class="modal-overlay" style="display:none">
   <div class="modal-frame">
-    <div class="modal-header">CONFIRMATION REQUIRED</div>
-    <p id="confirm-message"></p>
+    <div class="modal-header">$ <b>wipe --confirm</b></div>
+    <p id="confirm-message" class="modal-message"></p>
     <div class="modal-actions">
+      <button id="confirm-cancel" class="modal-btn">[CANCEL]</button>
       <button id="confirm-ok" class="modal-btn ok">[CONFIRM]</button>
-      <button id="confirm-cancel" class="modal-btn cancel">[CANCEL]</button>
     </div>
   </div>
 </div>
 
-<script type="module" src="js/main.js?v=20260623-terminal"></script>
+<script type="module" src="js/main.js?v=20260623-v015"></script>
 </body>
 </html>
