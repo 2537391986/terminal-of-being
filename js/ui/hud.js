@@ -1,6 +1,7 @@
 // js/ui/hud.js
 // HUD 显示更新 + 战斗日志系统
 // v6.3 — 术语切换 + 悬停注释
+// v8.2 — XSS 防护 + 日志增量渲染 + 函数重命名
 
 import { state } from '../core/state.js';
 import { world } from '../core/world.js';
@@ -9,6 +10,7 @@ import {
   STAT_SHORT_LABELS, STAT_SHORT_PLAIN,
   STAT_TOOLTIPS,
 } from '../data/constants.js';
+import { escapeHtml } from '../utils/html.js';
 
 // ============================================================
 // 术语获取
@@ -18,17 +20,17 @@ import {
 function usePlain() { return state.settings?.usePlainTerms || false; }
 
 /** 获取属性全称 */
-function label(key) {
+function getStatLabel(key) {
   return usePlain() ? (STAT_PLAIN_LABELS[key] || key) : (STAT_LABELS[key] || key);
 }
 
 /** 获取 HUD 速览行短标签 */
-function shortLabel(key) {
+function getStatShortLabel(key) {
   return usePlain() ? (STAT_SHORT_PLAIN[key] || key) : (STAT_SHORT_LABELS[key] || key);
 }
 
 /** 获取属性悬停注释 */
-function tooltip(key) {
+function getStatTooltip(key) {
   return STAT_TOOLTIPS[key] || '';
 }
 
@@ -57,11 +59,13 @@ export function log(msg, type) {
   const detectedType = type || detectLogType(msg);
   state.logs.push({ t: Date.now(), msg, type: detectedType });
   if (state.logs.length > 80) state.logs.shift();
+  // 版本号递增，用于 updateLog 增量检测（解决满80条时长度不变导致跳过渲染的bug）
+  state._logVersion = (state._logVersion || 0) + 1;
 }
 
 /**
  * 根据消息内容自动检测日志类型
- * §13 标准化前缀：[击杀][击退][掉落][获得][升级][死亡][闪避][暴击][系统]
+ * 标准化前缀：[击杀][击退][掉落][获得][升级][死亡][闪避][暴击][系统]
  */
 function detectLogType(msg) {
   // 击杀/击退/暴击 → 绿色
@@ -85,22 +89,34 @@ function detectLogType(msg) {
   return 'stdout';
 }
 
-let _prevLogLen = 0;
+let _prevLogVersion = 0;
+const MAX_LOG_DISPLAY = 50;
 
 export function updateLog() {
-  if (state.logs.length === _prevLogLen) return;
-  _prevLogLen = state.logs.length;
+  const curVersion = state._logVersion || 0;
+  if (curVersion === _prevLogVersion) return;
+
   const logBox = document.getElementById('log');
-  const recent = state.logs.slice(-50);
-  logBox.innerHTML = recent.map(l => {
-    // 兼容旧格式（字符串）和新格式（{msg, type} 对象）
-    const msg = typeof l === 'string' ? l : l.msg;
-    const type = typeof l === 'string' ? detectLogType(msg) : (l.type || 'stdout');
-    const cls = ` class="log-${type}"`;
-    const prefix = msg.startsWith('>') || msg.startsWith('[') ? '' : '> ';
-    return `<div${cls}>${prefix}${msg}</div>`;
-  }).join('');
+  if (!logBox) return;
+
+  _prevLogVersion = curVersion;
+
+  // 全量重建：始终用最新的 MAX_LOG_DISPLAY 条重建 DOM
+  // 不用增量渲染——日志是高频变化的文本流，增量 DOM 操作反而复杂且易出错
+  const recent = state.logs.slice(-MAX_LOG_DISPLAY);
+  logBox.innerHTML = recent.map(l => buildLogLine(l)).join('');
   logBox.scrollTop = logBox.scrollHeight;
+}
+
+/**
+ * 构建单条日志的 HTML（已转义，防 XSS）
+ */
+function buildLogLine(l) {
+  const msg = typeof l === 'string' ? l : l.msg;
+  const type = typeof l === 'string' ? detectLogType(msg) : (l.type || 'stdout');
+  const cls = ` class="log-${type}"`;
+  const prefix = msg.startsWith('>') || msg.startsWith('[') ? '' : '> ';
+  return `<div${cls}>${escapeHtml(prefix)}${escapeHtml(msg)}</div>`;
 }
 
 // ============================================================
@@ -118,8 +134,8 @@ export function refreshHUDLabels() {
   for (const { id, key } of labels) {
     const el = document.getElementById(id);
     if (el) {
-      el.textContent = shortLabel(key);
-      el.title = tooltip(key);
+      el.textContent = getStatShortLabel(key);
+      el.title = getStatTooltip(key);
     }
   }
 }
@@ -144,7 +160,7 @@ export function updateHUD() {
   // 终端标题栏阶段信息
   safeText('title-stage', `STAGE ${state.stage}`);
 
-  const pPct = Math.max(0, state.player.hp / state.player.maxHp) * 100;
+  const pPct = Math.max(0, (state.player.hp / (state.player.maxHp || 1))) * 100;
   safeStyle('player-hp-bar', 'width', pPct + '%');
 
   const isCombat = world.waveState === 'combat';
@@ -167,8 +183,8 @@ export function updateHUD() {
   // 属性速览行 — 数值
   safeText('hud-atk', Math.floor(s.atk));
   safeText('hud-def', Math.floor(s.def));
-  safeText('hud-aspd', s.aspd.toFixed(2));
-  safeText('hud-crit', (s.crit * 100).toFixed(1) + '%');
+  safeText('hud-aspd', (s.aspd || 1).toFixed(2));
+  safeText('hud-crit', ((s.crit || 0) * 100).toFixed(1) + '%');
 
   updateLog();
 }

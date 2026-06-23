@@ -34,8 +34,20 @@ html, body {
   font-family: var(--font-mono);
   height: 100%;
   overflow: hidden;
-  user-select: none;
   -webkit-font-smoothing: antialiased;
+}
+
+/* 交互元素禁用选中 */
+#hud, #terminal-titlebar, #footer, #combat-canvas,
+.overlay-panel, .modal-overlay {
+  user-select: none;
+}
+
+/* 文本内容允许选中 */
+#log, .detail-name, .detail-effect, .detail-flavor,
+.concept-term, .concept-school, .concept-summary,
+.concept-archive p, .codex-summary-full, .codex-meta {
+  user-select: text;
 }
 
 #app {
@@ -277,7 +289,7 @@ html, body {
   display: block;
   width: 100%;
   max-width: 1000px;
-  height: auto;
+  height: 400px;
   max-height: 400px;
   image-rendering: pixelated;
   background: #000;
@@ -903,4 +915,263 @@ button {
     max-height: 50vh;
   }
   .footer-hint { display: none; }
+}
+
+/* ═══ 自定义确认弹窗（替代 confirm()） ═══ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--green-dim);
+  border-radius: 4px;
+  padding: 20px 24px;
+  max-width: 360px;
+  box-shadow: 0 0 20px var(--green-glow);
+}
+
+.modal-message {
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  background: transparent;
+  border: 1px solid var(--dim);
+  color: var(--green-dim);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modal-btn:hover {
+  border-color: var(--green-bright);
+  color: var(--green-bright);
+}
+
+.modal-btn-ok {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.modal-btn-ok:hover {
+  background: var(--red-glow);
+}
+
+/* ═══ 调试面板 ═══ */
+#debug-panel {
+  position: fixed;
+  top: 40px;
+  right: 10px;
+  width: 320px;
+  max-height: 80vh;
+  background: #0a0a0a;
+  border: 1px solid #00ff88;
+  border-radius: 4px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #00ff88;
+  box-shadow: 0 0 20px rgba(0,255,136,0.2);
+  overflow: hidden;
+}
+
+.debug-titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: #111;
+  border-bottom: 1px solid #333;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+#debug-close {
+  background: none;
+  border: 1px solid #555;
+  color: #f44;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+#debug-close:hover { background: #f44; color: #fff; }
+
+.debug-body {
+  padding: 8px;
+  overflow-y: auto;
+  max-height: calc(80vh - 36px);
+}
+
+.debug-section {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #222;
+}
+
+.debug-section-title {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.debug-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.debug-btn {
+  background: #111;
+  border: 1px solid #333;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  flex: 1;
+  min-width: 80px;
+}
+.debug-btn:hover { background: #0f0; color: #000; }
+.debug-btn:active { opacity: 0.7; }
+
+/* ═══ 天赋面板（属性点分配） ═══ */
+.sp-points-display {
+  color: var(--gray);
+  font-size: 13px;
+  margin-right: 12px;
+}
+.sp-points-display b { color: var(--amber); }
+
+.sp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 20px;
+  max-width: 500px;
+}
+
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.sp-label {
+  flex: 1;
+  color: var(--green-dim);
+  font-size: 13px;
+  min-width: 100px;
+}
+
+.sp-current {
+  color: var(--white);
+  font-size: 13px;
+  min-width: 50px;
+  text-align: right;
+}
+
+.sp-allocated {
+  color: var(--amber);
+  font-size: 12px;
+  min-width: 30px;
+  text-align: right;
+}
+
+.sp-pp {
+  color: var(--gray);
+  font-size: 11px;
+  min-width: 55px;
+  text-align: right;
+}
+
+.sp-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.sp-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-input);
+  border: 1px solid var(--dim);
+  color: var(--green-dim);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.sp-btn:hover:not(.disabled) {
+  border-color: var(--green-bright);
+  color: var(--green-bright);
+  background: var(--green-glow);
+}
+
+.sp-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.sp-minus:hover:not(.disabled) {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: var(--amber-glow);
+}
+
+.sp-hint {
+  padding: 12px 20px;
+  color: var(--gray);
+  font-size: 12px;
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+  max-width: 500px;
+}
+.sp-hint b { color: var(--green-dim); }
+
+/* 底部天赋按钮角标 */
+.sp-badge {
+  display: inline-block;
+  background: var(--amber);
+  color: #000;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 5px;
+  border-radius: 8px;
+  margin-left: 4px;
+  min-width: 14px;
+  text-align: center;
 }

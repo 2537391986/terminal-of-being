@@ -1,0 +1,153 @@
+// js/data/concepts.js
+// 概念库:哲学术语 + 派系 + 科普摘要
+
+export const CONCEPTS = [
+  // ── 认知心理学 ──
+  { term: '蔡格尼克效应', school: '认知心理学', field: 'psychology',
+    summary: '人们对未完成的任务记忆更深刻，中断反而强化记忆痕迹。' },
+  { term: '斯特鲁普效应', school: '认知心理学', field: 'psychology',
+    summary: '当文字含义与显示颜色冲突时，大脑处理速度明显下降。' },
+  { term: '巴纳姆效应', school: '认知心理学', field: 'psychology',
+    summary: '人们倾向于认为模糊笼统的人格描述是专为自己量身定做的。' },
+  { term: '皮格马利翁效应', school: '认知心理学', field: 'psychology',
+    summary: '对一个人的期望会成为自我实现的预言——被看好的人真的变好。' },
+  { term: '达克效应', school: '认知心理学', field: 'psychology',
+    summary: '能力不足者往往高估自己，能力强者反而低估自己。' },
+  { term: '锚定效应', school: '认知心理学', field: 'psychology',
+    summary: '最先接收到的信息会像锚一样影响后续判断，即使锚完全无关。' },
+  { term: '晕轮效应', school: '认知心理学', field: 'psychology',
+    summary: '对一个人某一特征的正面印象会扩散到对其其他特征的判断。' },
+  { term: '沉没成本', school: '行为经济学', field: 'psychology',
+    summary: '已投入且无法收回的成本不应影响未来决策，但人们往往难以割舍。' },
+  { term: '损失厌恶', school: '行为经济学', field: 'psychology',
+    summary: '失去100元的痛苦约为得到100元快乐的两倍。' },
+  { term: '确认偏误', school: '认知心理学', field: 'psychology',
+    summary: '人们倾向于寻找、解读和记忆能证实自己已有信念的信息。' },
+  { term: '峰终定律', school: '认知心理学', field: 'psychology',
+    summary: '一段体验的评价取决于其最高峰和结束时的感受，而非整体平均。' },
+
+  // ── 存在主义 / 现象学 ──
+  { term: '恶信', school: '存在主义', field: 'philosophy',
+    summary: '萨特用语——人逃避自身自由与责任，把自己伪装成没有选择的存在。' },
+  { term: '被抛性', school: '现象学', field: 'philosophy',
+    summary: '海德格尔用语——人并非自愿来到世上，而是已被抛入某种处境和条件中。' },
+  { term: '向死存在', school: '现象学', field: 'philosophy',
+    summary: '海德格尔用语——直面自身必死性时，存在才获得本真的紧迫感。' },
+  { term: '常人', school: '现象学', field: 'philosophy',
+    summary: '海德格尔用语——日常中"大家都这么做"的匿名公众，消磨个体独特性。' },
+  { term: '意向性', school: '现象学', field: 'philosophy',
+    summary: '胡塞尔核心概念——意识总是"关于某物的意识"，指向性是其本质。' },
+  { term: '生活世界', school: '现象学', field: 'philosophy',
+    summary: '胡塞尔用语——被科学抽象之前，我们直接经验到的那个日常世界。' },
+  { term: '悬置', school: '现象学', field: 'philosophy',
+    summary: '胡塞尔方法——暂时搁置对世界是否真实存在的判断，回到纯粹经验。' },
+  { term: '凝视', school: '存在主义', field: 'philosophy',
+    summary: '萨特/福柯——被他人注视时，主体性被压缩为客体，自我意识觉醒。' },
+  { term: '本真性', school: '存在主义', field: 'philosophy',
+    summary: '面对荒诞与死亡，承担自身自由并做出选择的存在方式。' },
+
+  // ── 解构主义 / 后结构 ──
+  { term: '差延', school: '解构主义', field: 'philosophy',
+    summary: '德里达造词——意义在差异与延迟中生成，永远不会完全在场。' },
+  { term: '踪迹', school: '解构主义', field: 'philosophy',
+    summary: '德里达用语——每个意义都留下其它意义的痕迹，没有纯粹的起源。' },
+  { term: '增补物', school: '解构主义', field: 'philosophy',
+    summary: '德里达用语——看似多余的补充，实际揭示了原本就存在的缺失。' },
+  { term: '能指滑移', school: '符号学', field: 'linguistics',
+    summary: '拉康用语——意义在能指链上不断滑动，所指永远无法被完全固定。' },
+  { term: '互文性', school: '后结构主义', field: 'literature',
+    summary: '克里斯蒂娃用语——任何文本都是对其他文本的吸收和转化。' },
+
+  // ── 精神分析 ──
+  { term: '对象小a', school: '精神分析', field: 'psychology',
+    summary: '拉康概念——不是欲望的对象，而是驱动欲望运转的原因。' },
+  { term: '镜像阶段', school: '精神分析', field: 'psychology',
+    summary: '拉康理论——婴儿首次在镜中认出自己，形成自我认同的关键时刻。' },
+  { term: '移情', school: '精神分析', field: 'psychology',
+    summary: '患者将过去关系中的情感投射到分析师身上，重现早期关系模式。' },
+  { term: '阴影', school: '分析心理学', field: 'psychology',
+    summary: '荣格概念——人格中被压抑和否认的黑暗面，越抗拒越强大。' },
+  { term: '阿尼玛', school: '分析心理学', field: 'psychology',
+    summary: '荣格概念——男性无意识中的女性原型意象，引导通向无意识的桥梁。' },
+
+  // ── 语言哲学 / 符号学 ──
+  { term: '能指链', school: '符号学', field: 'linguistics',
+    summary: '索绪尔/拉康——意义产生于能指之间的差异关系链，而非单个符号。' },
+  { term: '私人语言', school: '语言哲学', field: 'philosophy',
+    summary: '维特根斯坦论证——完全私人的语言是不可能的，语言本质上是公共的。' },
+  { term: '语言游戏', school: '语言哲学', field: 'philosophy',
+    summary: '维特根斯坦用语——语言的意义在于其使用方式，像游戏一样有规则。' },
+  { term: '言语行为', school: '语言哲学', field: 'linguistics',
+    summary: '奥斯汀理论——说话本身就是在做事：承诺、命令、命名都是行动。' },
+  { term: '漂浮能指', school: '符号学', field: 'linguistics',
+    summary: '没有固定所指的符号，在不同语境中漂移，意义始终不确定。' },
+
+  // ── 社会理论 ──
+  { term: '全景敞视', school: '社会理论', field: 'sociology',
+    summary: '福柯借用边沁监狱设计——被观看的可能性内化为自我监控。' },
+  { term: '生命政治', school: '社会理论', field: 'sociology',
+    summary: '福柯用语——权力不再只是禁止和惩罚，而是管理和优化生命本身。' },
+  { term: '景观社会', school: '社会理论', field: 'sociology',
+    summary: '德波理论——当代社会中，真实生活被表象和景观的堆积所取代。' },
+  { term: '符号资本', school: '社会理论', field: 'sociology',
+    summary: '布迪厄概念——声望、荣誉、学历等非物质形式的资本积累。' },
+  { term: '惯习', school: '社会理论', field: 'sociology',
+    summary: '布迪厄概念——内化于身体的持久倾向，塑造品味、姿态和判断。' },
+  { term: '拟像', school: '后现代主义', field: 'philosophy',
+    summary: '鲍德里亚概念——没有原件的复制品，模拟物取代了真实。' },
+  { term: '异化劳动', school: '社会理论', field: 'sociology',
+    summary: '马克思概念——工人与自己的劳动产品、劳动过程和类本质相分离。' },
+  { term: '规训', school: '社会理论', field: 'sociology',
+    summary: '福柯概念——通过持续监控和规范化训练，权力塑造出"驯顺的肉体"。' },
+
+  // ── 逻辑 / 思想实验 ──
+  { term: '奥卡姆剃刀', school: '科学哲学', field: 'philosophy',
+    summary: '简约原则——在解释力相当时，不应增加不必要的实体。' },
+  { term: '哥德尔不完备', school: '数理逻辑', field: 'mathematics',
+    summary: '任何足够强的形式系统都包含不可在该系统内证明的真命题。' },
+  { term: '罗素悖论', school: '数理逻辑', field: 'mathematics',
+    summary: '包含一切不包含自身的集合的集合——它包含自身吗？' },
+  { term: '中文房间', school: '心灵哲学', field: 'philosophy',
+    summary: '塞尔思想实验——按规则处理符号是否等于真正理解？' },
+  { term: '忒修斯之船', school: '形而上学', field: 'philosophy',
+    summary: '如果一艘船的每块木板都被替换，它还是原来那艘船吗？' },
+  { term: '麦克斯韦妖', school: '热力学', field: 'physics',
+    summary: '假想能区分快慢分子的小妖——信息能否违反热力学第二定律？' },
+  { term: '停机问题', school: '计算理论', field: 'mathematics',
+    summary: '图灵证明——不存在通用算法能判定任意程序是否会终止。' },
+  { term: '巴别图书馆', school: '思想实验', field: 'literature',
+    summary: '博尔赫斯想象——包含所有可能书籍的无限图书馆，几乎所有都无意义。' },
+  { term: '希尔伯特旅馆', school: '集合论', field: 'mathematics',
+    summary: '一家客满的无限旅馆仍能接纳新客人——无限的奇特性质。' },
+  { term: '永恒回归', school: '哲学', field: 'philosophy',
+    summary: '尼采思想实验——如果你的人生将无限重复，你是否会欣然接受？' },
+  { term: '物自体', school: '先验哲学', field: 'philosophy',
+    summary: '康德概念——事物在经验之外的本来面目，永远无法被直接认识。' },
+  { term: '绝对命令', school: '伦理学', field: 'philosophy',
+    summary: '康德道德律——只按你同时愿意它成为普遍法则的准则去行动。' },
+  { term: '无知之幕', school: '政治哲学', field: 'philosophy',
+    summary: '罗尔斯思想实验——不知道自己将处于社会哪个位置时，你会选择怎样的制度？' },
+  { term: '强力意志', school: '哲学', field: 'philosophy',
+    summary: '尼采概念——驱动万物的根本力量，不是求生存而是求强大和超越。' },
+  { term: '此在', school: '现象学', field: 'philosophy',
+    summary: '海德格尔用语——人的存在方式，总是已经处于世界之中并关心自己的存在。' },
+  { term: '明希豪森困境', school: '认识论', field: 'philosophy',
+    summary: '知识的终极基础不可能被证明——任何论证都预设了待论证的前提。' },
+  { term: '薛定谔之猫', school: '量子力学', field: 'physics',
+    summary: '叠加态思想实验——在观测之前，猫同时处于生和死的状态。' },
+];
+
+// 按 field 分组查询
+export function getConceptsByField(field) {
+  return CONCEPTS.filter(c => c.field === field);
+}
+
+// 按 school 分组查询
+export function getConceptsBySchool(school) {
+  return CONCEPTS.filter(c => c.school === school);
+}
+
+// 随机取一个概念
+export function randomConcept() {
+  return CONCEPTS[Math.floor(Math.random() * CONCEPTS.length)];
+}

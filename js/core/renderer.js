@@ -7,6 +7,48 @@ import { world, PLAYER_X, PLAYER_Y, CANVAS_W, CANVAS_H, GROUND_Y, SCROLL_SPEED }
 import { getShakeOffset } from '../systems/combat.js';
 import { state } from './state.js';
 import { getWeaponType, DEFAULT_WEAPON } from '../data/weaponTypes.js';
+import {
+  BOSS_BAR_WIDTH, ELITE_BAR_WIDTH, NORMAL_BAR_WIDTH,
+} from '../data/constants.js';
+
+// ============================================================
+// CSS 变量颜色缓存 — Canvas 读取 CSS 变量，主题统一管理
+// ============================================================
+const _colorCache = {};
+
+function readCssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function getColor(name) {
+  if (!_colorCache[name]) {
+    _colorCache[name] = readCssVar(name) || '';
+  }
+  return _colorCache[name];
+}
+
+/** 将 hex 颜色转为 rgba 字符串 */
+function hexToRgba(hex, alpha) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** 获取带透明度的 CSS 变量颜色 */
+function getColorAlpha(name, alpha) {
+  const hex = getColor(name);
+  if (hex.startsWith('#')) return hexToRgba(hex, alpha);
+  return hex;
+}
+
+/** 清除颜色缓存（主题切换时调用） */
+export function refreshColorCache() {
+  for (const key of Object.keys(_colorCache)) {
+    delete _colorCache[key];
+  }
+}
 
 // ============================================================
 // 背景动画
@@ -175,11 +217,11 @@ export function render(now) {
   ctx.translate(shakeOff.x, shakeOff.y);
 
   // ── 1. 清屏 ──
-  ctx.fillStyle = '#0a0a0a';
+  ctx.fillStyle = getColor('--bg-panel');
   ctx.fillRect(-10, -10, CANVAS_W + 20, CANVAS_H + 20);
 
   // ── 2. 地面线 ──
-  ctx.strokeStyle = '#333';
+  ctx.strokeStyle = getColor('--dim');
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, GROUND_Y);
@@ -223,35 +265,53 @@ export function render(now) {
     ctx.fillText(g.symbol, g.x, g.y);
   }
 
-  // ── 7. 敌人 (含名称+血条) ──
-  ctx.font = 'bold 22px monospace';
+  // ── 7. 敌人 (含符号+血条+阶段标记+名称) — 单次遍历 ──
   for (const e of world.enemies) {
     if (e.dead) continue;
     const alpha = e.dying ? e.dyingAlpha : 1;
     const flashing = now < e.flashUntil;
     if (alpha < 1) ctx.globalAlpha = alpha;
     ctx.fillStyle = flashing ? '#fff'
-      : e.type === 'boss' ? '#f44'
-      : e.type === 'elite' ? '#fa0'
+      : e.type === 'boss' ? getColor('--red')
+      : e.type === 'elite' ? getColor('--amber')
       : '#ccc';
     if (flashing) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 6; }
+    ctx.font = 'bold 22px monospace';
     ctx.fillText(e.symbol, e.x - 10, e.y + 8);
     ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
     if (!e.dying) {
       const hpPct = Math.max(0, e.hp / e.maxHp);
-      const barW = e.type === 'boss' ? 50 : e.type === 'elite' ? 36 : 28;
-      ctx.fillStyle = '#333';
+      const barW = e.type === 'boss' ? BOSS_BAR_WIDTH : e.type === 'elite' ? ELITE_BAR_WIDTH : NORMAL_BAR_WIDTH;
+      // 血条底
+      ctx.fillStyle = getColor('--dim');
       ctx.fillRect(e.x - barW / 2, e.y - 16, barW, 2);
-      ctx.fillStyle = e.type === 'boss' ? '#f44' : e.type === 'elite' ? '#fa0' : '#0f8';
+      // ★ Boss 阶段标记
+      if (e.type === 'boss' && e.phaseData) {
+        const phases = e.phaseData.phases;
+        for (let i = 1; i < phases.length; i++) {
+          const markX = e.x - barW / 2 + barW * phases[i].hpPct;
+          ctx.fillStyle = e.triggeredPhases?.has(i) ? '#fff' : '#666';
+          ctx.fillRect(markX - 0.5, e.y - 18, 1, 5);
+        }
+      }
+      // 血条填充
+      ctx.fillStyle = e.type === 'boss' ? getColor('--red') : e.type === 'elite' ? getColor('--amber') : getColor('--green-bright');
       ctx.fillRect(e.x - barW / 2, e.y - 16, barW * hpPct, 2);
+      // ★ Boss 当前阶段名称（右侧小字）
+      if (e.type === 'boss' && e.phaseData) {
+        const cur = e.phaseData.phases[e.currentPhase];
+        ctx.font = '9px monospace';
+        ctx.fillStyle = '#f88';
+        ctx.textAlign = 'left';
+        ctx.fillText(cur.name, e.x + barW / 2 + 4, e.y - 14);
+        ctx.textAlign = 'left';
+      }
     }
-  }
-  // 敌人名称(小字)
-  ctx.font = '10px monospace';
-  for (const e of world.enemies) {
+    // 敌人名称(小字,同上一个循环内完成,避免二次遍历)
     if (e.dead || e.dying) continue;
-    ctx.fillStyle = e.type === 'boss' ? '#f44' : e.type === 'elite' ? '#fa0' : '#555';
+    ctx.font = '10px monospace';
+    ctx.fillStyle = e.type === 'boss' ? getColor('--red') : e.type === 'elite' ? getColor('--amber') : '#555';
     ctx.fillText(e.name, e.x - 18, e.y - 20);
   }
 
@@ -259,8 +319,8 @@ export function render(now) {
   ctx.font = 'bold 22px monospace';
   for (const p of world.projectiles) {
     if (p.dead) continue;
-    ctx.fillStyle = p.color || '#0f8';
-    ctx.shadowColor = p.color || '#0f8';
+    ctx.fillStyle = p.color || getColor('--green-bright');
+    ctx.shadowColor = p.color || getColor('--green-bright');
     ctx.shadowBlur = 6;
     ctx.fillText(p.symbol || '*', p.x - 6, p.y + 6);
   }

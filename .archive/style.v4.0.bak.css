@@ -1,0 +1,132 @@
+/* style.css - 终端风格(v4.0 卷轴版) */
+
+:root {
+  --bg: #0a0a0a;
+  --fg: #00ff88;
+  --white: #ffffff;
+  --yellow: #ffaa00;
+  --red: #ff4444;
+  --gray: #888;
+  --dim: #444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px;
+}
+
+/* HUD */
+#hud {
+  border: 1px solid var(--fg);
+  padding: 8px 12px;
+  font-size: 13px;
+  background: rgba(0, 255, 136, 0.05);
+}
+.hud-row {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hud-row:last-child { margin-bottom: 0; }
+#hud b { color: var(--yellow); font-weight: normal; }
+
+.hp-bar-mini {
+  display: inline-block;
+  width: 200px;
+  height: 6px;
+  background: var(--dim);
+  overflow: hidden;
+  margin-left: auto;
+}
+.hp-bar-mini span {
+  display: block;
+  height: 100%;
+  background: var(--fg);
+  transition: width 0.15s;
+}
+
+/* 战斗区(Canvas) */
+#combat {
+  flex: 0 0 auto;
+  border: 1px solid var(--fg);
+  border-top: none;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+}
+#combat-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  background: #000;
+}
+
+/* 日志 */
+#log {
+  flex: 1;
+  border: 1px solid var(--fg);
+  border-top: none;
+  padding: 8px 12px;
+  font-size: 12px;
+  overflow-y: auto;
+  color: var(--white);
+  min-height: 100px;
+  max-height: 200px;
+  line-height: 1.7;
+}
+#log div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 底部 */
+#footer {
+  border: 1px solid var(--fg);
+  border-top: none;
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(0, 255, 136, 0.05);
+}
+button {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--fg);
+  padding: 4px 14px;
+  font-family: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+button:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+.footer-hint {
+  margin-left: auto;
+  color: var(--gray);
+  font-size: 11px;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--dim); }
+::-webkit-scrollbar-thumb:hover { background: var(--gray); }

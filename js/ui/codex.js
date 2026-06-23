@@ -1,8 +1,10 @@
 // js/ui/codex.js
 // 概念图鉴面板(已解锁的概念)
+// v8.2 — XSS 防护 + 事件委托替代 inline onclick
 
 import { state } from '../core/state.js';
 import { CONCEPTS, findConcept } from '../data/concepts.js';
+import { escapeHtml } from '../utils/html.js';
 
 let panelEl = null;
 let selectedId = null;
@@ -15,6 +17,13 @@ export function initCodexUI() {
   document.getElementById('btn-close-codex').onclick = () => {
     panelEl.style.display = 'none';
   };
+
+  // 事件委托：点击概念卡片
+  const codexContent = document.getElementById('codex-content');
+  if (codexContent) {
+    codexContent.addEventListener('click', handleCodexClick);
+  }
+
   panelEl.style.display = 'none';
 }
 
@@ -51,13 +60,13 @@ export function renderPanel() {
   let html = '';
   for (const [field, concepts] of Object.entries(fields)) {
     if (concepts.length === 0) continue;
-    html += `<div class="codex-section"><h3>${field} (${concepts.length})</h3>`;
+    html += `<div class="codex-section"><h3>${escapeHtml(field)} (${concepts.length})</h3>`;
     for (const c of concepts) {
       const sel = c.id === selectedId ? ' selected' : '';
-      html += `<div class="codex-card${sel}" data-id="${c.id}" onclick="window._codexSelect('${c.id}')">`;
-      html += `<span class="codex-term">${c.term}</span>`;
-      html += `<span class="codex-school">${c.school}</span>`;
-      html += `<span class="codex-summary">${c.summary}</span>`;
+      html += `<div class="codex-card${sel}" data-action="select" data-id="${escapeHtml(c.id)}">`;
+      html += `<span class="codex-term">${escapeHtml(c.term)}</span>`;
+      html += `<span class="codex-school">${escapeHtml(c.school)}</span>`;
+      html += `<span class="codex-summary">${escapeHtml(c.summary)}</span>`;
       html += '</div>';
     }
     html += '</div>';
@@ -84,22 +93,30 @@ function renderDetail() {
   const isLocked = !(state.unlockedCodex || []).includes(c.id);
   let html = '';
   html += `<div class="codex-detail-inner ${isLocked ? 'locked' : ''}">`;
-  html += `<h3>${c.term}</h3>`;
-  html += `<div class="codex-meta">${c.school} · ${c.field}</div>`;
-  html += `<div class="codex-summary-full">${c.summary}</div>`;
+  html += `<h3>${escapeHtml(c.term)}</h3>`;
+  html += `<div class="codex-meta">${escapeHtml(c.school)} \u00B7 ${escapeHtml(c.field)}</div>`;
+  html += `<div class="codex-summary-full">${escapeHtml(c.summary)}</div>`;
   if (c.designNote) {
-    html += `<div class="codex-design-note">◆ ${c.designNote}</div>`;
+    html += `<div class="codex-design-note">\u25C6 ${escapeHtml(c.designNote)}</div>`;
   }
   if (c.termEn) {
-    html += `<div class="codex-term-en">${c.termEn}</div>`;
+    html += `<div class="codex-term-en">${escapeHtml(c.termEn)}</div>`;
   }
   html += '</div>';
 
   detailEl.innerHTML = html;
 }
 
-// 全局回调
-window._codexSelect = (id) => {
-  selectedId = id;
-  renderPanel();
-};
+// ============================================================
+// 事件委托 — 替代 inline onclick + window 全局函数
+// ============================================================
+
+function handleCodexClick(e) {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+
+  if (target.dataset.action === 'select') {
+    selectedId = target.dataset.id;
+    renderPanel();
+  }
+}

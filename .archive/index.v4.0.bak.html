@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存在终端 Terminal of Being</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <!-- 顶部 HUD -->
+  <header id="hud">
+    <div class="hud-row">
+      <span>LV <b id="level">1</b></span>
+      <span>EXP <b id="exp">0 / 20</b></span>
+      <span>STAGE <b id="stage">1</b></span>
+      <span>金币 <b id="gold">0</b></span>
+      <span>敌 <b id="enemy-count">0</b></span>
+    </div>
+    <div class="hud-row">
+      <span>HP <b id="player-hp">100 / 100</b></span>
+      <span>MP <b id="player-mp">30 / 30</b></span>
+      <div class="hp-bar-mini"><span id="player-hp-bar" style="width:100%"></span></div>
+    </div>
+  </header>
+
+  <!-- Canvas 战斗区(v4.0 卷轴版) -->
+  <main id="combat">
+    <canvas id="combat-canvas" width="800" height="320"></canvas>
+  </main>
+
+  <!-- 日志 -->
+  <section id="log"></section>
+
+  <!-- 底部按钮 -->
+  <footer id="footer">
+    <button id="btn-save">[保存]</button>
+    <button id="btn-test-drop">[测试爆装]</button>
+    <button id="btn-clear">[清空]</button>
+    <span class="footer-hint">v4.0 · 卷轴物理版 · 阶段 0.5</span>
+  </footer>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

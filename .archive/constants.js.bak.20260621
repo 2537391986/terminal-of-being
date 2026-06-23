@@ -1,0 +1,86 @@
+// js/data/constants.js
+// 所有数值常量(单一真相源)
+
+// === 稀有度 ===
+export const RARITIES = {
+  common:    { label: '经验的',     color: '#888888', weight: 65,   affixCount: 0, statMul: 1.0 },
+  magic:     { label: '概念的',     color: '#4488ff', weight: 25,   affixCount: 1, statMul: 1.3 },
+  rare:      { label: '超验的',     color: '#ffcc44', weight: 8,    affixCount: 2, statMul: 1.6 },
+  epic:      { label: '存在的',     color: '#cc44ff', weight: 1.8,  affixCount: 2, statMul: 2.0, hasEffect: true },
+  legendary: { label: '不可言说的', color: '#ff8844', weight: 0.2,  affixCount: 3, statMul: 2.5, hasEffect: true },
+  mythic:    { label: '终极命题的', color: '#ff4444', weight: 0.02, affixCount: 3, statMul: 3.2, hasEffect: true },
+};
+
+// === 装备部位 ===
+export const SLOTS = {
+  weapon:  { label: '武器',     icon: '⚔' },
+  head:    { label: '头部',     icon: '⛑' },
+  chest:   { label: '胸甲',     icon: '🛡' },
+  gloves:  { label: '护手',     icon: '🧤' },
+  boots:   { label: '鞋子',     icon: '👢' },
+  ring:    { label: '戒指',     icon: '💍' },
+  amulet:  { label: '项链',     icon: '📿' },
+  charm:   { label: '护符',     icon: '🔮' },
+  core:    { label: '终端核心', icon: '◈' },
+};
+
+// === 属性显示 ===
+export const STAT_LABELS = {
+  maxHp:      '最大存在强度',
+  maxMp:      '最大意志',
+  atk:        '断言力',
+  def:        '自我边界',
+  aspd:       '思维频率',
+  crit:       '洞见率',
+  critDmg:    '启示倍率',
+  dodge:      '否认机制',
+  block:      '防御机制',
+  luck:       '偶然性',
+  itemFind:   '现象捕获',
+  rarityFind: '超验发现',
+  expGain:    '经验吸收',
+  goldGain:   '资本积聚',
+  lifesteal:  '意义回收',
+  cooldownRed:'方法论压缩',
+};
+
+// === 掉落概率 ===
+export const DROP_CHANCE = {
+  normal: 0.08,
+  elite:  0.35,
+  boss:   1.0,
+};
+
+// === 升级成长(每级) ===
+export const LEVEL_UP = {
+  maxHp:  10,
+  maxMp:  2,
+  atk:    2,
+  def:    1,
+};
+
+// === 经验公式 ===
+export function expToNext(level) {
+  return Math.floor(20 * Math.pow(level, 1.45));
+}
+
+// === 敌人属性公式 ===
+export function enemyStats(stage) {
+  return {
+    hp:  30 * Math.pow(stage, 1.35),
+    atk: 4  * Math.pow(stage, 1.18),
+    def: 1  + Math.pow(stage, 1.05),
+    exp: 5  * Math.pow(stage, 1.15),
+    gold: 3  * Math.pow(stage, 1.10),
+  };
+}
+
+// === 精英/Boss 倍率 ===
+export const ELITE_MUL = { hp: 3, atk: 1.8, def: 1.5 };
+export const BOSS_MUL  = { hp: 10, atk: 2.5, def: 2 };
+
+// === 背包上限 ===
+export const INVENTORY_MAX = 40;
+
+// === 自动保存间隔(ms) ===
+export const AUTO_SAVE_INTERVAL = 10000;

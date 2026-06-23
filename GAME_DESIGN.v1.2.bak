@@ -1,0 +1,1743 @@
+# 《存在终端 Terminal of Being》AI 开发主文档 v2.0
+
+> **副标题**:`I idle, therefore I am. / 我挂机,故我在。`
+> **目标**:**纯 HTML + CSS + 原生 JS + Canvas(只画战斗动画)+ localStorage**
+> **部署**:GitHub Pages 静态托管
+> **文档定位**:AI 开发本游戏的唯一真相源(Single Source of Truth)
+> **使用方式**:AI 每次开发前必须读完整份文档。所有章节编号为最终版本,不要自己重组。所有"必须 / 必须不"用全大写标注(MUST / MUST NOT)。
+
+---
+
+## 0. 致 AI 的一段话
+
+这份文档不是用来读的,是用来**约束**你的。
+
+它不是"参考",是**契约**。你写的每一行代码、生成的每一件装备、命名的每一个怪物,都必须能从这份文档里找到对应规则。
+
+如果你发现文档自相矛盾——**停下来,在输出里告诉用户,不要自己拍板**。
+如果你想做文档禁止的事——**停下来,在输出里告诉用户,不要悄悄做**。
+如果你发现某个机制 800 行内做不出来——**停下来,在输出里告诉用户,不要用 hack 绕过**。
+
+用户的偏好是"一次性把规则定清楚,然后让你一口气做完"。所以这份文档**写得长,改得少**。请认真读完,再开始写代码。
+
+---
+
+## 1. 核心定位(1 句话)
+
+```
+玩家扮演被抛入终端世界的"主体",在 ASCII 横版世界中自动战斗、
+刷概念装备、收集哲学/心理学/社会学/逻辑学/思想实验术语,
+不断推进层数、转生变强。
+```
+
+### 1.1 体验目标(优先级排序)
+
+```
+P0 必达(MVP 必须):
+1. 打开网页 5 秒内进入战斗
+2. 自动战斗流畅,不掉帧
+3. 装备能影响数值,数值差异肉眼可见
+4. 击杀有反馈(闪红、伤害数字、掉落日志)
+5. 刷新页面进度不丢
+
+P1 重要(MVP 阶段后期补):
+6. 装备名让人想点开看概念说明
+7. 概念说明真的和装备效果能对上
+8. Boss 有阶段变化
+
+P2 锦上添花(本期不做):
+9. 离线收益
+10. 转生
+11. 图鉴
+12. 套装
+```
+
+---
+
+## 2. 技术栈(固定,不讨论)
+
+### 2.1 必须使用
+
+```
+- 纯 HTML + CSS + 原生 JS(ES2020+)
+- Canvas 2D 用于战斗动画(只用一小块,其它全 DOM)
+- localStorage 用于存档
+- 单一 index.html,所有 CSS 一个 style.css
+- JS 拆为多文件,使用 <script type="module"> 加载
+```
+
+### 2.2 必须不
+
+```
+- 任何框架(React/Vue/Svelte/...全部禁止)
+- 任何构建工具(不用 Vite/Webpack/Parcel)
+- 任何 npm 依赖
+- 任何外部 CDN
+- TypeScript(本期)
+- 任何后端/网络请求
+```
+
+### 2.3 文件结构(MUST)
+
+```
+terminal-of-being/
+├── index.html              # 入口,所有 UI 容器
+├── style.css               # 终端风格样式
+├── README.md               # 玩家向说明
+├── GAME_DESIGN.md          # 本文档
+├── js/
+│   ├── main.js             # 启动 + 主循环
+│   ├── constants.js        # 所有数值常量(单一真相源)
+│   ├── data/
+│   │   ├── concepts.js     # 概念库(术语+派系+科普)
+│   │   ├── items.js        # 装备模板(12 件 MVP)
+│   │   ├── enemies.js      # 怪物模板(12 个 MVP)
+│   │   ├── bosses.js       # Boss 模板(本期从 enemies 引用)
+│   │   ├── skills.js       # 技能模板(本期占位,不实现)
+│   │   └── affixes.js      # 词缀池(20+ MVP)
+│   ├── core/
+│   │   ├── state.js        # 全局 state(单一对象)
+│   │   ├── rng.js          # 种子化随机数(可选,本期可用 Math.random)
+│   │   └── save.js         # 存档读写 + 版本迁移
+│   ├── systems/
+│   │   ├── combat.js       # 战斗循环
+│   │   ├── loot.js         # 掉落判定
+│   │   ├── equipment.js    # 装备穿戴/卸下
+│   │   ├── stats.js        # 属性聚合计算
+│   │   └── progression.js  # 升级/层数推进
+│   └── ui/
+│       ├── render.js       # 战斗画面渲染(Canvas)
+│       ├── hud.js          # 顶部状态栏
+│       ├── inventory.js    # 背包面板
+│       └── log.js          # 日志面板
+└── assets/                 # 本期为空
+```
+
+---
+
+## 3. 命名规则(本文档最重要的一节)
+
+### 3.1 命名原则:MUST
+
+```
+1. 装备名 = 具体概念术语,不是"主义"+ 装备部位
+2. 同一概念只能对应一个核心装备模板
+3. 装备效果必须能映射到概念含义(概念即机制)
+4. "主义"只用作 concept.school 字段,绝不作装备名主体
+5. 怪物名 = 概念术语 + 类别后缀(虫/幽灵/残偶/协议 等)
+6. 命名必须有"画面感"——读出来脑子里能出现图像
+```
+
+### 3.2 命名反模式:MUST NOT
+
+```
+MUST NOT 出现以下命名:
+- 存在主义之剑 / 虚无主义长枪 / 解构主义戒指 / 理性主义头盔
+- 任何"[形容词]+[部位名]"且无具体概念的装备
+  (例: 暴击之剑、吸血匕首、防御护甲)
+- 直接用哲学家名字作装备名(萨特之剑、海德格尔之盾、福柯之眼)
+- 用纯数值描述的装备(十倍攻击之锤、三倍暴击戒指)
+- 任何以"主义"两字结尾的装备名
+```
+
+### 3.3 装备命名 5 套模板(AI 必须任选其一)
+
+```
+【模板 A】[概念术语] + [冷兵器]
+  适用于: 武器
+  兵器词库: 刃 / 锋 / 匕 / 剑 / 枪 / 戟 / 锤 / 杖 / 鞭 / 钩 / 镰 / 锏
+  示例:
+    差延之刃       (解构主义)
+    对象小a匕首    (拉康精神分析)
+    西西弗斯之槌   (荒诞主义)
+    奥卡姆剃刀     (科学哲学,特殊:器具作兵器)
+    全景敞视弩     (福柯社会理论)
+
+【模板 B】[概念术语] + [身体隐喻部位]
+  适用于: 防具 / 饰品
+  部位词库: 面具 / 披风 / 长靴 / 手套 / 指环 / 项链 / 护符 / 护手 / 胸甲 / 头盔
+  示例:
+    蔡格尼克指环   (认知心理学)
+    恶信面具       (萨特存在主义)
+    被抛性长靴     (海德格尔存在主义)
+    晕轮披风       (社会心理学)
+
+【模板 C】[概念术语] + [抽象容器]
+  适用于: 特殊装备(终端核心 / 法器)
+  容器词库: 终端 / 棱镜 / 透镜 / 矩阵 / 阵列 / 协议 / 索引 / 档案 / 契约
+  示例:
+    中文房间终端   (心灵哲学)
+    巴别图书馆索引 (语言哲学)
+    罗素悖论矩阵   (逻辑学)
+
+【模板 D】[概念术语] + [身体+动作复合]
+  适用于: 概念词本身已是动作/状态时
+  示例:
+    凝视护手       (萨特/福柯)
+    默读之唇       (语言哲学)
+    失神之瞳       (现象学)
+
+【模板 E】[概念术语] + [自然物 / 锁链]
+  适用于: 概念本身是抽象关系时
+  示例:
+    沉没成本锁链   (行为经济学)
+    锚定之锚       (行为经济学)
+    差延之河       (解构主义)
+```
+
+### 3.4 怪物命名规则
+
+```
+[概念术语] + [类别后缀]
+
+类别后缀词库:
+  普通怪: 虫 / 残影 / 漂浮物 / 兽 / 壳 / 幽灵 / 体 / 阴影
+  精英怪: 干扰体 / 拟人 / 残偶 / 寄生体 / 执行体
+  Boss:   协议 / 母体 / 残骸 / 守门人 / 引擎 / 索引 / 观测者
+
+示例:
+  锚定虫        (普通, 行为经济学)
+  启动残影      (普通, 启动效应)
+  斯特鲁普干扰体 (精英, 认知心理学)
+  西西弗斯协议   (Boss,  荒诞主义)
+  哥德尔裂隙    (Boss,  逻辑学)
+```
+
+### 3.5 难度配比(MUST)
+
+```
+装备词缀池中:
+- 10% 大众词(锚定 / 晕轮 / 沉没成本 / 启动)   → 普通/魔法装备
+- 45% 中等专业词(蔡格尼克 / 对象a / 差延 / 恶信) → 魔法/超验装备
+- 30% 冷门术语(踪迹 / 增补物 / 能指滑移 / 凝缩)  → 超验/史诗装备
+- 15% 思想实验(中文房间 / 缸中之脑 / 麦克斯韦妖)  → 传说/神话装备
+```
+
+### 3.6 概念即机制(MUST)
+
+```
+每件装备的 effects 字段必须能用人话解释:
+"这件装备的效果 X 是因为概念 Y 的含义 Z"
+不能讲清的装备 = 不允许出现在数据中
+```
+
+---
+
+## 4. 核心数据契约(所有系统都按此对接)
+
+### 4.1 Stats(属性)
+
+```js
+/**
+ * @typedef {Object} Stats
+ * @property {number} maxHp          最大生命(存在强度)
+ * @property {number} maxMp          最大法力(意志)
+ * @property {number} atk            攻击(断言力)
+ * @property {number} def            防御(自我边界)
+ * @property {number} aspd           攻击速度,次/秒(思维频率)
+ * @property {number} crit           暴击率 0~1(洞见率)
+ * @property {number} critDmg        暴击倍率(启示倍率)
+ * @property {number} dodge          闪避率 0~1(否认机制)
+ * @property {number} block          格挡率 0~1(防御机制)
+ * @property {number} luck           幸运(偶然性)
+ * @property {number} itemFind       装备掉率加成 0~1(现象捕获)
+ * @property {number} rarityFind     高品质掉率加成 0~1(超验发现)
+ * @property {number} expGain        经验加成 0~1(经验吸收)
+ * @property {number} goldGain       金币加成 0~1(资本积聚)
+ * @property {number} lifesteal      吸血 0~1(意义回收)
+ * @property {number} cooldownRed    冷却缩减 0~1(流程精简)
+ */
+```
+
+### 4.2 Concept(概念元数据)
+
+```js
+/**
+ * @typedef {Object} Concept
+ * @property {string} id          概念唯一 id,如 "zeigarnik"
+ * @property {string} term        术语中文名,如 "蔡格尼克效应"
+ * @property {string} termEn      术语英文,如 "Zeigarnik Effect"
+ * @property {string} school      派系,如 "认知心理学 / Gestalt"
+ * @property {string} field       领域大类,如 "心理学"
+ * @property {string} summary     一句话科普(50 字内)
+ * @property {string} designNote  机制映射说明,为什么这个效果对应这个概念
+ */
+```
+
+### 4.3 Item(装备)
+
+```js
+/**
+ * @typedef {Object} Item
+ * @property {string} id              运行时生成的唯一 uid
+ * @property {string} templateId      模板 id,如 "zeigarnik_ring"
+ * @property {string} name            显示名,如 "蔡格尼克指环"
+ * @property {Rarity} rarity          稀有度
+ * @property {ItemSlot} slot          部位
+ * @property {number} level           装备等级(影响属性缩放)
+ * @property {number} enhance         强化等级 0~10
+ * @property {[number, number]} stageRange  允许掉落的层数区间
+ * @property {Partial<Stats>} baseStats   基础属性
+ * @property {Affix[]} affixes        词缀列表
+ * @property {Effect[]} effects       特殊效果(本期仅实现 5 种 type)
+ * @property {Concept} concept        概念元数据
+ * @property {string} flavorText      一句话描述
+ * @property {number} dropWeight      掉落权重(数值越大越易掉)
+ */
+```
+
+### 4.4 Enemy(怪物)
+
+```js
+/**
+ * @typedef {Object} Enemy
+ * @property {string} id
+ * @property {string} name
+ * @property {string} symbol          ASCII 符号
+ * @property {"normal"|"elite"|"boss"} type
+ * @property {Concept} concept
+ * @property {[number, number]} stageRange  出现层数区间
+ * @property {{hp:number, maxHp:number, atk:number, def:number, aspd:number}} stats
+ * @property {Effect[]} mechanics     机制列表(本期 Boss 才用)
+ * @property {{exp:number, gold:number}} rewards
+ * @property {number} dropChance      装备掉率 0~1
+ * @property {Rarity[]} dropPool      限定稀有度池(空数组 = 用全局表)
+ */
+```
+
+### 4.5 Affix(词缀)
+
+```js
+/**
+ * @typedef {Object} Affix
+ * @property {keyof Stats} stat       影响的属性 key
+ * @property {number} value           数值,百分比属性用 0.05 表示 5%
+ * @property {boolean} isPercent      是否百分比加成
+ */
+```
+
+### 4.6 Effect(效果,本期只支持以下 7 种 type)
+
+```js
+/**
+ * Effect 是统一的"机制描述",所有系统按 type 分发。
+ * 本期只实现以下 type,后续阶段才会扩展:
+ *
+ * 1. "stat_flat"        { stat: keyof Stats, value: number }
+ *    立即获得固定属性,加入聚合计算
+ *
+ * 2. "stat_percent"     { stat: keyof Stats, value: number }  // 0.1 = +10%
+ *    百分比加成,聚合时乘算
+ *
+ * 3. "on_kill"          { effect: "drop_bonus"|"aspd_buff"|... }
+ *    击杀时触发,effect 是预定义 id
+ *
+ * 4. "on_low_hp"        { threshold: 0.3, stat, value }
+ *    血量低于阈值时属性变化
+ *
+ * 5. "delayed_damage"   { percent: 0.4, delay: 2000 }
+ *    伤害延迟结算,本期简化:造成伤害的 40% 在 2 秒后再次结算
+ *
+ * 6. "drop_bonus"       { rarityBonus: number, duration: number }
+ *    击杀后一段时间提高掉率(配合 on_kill 使用)
+ *
+ * 7. "enemy_debuff"     { stat: "atk"|"def"|"dodge", value: number, duration: number }
+ *    战斗开始时给敌人上减益,持续整场战斗
+ *
+ * 后续阶段才会实现:
+ *   "auto_battle_bonus" / "manual_action_bonus" / "conditional_chain" / ...
+ */
+```
+
+### 4.7 Rarity(稀有度)
+
+```js
+/** @typedef {"common"|"magic"|"rare"|"epic"|"legendary"|"mythic"} Rarity */
+```
+
+### 4.8 ItemSlot(部位)
+
+```js
+/** @typedef {"weapon"|"head"|"chest"|"gloves"|"boots"|"ring"|"amulet"|"charm"|"core"} ItemSlot */
+```
+
+---
+
+## 5. 数值公式(单一真相源,所有公式集中在本节)
+
+### 5.1 玩家初始值
+
+```js
+export const PLAYER_BASE_STATS = {
+  maxHp: 100,
+  maxMp: 30,
+  atk: 10,
+  def: 2,
+  aspd: 1.0,
+  crit: 0.05,
+  critDmg: 1.5,
+  dodge: 0,
+  block: 0,
+  luck: 0,
+  itemFind: 0,
+  rarityFind: 0,
+  expGain: 0,
+  goldGain: 0,
+  lifesteal: 0,
+  cooldownRed: 0,
+};
+```
+
+### 5.2 升级
+
+```
+每升 1 级:
+  maxHp += 10
+  atk   += 2
+  def   += 1
+  maxMp += 2
+
+升级所需经验:
+  expToNext(level) = floor(20 * level^1.45)
+```
+
+### 5.3 敌人缩放(stage = 当前层数)
+
+```
+普通怪:
+  hp    = 30 * stage^1.35
+  atk   = 4  * stage^1.18
+  def   = 1  + stage^1.05
+  aspd  = 0.8
+  exp   = 5  * stage^1.15
+  gold  = 3  * stage^1.10
+
+精英怪(每 5 层第 5 只):
+  hp    = 90 * stage^1.35   (= 普通 × 3)
+  atk   = 7.2 * stage^1.18  (= 普通 × 1.8)
+  def   = (1 + stage^1.05) * 1.5
+  aspd  = 1.0
+  exp   = 15 * stage^1.15
+  gold  = 9  * stage^1.10
+  dropChance = 0.35
+
+Boss(每 10 层):
+  hp    = 300 * stage^1.35
+  atk   = 10  * stage^1.18
+  def   = (1 + stage^1.05) * 2
+  aspd  = 0.6
+  exp   = 50  * stage^1.15
+  gold  = 30  * stage^1.10
+  dropChance = 1.0
+```
+
+### 5.4 伤害公式
+
+```
+基础伤害:
+  raw = max(1, attacker.atk - defender.def * 0.5)
+
+暴击判定:
+  if random() < attacker.crit:
+    raw *= attacker.critDmg
+    isCrit = true
+
+闪避判定(在暴击之后):
+  if random() < defender.dodge:
+    raw = 0
+    log("[闪避]")
+
+吸血:
+  heal = raw * attacker.lifesteal
+
+最终扣血:
+  defender.hp -= raw
+  attacker.hp  = min(attacker.maxHp, attacker.hp + heal)
+```
+
+### 5.5 攻击速度 → 间隔
+
+```
+attackInterval = 1000 / aspd   // 单位:毫秒
+```
+
+### 5.6 掉落稀有度权重
+
+```
+权重(无幸运时):
+  common    : 650
+  magic     : 250
+  rare      : 80
+  epic      : 18
+  legendary : 2
+  mythic    : 0.2
+
+幸运调整:
+  effectiveLuck = luck + rarityFind * 100
+  // 越稀有的稀有度,权重乘 (1 + effectiveLuck/300)
+
+roll 实现:
+  1. 算出每个稀有度的调整后权重
+  2. total = sum
+  3. r = random() * total
+  4. 累加返回第一个 r < 累加值的稀有度
+```
+
+### 5.7 装备掉率
+
+```
+普通怪:  8%
+精英怪:  35%
+Boss:   100%(且保证至少 rare)
+
+最终: effectiveChance = dropChance * (1 + itemFind)
+```
+
+### 5.8 死亡与失败
+
+```
+玩家死亡:
+  stage = max(1, stage - 5)
+  player.hp = player.maxHp
+  player.mp = player.maxMp
+  log("[死亡] 回到第 {stage} 层")
+  // 保留所有装备、经验、金币、词缀、概念解锁
+```
+
+### 5.9 存档字段
+
+```js
+const SAVE_KEY = "terminal_of_being_save_v1";
+const SAVE_VERSION = 1;
+
+// 必须保存的结构:
+{
+  version: SAVE_VERSION,
+  player: {
+    level, exp, expToNext, gold,
+    hp, mp,
+    // 加上所有 Stats 字段的当前最终值(不是 base,是 final)
+  },
+  stage, bestStage,
+  inventory: Item[],          // 背包装备
+  equipment: {                // 穿戴中装备
+    weapon: Item|null,
+    head:   Item|null,
+    chest:  Item|null,
+    gloves: Item|null,
+    boots:  Item|null,
+    ring:   [Item|null, Item|null],   // 戒指可戴 2 个
+    amulet: Item|null,
+    charm:  Item|null,
+    core:   Item|null,
+  },
+  unlockedCodex: string[],    // 概念 id 列表,本期可为空数组
+  settings: { soundOn: bool, animationOn: bool },
+  savedAt: timestamp,
+}
+```
+
+---
+
+## 6. 装备系统
+
+### 6.1 部位(MUST 9 个)
+
+```
+weapon  武器
+head    头部
+chest   胸甲
+gloves  护手
+boots   鞋子
+ring    戒指(可戴 2 个,装备栏为数组)
+amulet  项链
+charm   护符
+core    终端核心
+```
+
+### 6.2 稀有度(本期实现前 5 个,mythic 数据留空)
+
+| key | 显示 | 颜色 | 词缀数 | 机制数 |
+|-----|------|------|--------|--------|
+| common | 经验的 | #888 | 0 | 0 |
+| magic | 概念的 | #4af | 1 | 0 |
+| rare | 超验的 | #fc4 | 2 | 0 |
+| epic | 存在的 | #c4f | 2 | 1 |
+| legendary | 不可言说的 | #f84 | 3 | 2 |
+| mythic | 终极命题的 | #f44 | 4 | 3 |
+
+### 6.3 MVP 装备池(本期必须实现这 12 个,exactly,顺序固定)
+
+| # | templateId | 名称 | 部位 | 稀有度 | 概念 | 派系 | 阶段 |
+|---|------------|------|------|--------|------|------|------|
+| 1 | anchor_hammer | 锚定之锤 | weapon | common | 锚定效应 | 行为经济学 | 全程 |
+| 2 | halo_cape | 晕轮披风 | chest | common | 晕轮效应 | 社会心理 | 全程 |
+| 3 | sunk_cost_chain | 沉没成本锁链 | amulet | magic | 沉没成本 | 行为经济 | [1, 20] |
+| 4 | zeigarnik_ring | 蔡格尼克指环 | ring | rare | 蔡格尼克效应 | 认知心理 | [3, 30] |
+| 5 | stroop_prism | 斯特鲁普棱镜 | charm | rare | 斯特鲁普效应 | 认知心理 | [5, 40] |
+| 6 | bad_faith_mask | 恶信面具 | head | epic | 恶信 / 自欺 | 萨特存在主义 | [10, 60] |
+| 7 | thrownness_boots | 被抛性长靴 | boots | epic | 被抛性 | 海德格尔存在主义 | [10, 50] |
+| 8 | differance_blade | 差延之刃 | weapon | epic | 差延 | 德里达解构主义 | [15, 80] |
+| 9 | objet_a_dagger | 对象小a匕首 | weapon | epic | 对象小a | 拉康精神分析 | [20, 100] |
+| 10 | panopticon_crossbow | 全景敞视弩 | weapon | legendary | 全景敞视 | 福柯社会理论 | [30, 200] |
+| 11 | occam_razor | 奥卡姆剃刀 | weapon | legendary | 奥卡姆剃刀 | 科学哲学 | [50, 500] |
+| 12 | chinese_room_terminal | 中文房间终端 | core | legendary | 中文房间 | 心灵哲学 | [40, 999] |
+
+> **注意**:中文房间本期只实现为"stat_percent + cooldownRed"两条普通词缀,不实现"自动战斗效率"等特殊机制。特殊机制描述留在 concept.designNote 里,作为后期扩展备忘。
+
+### 6.4 装备生成流程
+
+```
+1. 根据怪物 type 决定候选模板:
+   normal  → 从 stageRange 包含当前 stage 的 common/magic/rare 中随机
+   elite   → 从包含当前 stage 的 magic/rare/epic 中随机
+   boss    → 从包含当前 stage 的 rare/epic/legendary 中随机
+
+2. 选中模板后:
+   - 按 5.6 roll 稀有度(模板的稀有度是"目标稀有度",实际可上调/下调)
+   - 按稀有度生成对应数量词缀(从 affixes.js 池中随机抽)
+   - 应用模板 baseStats × (1 + level * 0.05) 缩放
+   - 应用词缀数值 × (1 + level * 0.03)
+   - 加上模板自身的 effects
+   - 加上 concept 元数据
+   - 生成 uid(时间戳 + Math.random)
+   - push 到 inventory,log 掉落
+```
+
+### 6.5 装备强度分级(避免 5 层掉传说)
+
+```
+所有装备模板 MUST 带 stageRange: [min, max]
+roll 装备时若怪物 stage 不在范围内:
+  - common 装备: 直接 reroll 直到出范围内的
+  - magic 及以上: 不出,本次不掉落(回退到不掉)
+
+具体分级见 6.3 表的 [min, max] 列。
+```
+
+---
+
+### 6.6 命名词汇分离(易混名词清单,MUST)
+
+文档里有几组词容易在不同语境被混用,导致玩家困惑。本节明确每个词的**唯一指代**:
+
+```
+[游戏资源类]        — 只指代游戏内资源或数值
+  符号资本            = 金币(资源名)
+  认知经验            = 经验值(资源名)
+  概念残渣            = 分解材料(资源名)
+  论证碎片            = 强化材料(资源名)
+  存在碎片            = 转生货币(资源名)
+
+[游戏属性类]        — 只指代玩家属性字段
+  经验吸收            = expGain 属性中文名
+  资本积聚            = goldGain 属性中文名
+  意义回收            = lifesteal 属性中文名
+  流程精简            = cooldownRed 属性中文名
+  现象捕获            = itemFind 属性中文名
+  超验发现            = rarityFind 属性中文名
+
+[游戏系统类]        — 只指代游戏系统或玩法
+  方法论              = 主动技能系统总称(本期占位,不实现)
+  重新抛入            = 转生操作
+  记忆库              = 背包系统
+  概念图鉴            = codex 系统(本期只存数据)
+
+[哲学派系类]        — 只在 concept.school 字段出现
+  存在主义 / 荒诞主义 / 解构主义 / 精神分析 / ...
+  MUST NOT 出现在装备名 / 怪物名 / 属性中文别名 / 系统名 里
+
+[具体术语类]        — 装备名 / 怪物名的唯一来源
+  恶信 / 被抛性 / 差延 / 镜像阶段 / 全景敞视 / ...
+  出现在 concept.term / 装备 name / 怪物 name
+```
+
+MUST NOT:
+- "符号资本"作为派系出现
+- "方法论"作为属性名出现
+- "主义"作为装备名 / 怪物名出现
+- "经验主义"作为属性名出现(虽然它是派系,但容易和"经验值"混淆)
+
+如果未来需要新增易混词,统一加在本节末尾,不要散落在其他章节。
+```
+
+---
+
+## 7. 怪物系统
+
+### 7.1 MVP 怪物池(本期实现 10 普通 + 2 精英 + 3 Boss = 15 个,exactly)
+
+| # | id | 名称 | 符号 | type | 概念 | 出现层数 |
+|---|----|------|------|------|------|----------|
+| 1 | boot_shade | 启动残影 | ? | normal | 启动效应 | [1, 999] |
+| 2 | anchor_worm | 锚定虫 | a | normal | 锚定效应 | [1, 30] |
+| 3 | halo_float | 晕轮漂浮物 | b | normal | 晕轮效应 | [5, 60] |
+| 4 | sunk_cost_beast | 沉没成本兽 | c | normal | 沉没成本 | [3, 50] |
+| 5 | cog_closure_shell | 认知闭合壳 | d | normal | 认知闭合 | [8, 80] |
+| 6 | zeigarnik_ghost | 蔡格尼克幽灵 | e | normal | 蔡格尼克效应 | [10, 100] |
+| 7 | endowment_phantom | 禀赋效应执念者 | f | normal | 禀赋效应 | [15, 120] |
+| 8 | gambler_echo | 赌徒谬误回声 | g | normal | 赌徒谬误 | [20, 150] |
+| 9 | conf_bias_echo | 确认偏误回声 | h | normal | 确认偏误 | [25, 200] |
+| 10 | cog_disson_shade | 认知失调阴影 | i | normal | 认知失调 | [30, 250] |
+| 11 | stroop_interfere | 斯特鲁普干扰体 | S | elite | 斯特鲁普效应 | [15, 200] |
+| 12 | barnum_persona | 巴纳姆拟人 | B | elite | 巴纳姆效应 | [20, 250] |
+| 13 | mirror_phase_remnant | 镜像阶段残偶 | M | boss | 镜像阶段 | [20] (固定 Boss) |
+| 14 | differance_crawler | 差延爬行体 | D | boss | 差延 | [30] (固定 Boss) |
+| 15 | sisyphus_protocol | 西西弗斯协议 | Ω | boss | 西西弗斯 | [50] (固定 Boss) |
+
+### 7.2 怪物生成流程
+
+```
+1. 普通怪:
+   if stage % 5 === 0:
+     type = "elite"
+   else:
+     type = "normal"
+
+2. Boss:
+   if stage % 10 === 0:
+     type = "boss"
+     从 bosses 池中按 stage 精确匹配,若无匹配则按普通怪生成
+
+3. 选定 type 后:
+   从对应 type 池中按 stageRange 过滤
+   加权随机选一个(用各模板的 dropWeight 字段)
+   用 5.3 公式生成该 stage 的实际数值
+```
+
+### 7.3 怪物死亡反馈(MUST)
+
+```
+- 屏幕中央飘出伤害数字(白色 12px,暴击黄色 18px 加粗)
+- 敌人 ASCII 闪红 100ms(切换 canvas 颜色或 DOM class)
+- 死亡时随机散落 3-5 个 ASCII 粒子: * ! # / \
+- log 添加击杀信息(怪物名 + exp + gold)
+- 经验/金币飞入顶部 HUD(用 CSS transition 实现 +N 动画即可)
+- 若掉装备,日志单独一行: [掉落] 概念装备: {rarity} {name}
+```
+
+---
+
+## 8. 战斗循环(MUST 按此顺序实现)
+
+```js
+function gameTick(deltaMs) {
+  // 1. 累加计时器
+  playerTimer += deltaMs;
+  enemyTimer  += deltaMs;
+
+  // 2. 玩家攻击(用聚合后的最终属性)
+  const ps = aggregateStats(player, equipment);
+  if (playerTimer >= 1000 / ps.aspd) {
+    playerAttackEnemy(ps);
+    playerTimer = 0;
+  }
+
+  // 3. 敌人攻击
+  if (enemyTimer >= 1000 / currentEnemy.stats.aspd) {
+    enemyAttackPlayer(currentEnemy.stats);
+    enemyTimer = 0;
+  }
+
+  // 4. 死亡判定
+  if (currentEnemy.stats.hp <= 0) onEnemyDeath();
+  if (player.hp <= 0) onPlayerDeath();
+
+  // 5. 渲染
+  renderCombat();   // Canvas 重绘战斗画面
+  updateHUD();      // DOM 更新顶部状态
+  appendLog();      // 批量刷新日志
+}
+```
+
+### 8.1 主循环实现
+
+```
+使用 requestAnimationFrame,固定 60fps。
+deltaMs 通过 performance.now() 差值计算,封顶 100ms 防止卡顿后跳跃。
+```
+
+### 8.2 onEnemyDeath 流程
+
+```
+1. 给玩家加 exp 和 gold(应用 expGain / goldGain 加成)
+2. 检查升级,可能多次升级
+3. 判定掉装备(5.7 公式)
+4. 若掉,roll 装备(6.4 流程)
+5. 解锁 codex(本期只是 push 到 unlockedCodex,UI 不展示)
+6. stage += 1
+7. spawnEnemy(stage)(7.2 流程)
+8. bestStage = max(bestStage, stage - 1)   // 因为已经 +1 了
+```
+
+### 8.3 onPlayerDeath 流程
+
+```
+1. log "[死亡] ..."
+2. stage = max(1, stage - 5)
+3. player.hp = player.maxHp
+4. player.mp = player.maxMp
+5. spawnEnemy(stage)
+```
+
+---
+
+## 9. UI 规范
+
+### 9.1 视觉
+
+```
+背景:    #0a0a0a
+主色:    #00ff88(终端绿)
+强调:    #ffffff(白) / #ffaa00(黄) / #ff4444(红)
+字体:    系统等宽字体(monospace)
+字号:    战斗 16px,HUD 14px,日志 12px
+行高:    1.4
+```
+
+### 9.2 主页面布局(MUST,顶部到底部)
+
+```
+┌─────────────────────────────────────────────┐
+│ 顶部 HUD (固定,高度约 80px)                 │
+│  LV 12  EXP ████░░░░  STAGE 48  金币 3201    │
+│  HP ████████░░  MP ████░░░░  ATK 24 DEF 8    │
+├─────────────────────────────────────────────┤
+│                                             │
+│   Canvas 战斗区(高度 240px,固定)            │
+│                                             │
+│       @====>             S                   │
+│                     斯特鲁普干扰体            │
+│         CRIT 128!        * ! #               │
+│                                             │
+├─────────────────────────────────────────────┤
+│ 日志滚动区(高度 120px,最多保留 50 条)       │
+│  [LOG] 击败 锚定虫 +12 exp +5 金币           │
+│  [DROP] 经验 概念装备:锚定之锤                │
+├─────────────────────────────────────────────┤
+│ 底部按钮栏(固定,高度约 50px)                │
+│  [装备] [背包] [图鉴] [设置]                 │
+└─────────────────────────────────────────────┘
+```
+
+### 9.3 装备详情弹窗(MUST)
+
+```
+点击装备时弹出,显示(顺序固定):
+1. 名称(按稀有度上色)
+2. 部位 + 稀有度
+3. 基础属性(数字,百分比标注 %)
+4. 词缀列表
+5. 特殊效果(★ 标注,人话描述)
+6. ─────── 概念 ───────
+7. 概念术语 / 派系
+8. 一句话科普(直接来自 concept.summary)
+9. 机制映射(直接来自 concept.designNote)
+10. ──────────────────
+11. [装备] [分解] [关闭] 按钮
+
+装备按钮根据当前状态显示不同文案:
+  - 未穿戴: "装备"
+  - 已穿戴: "已装备"
+  - 同部位已装备: "替换 {当前装备名}"
+```
+
+### 9.4 背包面板布局
+
+```
+左侧: 分类切换 [武器][头部][胸甲][护手][鞋子][戒指][项链][护符][核心] [全部]
+中部: 装备列表(可滚动)
+右侧: 选中装备的详情(9.3 弹窗内容常驻显示)
+底部: 当前穿戴的 9 个部位缩略图
+```
+
+---
+
+## 10. 反模式清单(AI MUST NOT)
+
+### 10.1 命名反模式(已在第 3 节详述,这里给代码对比)
+
+```js
+// ❌ 反模式 1: 用"主义"作装备名
+{ name: "存在主义之剑" }
+// ✅ 正解
+{ name: "向死存在之枪" }    // 用具体概念"向死存在",不用"存在主义"
+
+// ❌ 反模式 2: 装备效果和概念无关
+{
+  name: "蔡格尼克指环",
+  effects: [{ type: "stat_flat", stat: "atk", value: 5 }]
+}
+// ✅ 正解:效果必须呼应"未完成任务的记忆"
+{
+  name: "蔡格尼克指环",
+  effects: [{ type: "on_kill", effect: "drop_bonus" }]
+}
+
+// ❌ 反模式 3: 把概念说明写成空洞鸡汤
+{ summary: "蔡格尼克效应是一个心理学概念,很有意思" }
+// ✅ 正解
+{ summary: "未完成的任务更容易被记住,已完成的任务容易遗忘。" }
+
+// ❌ 反模式 4: 怪物只是一个名字 + 血量
+{ name: "怪物", stats: { hp: 100 } }
+// ✅ 正解:必须有 concept / symbol / type / stageRange
+{
+  id: "anchor_worm",
+  name: "锚定虫",
+  symbol: "a",
+  type: "normal",
+  stageRange: [1, 30],
+  concept: { term: "锚定效应", ... },
+  stats: { hp: 30, maxHp: 30, atk: 4, def: 2, aspd: 0.8 },
+  rewards: { exp: 5, gold: 3 },
+  dropChance: 0.08,
+}
+```
+
+### 10.2 代码反模式
+
+```js
+// ❌ 反模式 5: 数值写在 UI 渲染里
+// HTML 里直接 <span>100</span>
+// ✅ 正确:所有数值从 state 读取,通过 stats 模块格式化
+element.textContent = formatNumber(player.hp);
+
+// ❌ 反模式 6: 用 alert() / confirm() / prompt()
+alert("你获得了装备!");
+// ✅ 正确:用自定义 log 系统写入日志面板
+log.add("[掉落] " + item.name);
+
+// ❌ 反模式 7: 直接修改 player 对象的属性
+player.hp -= damage;
+// ✅ 正确:通过 systems/combat.js 的函数,便于加日志和动画
+applyDamage(player, damage, "physical");
+
+// ❌ 反模式 8: 把魔法数字散落在代码里
+if (stage % 5 === 0) { ... }   // 5 是什么?
+if (dropChance < 0.35) { ... } // 0.35 是什么?
+// ✅ 正确:从 constants.js 读取
+import { ELITE_INTERVAL, ELITE_DROP_CHANCE } from '../constants.js';
+if (stage % ELITE_INTERVAL === 0) { ... }
+
+// ❌ 反模式 9: 用 setInterval 做主循环
+setInterval(gameTick, 16);
+// ✅ 正确:用 requestAnimationFrame + deltaMs
+function loop(now) {
+  const delta = now - lastTime;
+  gameTick(Math.min(delta, 100));
+  lastTime = now;
+  requestAnimationFrame(loop);
+}
+
+// ❌ 反模式 10: 存档不写版本号
+localStorage.setItem("save", JSON.stringify(data));
+// ✅ 正确:写版本号,迁移时按版本处理
+localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, ...data }));
+```
+
+---
+
+## 11. AI 开发阶段(严格执行,跳级 = 失败)
+
+### 阶段 0:脚手架(必须先做完)
+
+```
+交付物:
+1. index.html(含所有 UI 容器 + 引入 main.js)
+2. style.css(终端风格 + 9.2 布局)
+3. js/main.js(import 所有模块,启动 game loop)
+4. js/core/state.js(空 state 对象)
+5. js/core/save.js(load/save 函数)
+6. 一个最简战斗循环:
+   玩家 @ 和敌人 ? 互打,死一个 spawn 新的
+7. 浏览器打开能看到东西
+```
+
+验收:
+- [ ] 浏览器 console 无任何 error / warning
+- [ ] 玩家和敌人都显示
+- [ ] 自动攻击能跑
+- [ ] 死亡后刷新存档还在
+
+### 阶段 1:数值系统
+
+```
+交付物:
+1. js/constants.js(5.1, 5.2, 5.3 公式 + 所有常量)
+2. js/systems/stats.js(aggregateStats 函数,基础 + 装备加成)
+3. js/systems/progression.js(升级、stage 推进)
+4. HUD 显示:等级、经验条、HP、MP、ATK、DEF、Stage、金币
+```
+
+### 阶段 2:战斗完整化
+
+```
+交付物:
+1. 完整伤害公式(5.4)
+2. 暴击数字、闪避 log
+3. 玩家死亡回退 5 层
+4. 5/10 层切换为精英/Boss
+5. 数据填入 enemies.js 全部 15 个怪物
+6. 数据填入 concepts.js 全部 15 个概念
+```
+
+### 阶段 3:装备系统
+
+```
+交付物:
+1. js/data/items.js(12 个装备模板,完整数据)
+2. js/data/affixes.js(20+ 词缀)
+3. js/systems/loot.js(掉落判定,6.4 流程)
+4. js/systems/equipment.js(穿戴/卸下/聚合)
+5. js/ui/inventory.js(背包面板 + 详情弹窗,9.3 布局)
+6. 顶部按钮接上
+```
+
+### 阶段 4:UI 与打磨
+
+```
+交付物:
+1. Canvas 战斗动画(攻击挥动、伤害飘字、粒子,7.3 反馈)
+2. 设置页(音量占位、自动保存开关)
+3. 存档导入导出(复制 JSON 到剪贴板 + 文本框)
+4. 数值格式化(1.2K / 3.5M / 7.8B,工具函数即可)
+5. README.md 写完(玩家向)
+```
+
+### 阶段 5:测试与平衡
+
+```
+交付物:
+1. 玩通 50 层不报错
+2. 数值没有爆炸或负数
+3. 每件装备点击都能看到概念说明
+4. 普通/精英/Boss 三类怪物都至少遇到一次
+5. Boss 死亡能稳定通关到下一层
+6. 玩家死亡后会回退
+7. GitHub Pages 部署成功
+```
+
+> 阶段 5 完成后,才算 MVP 完成。才能开阶段 6(图鉴/转生/离线)。
+
+---
+
+## 12. 验收清单(每阶段交付时 AI 必须自检)
+
+### 12.1 通用自检
+
+```
+[ ] 浏览器 console 无任何 error / warning
+[ ] 刷新页面后存档能完整恢复
+[ ] 所有 12 件装备都能在合适层数掉到
+[ ] 每件装备详情都能看到 concept.summary
+[ ] 普通/精英/Boss 三类怪物都至少遇到一次
+[ ] Boss 死亡能稳定通关到下一层
+[ ] 玩家死亡后会回退
+[ ] 数值无负数、无 Infinity、无 NaN
+[ ] 装备穿戴后属性立即变化
+[ ] 日志不会无限增长(最多保留 50 条)
+[ ] 不存在"主义"作装备名
+[ ] 不存在纯数值描述的装备(吸血匕首、暴击之剑)
+[ ] 不存在 alert/confirm/prompt
+[ ] 不存在 setInterval 作主循环
+```
+
+### 12.2 命名专项自检
+
+```
+[ ] 每个装备名能用 5 套模板之一套上(见 3.3)
+[ ] 每个怪物名有"概念 + 类别后缀"
+[ ] 每件装备 effect 字段能用 "X 因为 Y" 讲清
+[ ] 每个 concept.summary 不超过 50 字
+[ ] 没有重复的 templateId
+```
+
+### 12.3 数值专项自检
+
+```
+[ ] 1 级玩家打 1 层普通怪不能秒(至少 3~5 回合)
+[ ] 50 层 Boss 不能秒 50 级玩家(至少 10 回合)
+[ ] 传说装备掉率在 50 层大约是 1/100 量级
+[ ] 玩家死亡 10 次后能稳定在 5~10 层推图
+```
+
+---
+
+## 13. 风格一致性(MUST)
+
+```
+- 所有面向用户的文字用中文
+- 所有代码注释用中文
+- 所有术语中文为主,英文括注(仅首次出现时)
+- 所有按钮文案 2~4 字
+- 所有 log 一行不超过 50 字
+- 所有弹窗标题一行不超过 8 字
+- 概念术语首次出现时格式:"中文名(English)"
+- 日志条目统一前缀:
+  [击杀]   [掉落]   [升级]   [死亡]   [闪避]   [暴击]
+```
+
+---
+
+## 14. 部署(MUST)
+
+```
+1. 仓库名:terminal-of-being
+2. main 分支根目录部署
+3. GitHub Pages 启用:
+   Settings → Pages → Source 选 "Deploy from a branch"
+   Branch 选 main / (root)
+4. 无需 CI,纯静态文件
+5. README.md 必须含:
+   - 一句话游戏介绍
+   - 玩法说明(自动战斗、刷宝、概念科普)
+   - 概念致谢列表(本游戏所有引用的哲学/心理学/社会学概念来源)
+   - 开源协议(MIT)
+   - 本地运行方法(直接打开 index.html)
+```
+
+---
+
+## 15. 本期不做(明确禁止越界)
+
+```
+❌ 离线收益
+❌ 转生系统
+❌ 图鉴完整功能(只留 data 层,UI 不做,代码里有 unlockedCodex 字段即可)
+❌ 手动技能(UI 占位,不实现 effect)
+❌ 套装系统
+❌ 成就系统
+❌ 音效
+❌ 多语言
+❌ 移动端适配(只保证 PC Chrome / Firefox / Edge 不崩)
+❌ 任何后端 / 网络请求
+❌ TypeScript 迁移(本期纯 JS)
+❌ 任何 npm 依赖
+```
+
+---
+
+## 16. 紧急问题反馈通道
+
+AI 在开发过程中遇到以下情况,MUST 停下来,在输出里明确告知用户,而非自行决定:
+
+```
+1. 文档自相矛盾(本版本已尽量消除,但仍可能)
+2. 某个机制在 800 行内无法实现
+3. 数值平衡崩坏(玩家 1 级就 1 击秒 Boss)
+4. 需要添加新的 Effect type
+5. 需要增加新的怪物/装备但不在 MVP 列表
+6. 浏览器兼容性问题
+```
+
+---
+
+# 附录 A:MVP 装备完整数据(12 件,AI 直接抄)
+
+```js
+// 这些是 v2.0 的完整模板,可以直接复制到 items.js
+// AI 实现时 MUST 按此结构,只允许加 stageRange 等数值,不允许改 concept 字段
+
+export const ITEMS = [
+  {
+    templateId: "anchor_hammer",
+    name: "锚定之锤",
+    rarity: "common",
+    slot: "weapon",
+    stageRange: [1, 999],
+    baseStats: { atk: 10 },
+    affixes: [],
+    effects: [],
+    concept: {
+      id: "anchoring",
+      term: "锚定效应",
+      termEn: "Anchoring Effect",
+      school: "行为经济学 / Tversky & Kahneman",
+      field: "心理学",
+      summary: "人们做决策时过度依赖最先获得的信息(锚点)。",
+      designNote: "作为最基础的武器,体现'初始印象难以摆脱'——攻击稳定但没有额外变化。",
+    },
+    flavorText: "第一次挥下的重量,定义了之后所有的挥动。",
+    dropWeight: 100,
+  },
+
+  {
+    templateId: "halo_cape",
+    name: "晕轮披风",
+    rarity: "common",
+    slot: "chest",
+    stageRange: [1, 999],
+    baseStats: { def: 5 },
+    affixes: [],
+    effects: [],
+    concept: {
+      id: "halo",
+      term: "晕轮效应",
+      termEn: "Halo Effect",
+      school: "社会心理学 / Thorndike",
+      field: "心理学",
+      summary: "对一个人某一特质的印象会扩散到对其整体的评价。",
+      designNote: "提供基础防御。整体观感变好,防线也跟着变稳。",
+    },
+    flavorText: "第一眼的印象,就是全部的真相。",
+    dropWeight: 100,
+  },
+
+  {
+    templateId: "sunk_cost_chain",
+    name: "沉没成本锁链",
+    rarity: "magic",
+    slot: "amulet",
+    stageRange: [1, 20],
+    baseStats: { maxHp: 15 },
+    affixes: [
+      { stat: "def", value: 3, isPercent: false },
+    ],
+    effects: [
+      {
+        type: "on_low_hp",
+        threshold: 0.4,
+        stat: "atk",
+        value: 0.2,
+        isPercent: true,
+      },
+    ],
+    concept: {
+      id: "sunk_cost",
+      term: "沉没成本",
+      termEn: "Sunk Cost Fallacy",
+      school: "行为经济学 / 决策心理学",
+      field: "心理学",
+      summary: "人们因为不愿承认已经无法收回的损失而继续投入。",
+      designNote: "血越低攻击越高——因为'已经投入这么多,不能放弃'。但撤退会损失,所以锁链形态。",
+    },
+    flavorText: "已经走到这一步了,怎么能回头。",
+    dropWeight: 60,
+  },
+
+  {
+    templateId: "zeigarnik_ring",
+    name: "蔡格尼克指环",
+    rarity: "rare",
+    slot: "ring",
+    stageRange: [3, 30],
+    baseStats: { luck: 5 },
+    affixes: [
+      { stat: "itemFind", value: 0.05, isPercent: true },
+      { stat: "rarityFind", value: 0.03, isPercent: true },
+    ],
+    effects: [
+      { type: "on_kill", effect: "drop_bonus" },
+    ],
+    concept: {
+      id: "zeigarnik",
+      term: "蔡格尼克效应",
+      termEn: "Zeigarnik Effect",
+      school: "认知心理学 / Gestalt",
+      field: "心理学",
+      summary: "未完成的任务更容易被记住,已完成的任务容易遗忘。",
+      designNote: "击杀(完成任务)后短暂提高掉率——把'未完成的张力'转化为掉落奖励。",
+    },
+    flavorText: "还没杀完的敌人,在你脑中闪着光。",
+    dropWeight: 30,
+  },
+
+  {
+    templateId: "stroop_prism",
+    name: "斯特鲁普棱镜",
+    rarity: "rare",
+    slot: "charm",
+    stageRange: [5, 40],
+    baseStats: { crit: 0.03 },
+    affixes: [
+      { stat: "critDmg", value: 0.2, isPercent: true },
+      { stat: "crit", value: 0.05, isPercent: true },
+    ],
+    effects: [],
+    concept: {
+      id: "stroop",
+      term: "斯特鲁普效应",
+      termEn: "Stroop Effect",
+      school: "认知心理学",
+      field: "心理学",
+      summary: "文字意义与颜色等感知信息冲突时,反应会延迟或出错。",
+      designNote: "提高暴击率和暴击伤害——当'意义'和'显现'错位时,触发更高一阶的洞见。",
+    },
+    flavorText: "颜色与字义开始错位,真相才显形。",
+    dropWeight: 25,
+  },
+
+  {
+    templateId: "bad_faith_mask",
+    name: "恶信面具",
+    rarity: "epic",
+    slot: "head",
+    stageRange: [10, 60],
+    baseStats: { def: 8, maxHp: 20 },
+    affixes: [
+      { stat: "crit", value: -0.02, isPercent: true },
+      { stat: "dodge", value: 0.05, isPercent: true },
+    ],
+    effects: [
+      {
+        type: "enemy_debuff",
+        stat: "atk",
+        value: 0.1,
+        isPercent: true,
+      },
+    ],
+    concept: {
+      id: "bad_faith",
+      term: "恶信(自欺)",
+      termEn: "Bad Faith (Mauvaise Foi)",
+      school: "存在主义 / 萨特",
+      field: "哲学",
+      summary: "人逃避自身自由,把自己伪装成没有选择的存在。",
+      designNote: "戴上面具=隐藏自己——敌人攻击欲望下降,但自己的洞见率也下降。",
+    },
+    flavorText: "装作没有选择,世界就不再逼你。",
+    dropWeight: 15,
+  },
+
+  {
+    templateId: "thrownness_boots",
+    name: "被抛性长靴",
+    rarity: "epic",
+    slot: "boots",
+    stageRange: [10, 50],
+    baseStats: { maxHp: 30, def: 5 },
+    affixes: [
+      { stat: "maxHp", value: 0.15, isPercent: true },
+      { stat: "dodge", value: 0.05, isPercent: true },
+    ],
+    effects: [],
+    concept: {
+      id: "thrownness",
+      term: "被抛性(Geworfenheit)",
+      termEn: "Thrownness",
+      school: "存在主义 / 海德格尔",
+      field: "哲学",
+      summary: "人并非自愿选择自己的处境,而是被抛入某个世界与条件之中。",
+      designNote: "提高最大生命和闪避——既然'被抛入',那就先把自己撑得更厚一点。",
+    },
+    flavorText: "你无法选择落地之处,但可以穿得厚一些。",
+    dropWeight: 15,
+  },
+
+  {
+    templateId: "differance_blade",
+    name: "差延之刃",
+    rarity: "epic",
+    slot: "weapon",
+    stageRange: [15, 80],
+    baseStats: { atk: 25 },
+    affixes: [
+      { stat: "crit", value: 0.08, isPercent: true },
+      { stat: "aspd", value: 0.15, isPercent: true },
+    ],
+    effects: [
+      {
+        type: "delayed_damage",
+        percent: 0.4,
+        delay: 2000,
+      },
+    ],
+    concept: {
+      id: "differance",
+      term: "差延(Différance)",
+      termEn: "Differance",
+      school: "解构主义 / 德里达",
+      field: "哲学",
+      summary: "意义并不立即完成,而是在差异和推迟中生成。",
+      designNote: "40% 伤害延迟 2 秒再结算——意义要等一会儿才出现。",
+    },
+    flavorText: "挥出的一刀,要等一会儿才真正落下。",
+    dropWeight: 12,
+  },
+
+  {
+    templateId: "objet_a_dagger",
+    name: "对象小a匕首",
+    rarity: "epic",
+    slot: "weapon",
+    stageRange: [20, 100],
+    baseStats: { atk: 20, aspd: 1.2 },
+    affixes: [
+      { stat: "crit", value: 0.1, isPercent: true },
+      { stat: "lifesteal", value: 0.05, isPercent: true },
+    ],
+    effects: [
+      { type: "on_kill", effect: "aspd_buff" },
+    ],
+    concept: {
+      id: "objet_a",
+      term: "对象小a(objet petit a)",
+      termEn: "Objet petit a",
+      school: "精神分析 / 拉康",
+      field: "心理学",
+      summary: "不是被欲望的对象,而是欲望运转的原因——总在滑移,永远够不到。",
+      designNote: "击杀后短暂提高攻速——每一次击杀都让你想再杀一个,但永远差一点点。",
+    },
+    flavorText: "你以为你想杀敌,其实敌人只是借口。",
+    dropWeight: 10,
+  },
+
+  {
+    templateId: "panopticon_crossbow",
+    name: "全景敞视弩",
+    rarity: "legendary",
+    slot: "weapon",
+    stageRange: [30, 200],
+    baseStats: { atk: 40, crit: 0.1 },
+    affixes: [
+      { stat: "atk", value: 0.2, isPercent: true },
+      { stat: "critDmg", value: 0.3, isPercent: true },
+      { stat: "itemFind", value: 0.1, isPercent: true },
+    ],
+    effects: [
+      {
+        type: "enemy_debuff",
+        stat: "atk",
+        value: 0.2,
+        isPercent: true,
+      },
+      {
+        type: "enemy_debuff",
+        stat: "dodge",
+        value: 0.15,
+        isPercent: true,
+      },
+    ],
+    concept: {
+      id: "panopticon",
+      term: "全景敞视",
+      termEn: "Panopticon",
+      school: "社会理论 / 福柯",
+      field: "社会学",
+      summary: "被观看者会内化监视,即使无人观看也会自我规训。",
+      designNote: "敌人进入战斗就被'凝视',攻击和闪避下降。掉率提高——观看本身就是权力。",
+    },
+    flavorText: "你看不见它,它知道自己被看见。",
+    dropWeight: 5,
+  },
+
+  {
+    templateId: "occam_razor",
+    name: "奥卡姆剃刀",
+    rarity: "legendary",
+    slot: "weapon",
+    stageRange: [50, 500],
+    baseStats: { atk: 50, crit: 0.15 },
+    affixes: [
+      { stat: "atk", value: 0.25, isPercent: true },
+      { stat: "critDmg", value: 0.5, isPercent: true },
+      { stat: "aspd", value: 0.2, isPercent: true },
+    ],
+    effects: [
+      {
+        type: "occam_bonus",
+        description: "无词缀时,自身词缀效果 ×1.5(MVP 简化为固定 +50% 全伤害)",
+      },
+    ],
+    concept: {
+      id: "occam_razor",
+      term: "奥卡姆剃刀",
+      termEn: "Occam's Razor",
+      school: "科学哲学 / 威廉 of Ockham",
+      field: "哲学",
+      summary: "解释力相当时,不应增加不必要的实体。",
+      designNote: "极简原则武器——词缀少而精,每一条都更重。本期实现为'基础数值给得很高'。",
+    },
+    flavorText: "如无必要,勿增实体。",
+    dropWeight: 3,
+  },
+
+  {
+    templateId: "chinese_room_terminal",
+    name: "中文房间终端",
+    rarity: "legendary",
+    slot: "core",
+    stageRange: [40, 999],
+    baseStats: { maxHp: 50, maxMp: 30 },
+    affixes: [
+      { stat: "cooldownRed", value: 0.25, isPercent: true },
+      { stat: "aspd", value: 0.3, isPercent: true },
+    ],
+    effects: [],
+    concept: {
+      id: "chinese_room",
+      term: "中文房间",
+      termEn: "Chinese Room",
+      school: "心灵哲学 / 塞尔 Searle",
+      field: "哲学",
+      summary: "仅仅按照规则处理符号,是否等于真正理解?",
+      designNote: "提高自动战斗效率(本期为攻速)和冷却缩减。机制描述留作后期扩展:自动战斗时无法触发洞见类技能。",
+    },
+    flavorText: "它回答了你所有问题,但它真的懂吗?",
+    dropWeight: 3,
+  },
+];
+```
+
+---
+
+# 附录 B:MVP 概念库(15 条,与怪物一一对应)
+
+```js
+export const CONCEPTS = [
+  {
+    id: "priming",
+    term: "启动效应",
+    termEn: "Priming Effect",
+    school: "认知心理学",
+    field: "心理学",
+    summary: "先前受到的刺激会影响后续对相关刺激的反应。",
+    designNote: "启动残影——你一进场,战斗就已经开始。",
+  },
+  {
+    id: "anchoring",
+    term: "锚定效应",
+    termEn: "Anchoring Effect",
+    school: "行为经济学 / Tversky & Kahneman",
+    field: "心理学",
+    summary: "人们做决策时过度依赖最先获得的信息(锚点)。",
+    designNote: "锚定虫——第一击的伤害,定义了之后的判断。",
+  },
+  {
+    id: "halo",
+    term: "晕轮效应",
+    termEn: "Halo Effect",
+    school: "社会心理学 / Thorndike",
+    field: "心理学",
+    summary: "对一个人某一特质的印象会扩散到对其整体的评价。",
+    designNote: "晕轮漂浮物——看到它的第一眼,就是全部印象。",
+  },
+  {
+    id: "sunk_cost",
+    term: "沉没成本",
+    termEn: "Sunk Cost Fallacy",
+    school: "行为经济学 / 决策心理学",
+    field: "心理学",
+    summary: "人们因为不愿承认已经无法收回的损失而继续投入。",
+    designNote: "沉没成本兽——它越打你越强,你也越舍不得撤退。",
+  },
+  {
+    id: "cognitive_closure",
+    term: "认知闭合",
+    termEn: "Need for Cognitive Closure",
+    school: "社会心理学",
+    field: "心理学",
+    summary: "人们渴望快速给出确定答案,厌恶模糊与不确定。",
+    designNote: "认知闭合壳——它总是立刻判断,但判断可能是错的。",
+  },
+  {
+    id: "zeigarnik",
+    term: "蔡格尼克效应",
+    termEn: "Zeigarnik Effect",
+    school: "认知心理学 / Gestalt",
+    field: "心理学",
+    summary: "未完成的任务更容易被记住,已完成的任务容易遗忘。",
+    designNote: "蔡格尼克幽灵——没杀死的它,会在你脑中反复浮现。",
+  },
+  {
+  {
+    id: "endowment",
+    term: "禀赋效应",
+    termEn: "Endowment Effect",
+    school: "行为经济学 / Thaler",
+    field: "心理学",
+    summary: "人们对自己拥有的东西估值更高,即使客观上等价。",
+    designNote: "禀赋效应执念者——它认定自己拥有的血量比你高,所以更难被击杀。",
+  },
+  {
+    id: "gambler_fallacy",
+    term: "赌徒谬误",
+    termEn: "Gambler's Fallacy",
+    school: "概率心理学",
+    field: "心理学",
+    summary: "人们误以为独立随机事件的过去结果会影响未来概率。",
+    designNote: "赌徒谬误回声——连续击杀后它会'觉醒',但其实什么都不会改变。",
+  },
+  {
+    id: "confirmation_bias",
+    term: "确认偏误",
+    termEn: "Confirmation Bias",
+    school: "认知心理学",
+    field: "心理学",
+    summary: "人们倾向于寻找支持自己已有观点的信息。",
+    designNote: "确认偏误回声——你听到的只是你想听的。",
+  },
+  {
+    id: "cognitive_dissonance",
+    term: "认知失调",
+    termEn: "Cognitive Dissonance",
+    school: "社会心理学 / Festinger",
+    field: "心理学",
+    summary: "人持有矛盾信念时会产生不适,并试图缓解。",
+    designNote: "认知失调阴影——它的存在本身就会让你怀疑自己的攻击方式。",
+  },
+  {
+    id: "stroop",
+    term: "斯特鲁普效应",
+    termEn: "Stroop Effect",
+    school: "认知心理学",
+    field: "心理学",
+    summary: "文字意义与颜色等感知信息冲突时,反应会延迟或出错。",
+    designNote: "斯特鲁普干扰体——它让你看到的血量和实际血量对不上。",
+  },
+  {
+    id: "barnum",
+    term: "巴纳姆效应",
+    termEn: "Barnum Effect",
+    school: "社会心理学",
+    field: "心理学",
+    summary: "人们倾向于把笼统的人格描述当作对自己的精准描述。",
+    designNote: "巴纳姆拟人——它看起来像你认识的某个敌人,其实谁都不是。",
+  },
+  {
+    id: "mirror_phase",
+    term: "镜像阶段",
+    termEn: "Mirror Stage",
+    school: "精神分析 / 拉康",
+    field: "心理学",
+    summary: "婴儿在镜中认出自己,误认自身为完整统一的主体。",
+    designNote: "镜像阶段残偶——它模仿你的攻击,但永远差一拍。",
+  },
+  {
+    id: "differance",
+    term: "差延(Différance)",
+    termEn: "Differance",
+    school: "解构主义 / 德里达",
+    field: "哲学",
+    summary: "意义并不立即完成,而是在差异和推迟中生成。",
+    designNote: "差延爬行体——它的攻击要等一会儿才真正打到你。",
+  },
+  {
+    id: "sisyphus",
+    term: "西西弗斯",
+    termEn: "Sisyphus",
+    school: "荒诞主义 / 加缪",
+    field: "哲学",
+    summary: "西西弗斯被罚永远推动巨石上山。荒诞与反抗的隐喻。",
+    designNote: "西西弗斯协议——它会把战斗推回起点,但每次你都更强一点。",
+  },
+];
+```
+
+---
+
+# 附录 C:词缀池(20 条,MVP 必须实现)
+
+```js
+export const AFFIXES = [
+  // 普通数值词缀(适用于 magic/rare)
+  { stat: "atk", value: 3, isPercent: false, weight: 10 },
+  { stat: "atk", value: 5, isPercent: false, weight: 6 },
+  { stat: "def", value: 2, isPercent: false, weight: 10 },
+  { stat: "def", value: 4, isPercent: false, weight: 6 },
+  { stat: "maxHp", value: 10, isPercent: false, weight: 10 },
+  { stat: "maxHp", value: 20, isPercent: false, weight: 6 },
+  { stat: "aspd", value: 0.1, isPercent: false, weight: 8 },
+
+  // 百分比词缀(适用于 rare/epic)
+  { stat: "atk", value: 0.05, isPercent: true, weight: 8 },
+  { stat: "atk", value: 0.1, isPercent: true, weight: 4 },
+  { stat: "def", value: 0.05, isPercent: true, weight: 8 },
+  { stat: "maxHp", value: 0.1, isPercent: true, weight: 8 },
+  { stat: "crit", value: 0.03, isPercent: true, weight: 6 },
+  { stat: "critDmg", value: 0.15, isPercent: true, weight: 5 },
+  { stat: "dodge", value: 0.03, isPercent: true, weight: 5 },
+  { stat: "lifesteal", value: 0.03, isPercent: true, weight: 4 },
+
+  // 高阶词缀(适用于 epic/legendary)
+  { stat: "atk", value: 0.2, isPercent: true, weight: 2 },
+  { stat: "critDmg", value: 0.3, isPercent: true, weight: 2 },
+  { stat: "itemFind", value: 0.05, isPercent: true, weight: 3 },
+  { stat: "rarityFind", value: 0.03, isPercent: true, weight: 3 },
+  { stat: "luck", value: 10, isPercent: false, weight: 3 },
+  { stat: "aspd", value: 0.2, isPercent: false, weight: 2 },
+];
+```
+
+---
+
+# 附录 D:开发完成后,后续扩展清单(本期不做)
+
+```
+阶段 6:
+- 图鉴完整 UI(分类展示概念条目、相关装备、相关怪物)
+- 离线收益(8 小时上限,30% 效率)
+- 转生(第 50 层后解锁)
+- 存在碎片永久升级树
+
+阶段 7:
+- 手动技能(5 个 MVP 技能: 断言 / 怀疑 / 洞见 / 意义恢复 / 解构)
+- 套装系统
+- Boss 多阶段机制
+
+阶段 8:
+- 60+ 装备模板
+- 50+ 怪物
+- 15+ Boss
+- 移动端适配
+
+阶段 9:
+- 音效与背景 ASCII 动画
+- 成就系统
+- 多语言
+- 数据分析埋点
+```
+
+---
+
+# 附录 E:第一阶段 AI 提示词(可直接复制)
+
+```
+请根据 GAME_DESIGN.md 的"阶段 0:脚手架"一节,开发《存在终端 Terminal of Being》的最小可运行版本。
+
+技术要求:
+- 严格按文档第 2 节技术栈:纯 HTML + CSS + 原生 JS + Canvas
+- 不使用任何外部依赖、不使用任何 npm 包
+- 直接打开 index.html 即可运行
+- 代码按 2.3 节文件结构组织
+- 注释用中文
+
+本阶段只交付:
+1. index.html (含所有 UI 容器)
+2. style.css (终端风格 + 9.2 节布局)
+3. js/main.js (启动 + 主循环)
+4. js/core/state.js (空 state 对象)
+5. js/core/save.js (load/save 函数,基于 SAVE_KEY="terminal_of_being_save_v1")
+6. 一个最简战斗循环:玩家 @ 和敌人 ? 互打,死一个 spawn 新的
+
+验收标准(对照 12.1 节):
+- 浏览器 console 无任何 error / warning
+- 玩家和敌人都显示
+- 自动攻击能跑
+- 死亡后刷新存档还在
+
+完成后请输出:
+- 每个文件的完整代码
+- 一段 100 字以内的运行说明
+```
+
+---
+
+# 文档结束语
+
+这份文档用了 4 节定义"不能做什么"(原则 + 反模式 + 越界禁止 + 命名规则),
+用了 3 节定义"必须按什么做"(数据契约 + 数值公式 + 阶段验收),
+用了 2 节定义"做出什么"(MVP 装备池 + 怪物池)。
+
+AI 看完后,应该已经知道:
+- 不能写"存在主义之剑" ✅
+- 写"蔡格尼克指环"且 effect 是 drop_bonus ✅
+- 数值公式在 constants.js,不要在 ui 渲染里写死 ✅
+- 5 层出精英、10 层出 Boss,不要自己改节奏 ✅
+
+如果还有疑问,在文档里搜"MUST"或"MUST NOT",你会找到所有硬约束。
+
+祝你开发顺利,愿你在终端中反抗虚无。
+
+— 文档维护者

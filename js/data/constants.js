@@ -223,6 +223,22 @@ export const LEVEL_UP = {
   def:   1,
 };
 
+// === 自由属性点 ===
+// 每升一级获得的自由分配点数
+export const POINTS_PER_LEVEL = 3;
+
+// 可分配属性及其每点增益: { key, label, perPoint }
+export const SPENDABLE_STATS = [
+  { key: 'maxHp',  perPoint: 10   },
+  { key: 'atk',    perPoint: 3    },
+  { key: 'def',    perPoint: 2    },
+  { key: 'crit',   perPoint: 0.01 },
+  { key: 'aspd',   perPoint: 0.05 },
+  { key: 'dodge',  perPoint: 0.02 },
+  { key: 'maxMp',  perPoint: 5    },
+  { key: 'luck',   perPoint: 1    },
+];
+
 // === 经验公式 ===
 export function expToNext(level) {
   return Math.floor(20 * Math.pow(level, 1.45));
@@ -253,3 +269,99 @@ export const AUTO_SAVE_INTERVAL = 10000;
 
 // === 装备掉落过期时间(ms) ===
 export const DROP_LIFETIME = 30000;
+
+// ═══════════════════════════════════════════════════════════════
+// 战斗/物理参数（从 main.js / combat.js / renderer.js 提取的魔法数字）
+// ═══════════════════════════════════════════════════════════════
+
+// 近战攻击范围 (px) — 敌人距玩家小于此值时触发近战
+export const MELEE_RANGE = 60;
+
+// 近战攻击间隔 (ms)
+export const MELEE_INTERVAL = 400;
+
+// 射程上限 (px) — 远程武器只在此范围内开火
+export const RANGED_RANGE = 400;
+
+// 波间休息最短时间 (ms) — 掉落物清完后至少等待此时长才进下一波
+export const WAVE_REST_MIN_MS = 2000;
+
+// 击中顿帧时长 (ms) — 命中后敌人短暂僵直
+export const HIT_STUN_MS = 50;
+
+// 暴击闪光时长 (ms)
+export const CRIT_FLASH_MS = 120;
+// 普通命中闪光时长 (ms)
+export const HIT_FLASH_MS = 60;
+
+// 暴击击退力度
+export const CRIT_KNOCKBACK = 600;
+// 普通击退力度
+export const KNOCKBACK = 400;
+
+// 击杀渐暗时长 (ms)
+export const DYING_TIMER_MS = 400;
+
+// 击杀粒子数量
+export const KILL_PARTICLE_COUNT = 32;
+
+// 击杀血渣数量
+export const KILL_GORE_COUNT = 14;
+// 命中血渣数量
+export const HIT_GORE_COUNT = 10;
+// 暴击血渣数量
+export const CRIT_GORE_COUNT = 20;
+
+// 闪避飘字存活时间 (ms)
+export const DODGE_TEXT_LIFE = 600;
+// 伤害飘字存活时间 (ms)
+export const DAMAGE_TEXT_LIFE = 800;
+// 暴击飘字存活时间 (ms)
+export const CRIT_TEXT_LIFE = 800;
+
+// 暴击震动参数
+export const CRIT_SHAKE_INTENSITY = 6;
+export const CRIT_SHAKE_DURATION = 100;
+export const CRIT_SLOWMO_FACTOR = 0.5;
+export const CRIT_SLOWMO_DURATION = 80;
+
+// 击杀震动参数
+export const KILL_SHAKE_INTENSITY = 8;
+export const KILL_SHAKE_DURATION = 140;
+export const KILL_SLOWMO_FACTOR = 0.3;
+export const KILL_SLOWMO_DURATION = 120;
+
+// 阶段转换震动参数
+export const PHASE_SHAKE_INTENSITY = 12;
+export const PHASE_SHAKE_DURATION = 200;
+export const PHASE_SLOWMO_FACTOR = 0.4;
+export const PHASE_SLOWMO_DURATION = 150;
+
+// 渲染相关
+export const BOSS_BAR_WIDTH = 50;
+export const ELITE_BAR_WIDTH = 36;
+export const NORMAL_BAR_WIDTH = 28;
+
+// 敌人卷轴抛弃阈值 (px) — x 小于此值判定被抛出
+export const ENEMY_CULL_X = -30;
+
+// 投射物命中半径 (px)
+export const PROJECTILE_HIT_RADIUS = 20;
+
+// 投射物出界阈值 (px)
+export const PROJECTILE_CULL_X = 30;
+
+// 掉落物出界阈值 (px)
+export const DROP_CULL_X = -50;
+
+// 粒子重力
+export const PARTICLE_GRAVITY = 200;
+
+// 血渣重力
+export const GORE_GRAVITY = 800;
+
+// 飘字上升速度 (px/s)
+export const DAMAGE_TEXT_RISE_SPEED = 40;
+
+// 地面 Y 坐标 (与 world.js GROUND_Y 对齐)
+export const GROUND_LINE_Y = 280;

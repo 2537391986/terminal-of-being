@@ -1,0 +1,43 @@
+// js/core/world.js
+// 全局世界状态 + 常量
+
+// 玩家在屏幕上的固定 x 位置(卷轴游戏中玩家视觉位置不变)
+export const PLAYER_X = 240;
+export const PLAYER_Y = 268;
+export const CANVAS_W = 800;
+export const CANVAS_H = 320;
+export const SCROLL_SPEED = 60;  // 卷轴滚动速度 px/s(无怪时慢速推进)
+
+// 全局 state(由 state.js 注入,这里导出引用)
+import { state } from './state.js';
+export { state };
+
+// 世界对象(不参与存档,运行时重建)
+export const world = {
+  enemies: [],
+  projectiles: [],
+  particles: [],      // 短命视觉粒子
+  damageTexts: [],    // 飘字
+  drops: [],          // 装备落地
+  gore: [],           // 血渣(短命)
+  spawnTimer: 0,
+  spawnInterval: 1500,
+  // 卷轴
+  scrollSpeed: SCROLL_SPEED,
+  scrollDistance: 0,   // 累计滚动距离(给 HUD 用)
+  // 玩家
+  playerShootTimer: 0,
+  playerMeleeTimer: 0,
+  // Canvas
+  canvas: null,
+  ctx: null,
+  // 波次
+  waveState: 'calm',       // 'calm' | 'combat'
+  waveTimer: 0,
+  waveEnemiesLeft: 0,
+  // 计时器
+  lastTime: 0,
+};
+
+// 血渣落地的"地面" y
+export const GROUND_Y = 280;

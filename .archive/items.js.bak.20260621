@@ -1,0 +1,172 @@
+// js/data/items.js
+// 装备模板(MVP 12 件)
+// 每件 = 基础属性 + 概念绑定 + 特殊效果描述
+
+import { CONCEPTS } from './concepts.js';
+
+// 辅助:按术语查概念
+function findConcept(term) {
+  return CONCEPTS.find(c => c.term === term) || { term, school: '未知', field: 'unknown', summary: '' };
+}
+
+export const ITEM_TEMPLATES = [
+  // ── common / magic 级(基础属性为主) ──
+  {
+    templateId: 'tmpl_anchor_hammer',
+    name: '锚定之锤',
+    slot: 'weapon',
+    rarityRange: ['common', 'magic'],
+    concept: findConcept('锚定效应'),
+    baseStats: { atk: 6, aspd: 0.9 },
+    flavorText: '第一击总是偏重——因为锚已经落下。',
+  },
+  {
+    templateId: 'tmpl_halo_cape',
+    name: '晕轮披风',
+    slot: 'chest',
+    rarityRange: ['common', 'magic'],
+    concept: findConcept('晕轮效应'),
+    baseStats: { def: 4, maxHp: 20 },
+    flavorText: '第一印象的余光照亮了整件披风。',
+  },
+  {
+    templateId: 'tmpl_lossaversion_chain',
+    name: '沉没成本锁链',
+    slot: 'amulet',
+    rarityRange: ['magic', 'rare'],
+    concept: findConcept('沉没成本'),
+    baseStats: { maxHp: 30, def: 3 },
+    flavorText: '你已经投入太多，舍不得摘下。',
+  },
+
+  // ── rare / epic 级(开始有特殊效果) ──
+  {
+    templateId: 'tmpl_zeigarnik_ring',
+    name: '蔡格尼克指环',
+    slot: 'ring',
+    rarityRange: ['rare', 'epic'],
+    concept: findConcept('蔡格尼克效应'),
+    baseStats: { luck: 5, itemFind: 0.03 },
+    effect: {
+      type: 'on_kill_stack',
+      description: '未击杀敌人时叠层(最多20),击杀后消耗,每层使掉落率 +2% 持续5秒',
+    },
+    flavorText: '未完成之事，总在脑中回响。',
+  },
+  {
+    templateId: 'tmpl_stroop_prism',
+    name: '斯特鲁普棱镜',
+    slot: 'charm',
+    rarityRange: ['rare', 'epic'],
+    concept: findConcept('斯特鲁普效应'),
+    baseStats: { crit: 0.04, def: 3 },
+    effect: {
+      type: 'debuff_convert',
+      description: '敌人施加减益时有概率将其转化为随机增益',
+    },
+    flavorText: '颜色与意义冲突时，现实开始扭曲。',
+  },
+  {
+    templateId: 'tmpl_badfaith_mask',
+    name: '恶信面具',
+    slot: 'head',
+    rarityRange: ['epic'],
+    concept: findConcept('恶信'),
+    baseStats: { def: 6, crit: 0.03 },
+    effect: {
+      type: 'auto_manual_toggle',
+      description: '自动战斗时防御提高但洞见率下降;手动操作时攻击和掉落品质提高',
+    },
+    flavorText: '戴上面具，你就不再需要选择。',
+  },
+  {
+    templateId: 'tmpl_thrownness_boots',
+    name: '被抛性长靴',
+    slot: 'boots',
+    rarityRange: ['epic'],
+    concept: findConcept('被抛性'),
+    baseStats: { dodge: 0.04, maxHp: 25 },
+    effect: {
+      type: 'on_rebirth_bonus',
+      description: '每次重新抛入获得随机初始处境;若超越历史最高层,处境转化为永久加成',
+    },
+    flavorText: '你没有选择来到这个世界，但你可以选择走向哪里。',
+  },
+  {
+    templateId: 'tmpl_différance_blade',
+    name: '差延之刃',
+    slot: 'weapon',
+    rarityRange: ['epic'],
+    concept: findConcept('差延'),
+    baseStats: { atk: 12, aspd: 1.1 },
+    effect: {
+      type: 'delayed_damage',
+      description: '40% 伤害延迟 2 秒结算;若目标在延迟前死亡,伤害转移并提高',
+    },
+    flavorText: '意义从不立即完成，它在差异和延迟中生成。',
+  },
+  {
+    templateId: 'tmpl_obja_dagger',
+    name: '对象小a匕首',
+    slot: 'weapon',
+    rarityRange: ['epic'],
+    concept: findConcept('对象小a'),
+    baseStats: { atk: 8, aspd: 1.3, crit: 0.05 },
+    effect: {
+      type: 'desire_mark',
+      description: '击杀带欲望标记的敌人后,标记转移并提高攻速;久未击杀则清空',
+    },
+    flavorText: '欲望的原因永远在滑动，你永远在追逐。',
+  },
+
+  // ── legendary / mythic 级(构筑核心) ──
+  {
+    templateId: 'tmpl_panopt_crossbow',
+    name: '全景敞视弩',
+    slot: 'weapon',
+    rarityRange: ['legendary'],
+    concept: findConcept('全景敞视'),
+    baseStats: { atk: 15, crit: 0.06, aspd: 1.0 },
+    effect: {
+      type: 'enemy_debuff_aura',
+      description: '敌人进入战斗后获得"被观看"状态,攻击和闪避下降;挂机击杀额外触发掉落',
+    },
+    flavorText: '你不需要真的在看，只需要让他们以为你在看。',
+  },
+  {
+    templateId: 'tmpl_occam_razor',
+    name: '奥卡姆剃刀',
+    slot: 'weapon',
+    rarityRange: ['legendary'],
+    concept: findConcept('奥卡姆剃刀'),
+    baseStats: { atk: 18, critDmg: 0.3 },
+    effect: {
+      type: 'less_is_more',
+      description: '该武器词缀越少,每条词缀越强;移除自身复杂增益后下一次攻击提高',
+    },
+    flavorText: '如无必要，勿增实体。',
+  },
+  {
+    templateId: 'tmpl_chinese_room_core',
+    name: '中文房间终端',
+    slot: 'core',
+    rarityRange: ['mythic'],
+    concept: findConcept('中文房间'),
+    baseStats: { atk: 10, aspd: 0.5, maxHp: 50 },
+    effect: {
+      type: 'auto_battle_boost',
+      description: '自动战斗效率大幅提高;但自动战斗期间无法触发洞见类技能',
+    },
+    flavorText: '按照规则处理符号，是否等于真正理解？',
+  },
+];
+
+// 按 slot 查询可用模板
+export function getTemplatesBySlot(slot) {
+  return ITEM_TEMPLATES.filter(t => t.slot === slot);
+}
+
+// 随机选一个模板
+export function randomTemplate() {
+  return ITEM_TEMPLATES[Math.floor(Math.random() * ITEM_TEMPLATES.length)];
+}

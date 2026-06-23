@@ -1,8 +1,6 @@
 // js/core/state.js
 // 全局游戏状态(单一对象)。所有系统共享此状态。
 
-import { DEFAULT_WEAPON } from '../data/weaponTypes.js';
-
 export const initialState = () => ({
   // 玩家基础属性
   player: {
@@ -26,19 +24,6 @@ export const initialState = () => ({
 
     // 最终属性(由 stats.js 计算,不参与存档但会重算)
     finalStats: null,
-
-    // 局内效果状态(死亡重置)
-    killAtkStack: 0,
-
-    // 自由属性点
-    statPoints: 0,
-    customStats: {
-      maxHp: 0, maxMp: 0, atk: 0, def: 0,
-      crit: 0, aspd: 0, dodge: 0, luck: 0,
-    },
-
-    // 明希豪森困境之钥：每10层词缀效果+5%（死亡不重置，卸装重置）
-    munchhausenStack: 0,
 
     // 旧字段兼容(部分系统直接读这些)
     maxHp: 100,
@@ -66,7 +51,7 @@ export const initialState = () => ({
   // 背包与装备
   inventory: [],
   equipment: {
-    weapon: { ...DEFAULT_WEAPON }, head: null, chest: null,
+    weapon: null, head: null, chest: null,
     gloves: null, boots: null,
     ring: [null, null],
     amulet: null, charm: null, core: null,
@@ -79,17 +64,12 @@ export const initialState = () => ({
   logs: [],
 
   // 设置
-  settings: { soundOn: false, animationOn: true, usePlainTerms: false },
+  settings: { soundOn: false, animationOn: true },
 
   // 上次保存时间戳
   savedAt: Date.now(),
 });
 
-// 全局 state 引用 — 不可变绑定，只能通过 mergeState 修改属性
-export const state = initialState();
-
-/**
- * 合并更新 state（不允许替换整个对象）
- * @param {Object} partial - 要合并的部分状态
- */
-export const mergeState = (partial) => { Object.assign(state, partial); };
+// 全局 state 引用(由 main.js 赋值)
+export let state = initialState();
+export const setState = (newState) => { state = newState; };

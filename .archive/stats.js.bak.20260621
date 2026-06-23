@@ -1,0 +1,80 @@
+// js/systems/stats.js
+// 属性聚合计算:baseStats + 装备 + 词缀 → finalStats
+
+import { state } from '../core/state.js';
+import { STAT_LABELS } from '../data/constants.js';
+
+// 重新计算玩家最终属性(每次装备变动后调用)
+export function recalcStats() {
+  const p = state.player;
+  // 从 base 开始(= 等级成长)
+  const base = {
+    maxHp: p.baseMaxHp || 100,
+    maxMp: p.baseMaxMp || 30,
+    atk:   p.baseAtk   || 10,
+    def:   p.baseDef   || 2,
+    aspd:  p.baseAspd  || 1.0,
+    crit:  p.baseCrit  || 0.05,
+    critDmg: p.baseCritDmg || 1.5,
+    dodge: 0, block: 0, luck: 0,
+    itemFind: 0, rarityFind: 0, expGain: 0, goldGain: 0,
+    lifesteal: 0, cooldownRed: 0,
+  };
+
+  // 累加所有已装备物品的属性
+  const equipped = state.equipment;
+  for (const slot of Object.keys(equipped)) {
+    const items = Array.isArray(equipped[slot]) ? equipped[slot] : [equipped[slot]];
+    for (const item of items) {
+      if (!item) continue;
+      addStats(base, item.stats);
+      // 词缀加成
+      if (item.affixes) {
+        for (const affix of item.affixes) {
+          addStats(base, affix.stats);
+        }
+      }
+    }
+  }
+
+  p.finalStats = base;
+}
+
+function addStats(target, source) {
+  if (!source) return;
+  for (const [key, val] of Object.entries(source)) {
+    if (key in target) {
+      target[key] += val;
+    }
+  }
+}
+
+// 格式化属性显示
+export function formatStat(key, value) {
+  const label = STAT_LABELS[key] || key;
+  // 百分比类属性
+  const pctKeys = ['crit', 'critDmg', 'dodge', 'block', 'itemFind', 'rarityFind', 'expGain', 'goldGain', 'lifesteal', 'cooldownRed'];
+  if (pctKeys.includes(key)) {
+    return `${label} ${(value * 100).toFixed(1)}%`;
+  }
+  // aspd 保留 2 位
+  if (key === 'aspd') {
+    return `${label} ${value.toFixed(2)}`;
+  }
+  return `${label} ${Math.floor(value)}`;
+}
+
+// 对比两件装备的属性差异
+export function compareItems(itemA, itemB) {
+  const diff = {};
+  const allKeys = new Set([
+    ...Object.keys(itemA?.stats || {}),
+    ...Object.keys(itemB?.stats || {}),
+  ]);
+  for (const key of allKeys) {
+    const a = (itemA?.stats || {})[key] || 0;
+    const b = (itemB?.stats || {})[key] || 0;
+    diff[key] = b - a; // 正数 = 新的更好
+  }
+  return diff;
+}

@@ -1,0 +1,57 @@
+// js/data/enemies.js
+// 怪物模板(10 普通 + 5 Boss)
+
+export const ENEMY_TEMPLATES = [
+  // ── 普通怪 ──
+  { id: 'e_boot_shadow',     name: '启动残影',     symbol: 'a', type: 'normal', school: '认知心理学',   conceptTerm: '启动效应' },
+  { id: 'e_anchor_worm',     name: '锚定虫',       symbol: 'b', type: 'normal', school: '认知心理学',   conceptTerm: '锚定效应' },
+  { id: 'e_halo_floater',    name: '晕轮漂浮物',   symbol: 'c', type: 'normal', school: '认知心理学',   conceptTerm: '晕轮效应' },
+  { id: 'e_sunkcost_beast',  name: '沉没成本兽',   symbol: 'd', type: 'normal', school: '行为经济学',   conceptTerm: '沉没成本' },
+  { id: 'e_closure_shell',   name: '认知闭合壳',   symbol: 'e', type: 'normal', school: '认知心理学',   conceptTerm: '认知闭合' },
+  { id: 'e_zeigarnik_ghost', name: '蔡格尼克幽灵', symbol: '?', type: 'normal', school: '认知心理学',   conceptTerm: '蔡格尼克效应' },
+  { id: 'e_stroop_interf',   name: '斯特鲁普干扰体', symbol: 'π', type: 'normal', school: '认知心理学', conceptTerm: '斯特鲁普效应' },
+  { id: 'e_barnum_mimic',    name: '巴纳姆拟人',   symbol: 'x', type: 'normal', school: '认知心理学',   conceptTerm: '巴纳姆效应' },
+  { id: 'e_bystander_shade', name: '旁观者阴影',   symbol: 's', type: 'normal', school: '社会心理学',   conceptTerm: '旁观者效应' },
+  { id: 'e_signifier_worm',  name: '漂浮能指虫',   symbol: '~', type: 'normal', school: '符号学',       conceptTerm: '漂浮能指' },
+];
+
+// 精英(从普通中选,升级属性)
+export const ELITE_TEMPLATES = [
+  { id: 'el_mirror_puppet',  name: '镜像阶段残偶',  symbol: 'S', type: 'elite', school: '精神分析',     conceptTerm: '镜像阶段' },
+  { id: 'el_obja_chaser',    name: '对象小a追逐者', symbol: 'Ψ', type: 'elite', school: '精神分析',     conceptTerm: '对象小a' },
+  { id: 'el_différance_crawl', name: '差延爬行体',  symbol: 'Z', type: 'elite', school: '解构主义',     conceptTerm: '差延' },
+  { id: 'el_trace_wraith',   name: '踪迹幽灵',      symbol: 'A', type: 'elite', school: '解构主义',     conceptTerm: '踪迹' },
+  { id: 'el_panopt_guard',   name: '全景敞视守卫',  symbol: 'Ω', type: 'elite', school: '社会理论',     conceptTerm: '全景敞视' },
+];
+
+export const BOSS_TEMPLATES = [
+  { id: 'boss_sisyphus',     name: '西西弗斯协议',     symbol: 'Ω', type: 'boss', school: '荒诞主义',       conceptTerm: '永恒回归',
+    mechanic: 'boss 每损失 25% 生命,推回巨石恢复少量 HP;玩家每次重新打掉该段获得"反抗"层数,提高伤害' },
+  { id: 'boss_mirror_mother', name: '镜像阶段母体',    symbol: '∞', type: 'boss', school: '精神分析',       conceptTerm: '镜像阶段',
+    mechanic: 'boss 复制玩家上一次攻击的属性;玩家连续变换攻击模式时 boss 短暂混乱' },
+  { id: 'boss_différance',   name: '差延爬行体母体',  symbol: 'Σ', type: 'boss', school: '解构主义',       conceptTerm: '差延',
+    mechanic: 'boss 将 50% 受到的伤害延迟 3 秒结算;延迟期间 boss 免疫控制' },
+  { id: 'boss_panopt_tower', name: '全景敞视塔',      symbol: 'Ø', type: 'boss', school: '社会理论',       conceptTerm: '全景敞视',
+    mechanic: 'boss 持续降低玩家闪避;玩家每次暴击时 boss "被观察"效果短暂反转' },
+  { id: 'boss_godel_rift',   name: '哥德尔裂隙',      symbol: '#', type: 'boss', school: '数理逻辑',       conceptTerm: '哥德尔不完备',
+    mechanic: 'boss 有 10% 概率使玩家攻击无效化("不可判定");玩家暴击时无视此效果' },
+];
+
+// 根据 stage 随机选一个普通怪模板
+export function pickEnemyTemplate(stage) {
+  // 低阶段只用前几个,高阶段解锁全部
+  const pool = ENEMY_TEMPLATES.slice(0, Math.min(ENEMY_TEMPLATES.length, 3 + Math.floor(stage / 5)));
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// 根据 stage 选精英
+export function pickEliteTemplate(stage) {
+  const pool = ELITE_TEMPLATES.slice(0, Math.min(ELITE_TEMPLATES.length, 1 + Math.floor(stage / 10)));
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// 根据 stage 选 Boss
+export function pickBossTemplate(stage) {
+  const idx = Math.min(BOSS_TEMPLATES.length - 1, Math.floor((stage / 10) - 1));
+  return BOSS_TEMPLATES[Math.max(0, idx)];
+}

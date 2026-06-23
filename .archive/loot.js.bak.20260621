@@ -1,0 +1,160 @@
+// js/systems/loot.js
+// 掉落判定 + 装备生成
+
+import { RARITIES, DROP_CHANCE } from '../data/constants.js';
+import { ITEM_TEMPLATES, randomTemplate } from '../data/items.js';
+import { randomConcept } from '../data/concepts.js';
+import { rollAffix, PREFIXES, SUFFIXES } from '../data/affixes.js';
+import { state } from '../core/state.js';
+
+// 判定是否掉落装备
+export function shouldDropLoot(enemyType) {
+  const chance = DROP_CHANCE[enemyType] || DROP_CHANCE.normal;
+  return Math.random() < chance;
+}
+
+// 掷稀有度(加权随机 + luck 加成)
+export function rollRarity(luck = 0) {
+  // 用权重池
+  const entries = Object.entries(RARITIES);
+  let totalWeight = 0;
+  const weights = entries.map(([key, r]) => {
+    let w = r.weight;
+    // luck 提高高品质权重
+    if (r.weight < 5) {
+      w *= (1 + luck / 300);
+    }
+    totalWeight += w;
+    return { key, w };
+  });
+
+  let roll = Math.random() * totalWeight;
+  for (const { key, w } of weights) {
+    roll -= w;
+    if (roll <= 0) return key;
+  }
+  return 'common';
+}
+
+// 生成一件装备
+export function generateItem(stage, forcedRarity = null) {
+  const luck = state.player.luck || 0;
+  const rarity = forcedRarity || rollRarity(luck);
+  const rarityDef = RARITIES[rarity];
+
+  // 50% 概率用模板,50% 概率随机生成
+  let item;
+  if (Math.random() < 0.5) {
+    item = generateFromTemplate(rarity, rarityDef, stage);
+  } else {
+    item = generateProcedural(rarity, rarityDef, stage);
+  }
+
+  // 添加词缀
+  item.affixes = [];
+  const affixCount = rarityDef.affixCount;
+  for (let i = 0; i < affixCount; i++) {
+    const pool = i % 2 === 0 ? PREFIXES : SUFFIXES;
+    item.affixes.push(rollAffix(pool, stage));
+  }
+
+  // 数值按等级和稀有度缩放
+  scaleItemStats(item, stage, rarityDef);
+
+  return item;
+}
+
+// 从模板生成
+function generateFromTemplate(rarity, rarityDef, stage) {
+  const tmpl = randomTemplate();
+  return {
+    id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    templateId: tmpl.templateId,
+    name: tmpl.name,
+    rarity,
+    slot: tmpl.slot,
+    level: stage,
+    color: rarityDef.color,
+    stats: { ...tmpl.baseStats },
+    affixes: [],
+    effect: tmpl.effect || null,
+    concept: { ...tmpl.concept },
+    flavorText: tmpl.flavorText || '',
+  };
+}
+
+// 随机程序化生成
+function generateProcedural(rarity, rarityDef, stage) {
+  const concept = randomConcept();
+  // 随机选部位
+  const slots = ['weapon', 'head', 'chest', 'gloves', 'boots', 'ring', 'amulet', 'charm'];
+  const slot = slots[Math.floor(Math.random() * slots.length)];
+
+  // 基础属性按部位
+  const baseStats = getSlotBaseStats(slot);
+
+  // 命名:概念术语 + 部位后缀
+  const name = concept.term + getSlotSuffix(slot);
+
+  return {
+    id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    templateId: null,
+    name,
+    rarity,
+    slot,
+    level: stage,
+    color: rarityDef.color,
+    stats: baseStats,
+    affixes: [],
+    effect: null,
+    concept: {
+      term: concept.term,
+      school: concept.school,
+      field: concept.field,
+      summary: concept.summary,
+    },
+    flavorText: '',
+  };
+}
+
+function getSlotBaseStats(slot) {
+  switch (slot) {
+    case 'weapon': return { atk: 5, aspd: 0.05 };
+    case 'head':   return { def: 2, maxHp: 10 };
+    case 'chest':  return { def: 4, maxHp: 15 };
+    case 'gloves': return { atk: 2, crit: 0.02 };
+    case 'boots':  return { dodge: 0.02, maxHp: 8 };
+    case 'ring':   return { luck: 3, crit: 0.01 };
+    case 'amulet': return { maxHp: 12, maxMp: 5 };
+    case 'charm':  return { crit: 0.02, luck: 2 };
+    default:       return { atk: 3 };
+  }
+}
+
+function getSlotSuffix(slot) {
+  const suffixMap = {
+    weapon: '之刃', head: '面具', chest: '胸甲',
+    gloves: '护手', boots: '长靴', ring: '指环',
+    amulet: '锁链', charm: '棱镜', core: '终端',
+  };
+  return suffixMap[slot] || '之物';
+}
+
+// 数值缩放
+function scaleItemStats(item, stage, rarityDef) {
+  const scale = rarityDef.statMul * (1 + (stage - 1) * 0.06);
+  for (const key of Object.keys(item.stats)) {
+    item.stats[key] = parseFloat((item.stats[key] * scale).toFixed(3));
+  }
+}
+
+// 掉落文案
+export function dropMessage(item) {
+  const rarityLabel = RARITIES[item.rarity]?.label || item.rarity;
+  const templates = [
+    `现象被捕获:[${rarityLabel}] ${item.name}`,
+    `存在发生偏移:[${rarityLabel}] ${item.name}`,
+    `概念凝聚成形:[${rarityLabel}] ${item.name}`,
+  ];
+  return templates[Math.floor(Math.random() * templates.length)];
+}

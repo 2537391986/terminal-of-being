@@ -1,0 +1,50 @@
+// js/data/affixes.js
+// 词缀池:每条词缀 = 属性加成(数值范围 + 概念风味)
+
+export const PREFIXES = [
+  // ── 前缀(加在装备名前面) ──
+  { id: 'pf_sturdy',   name: '坚固的',     stats: { def: [2, 6] } },
+  { id: 'pf_sharp',    name: '锋利的',     stats: { atk: [2, 5] } },
+  { id: 'pf_swift',    name: '迅捷的',     stats: { aspd: [0.05, 0.15] } },
+  { id: 'pf_keen',     name: '敏锐的',     stats: { crit: [0.02, 0.06] } },
+  { id: 'pf_vital',    name: '生命力的',   stats: { maxHp: [15, 40] } },
+  { id: 'pf_lucky',    name: '偶然的',     stats: { luck: [2, 8] } },
+  { id: 'pf_greedy',   name: '积聚的',     stats: { goldGain: [0.05, 0.15] } },
+  { id: 'pf_wise',     name: '经验主义的', stats: { expGain: [0.05, 0.15] } },
+  { id: 'pf_hungry',   name: '渴求的',     stats: { lifesteal: [0.02, 0.06] } },
+  { id: 'pf_fortress', name: '壁垒的',     stats: { block: [0.03, 0.08] } },
+  { id: 'pf_elusive',  name: '逃逸的',     stats: { dodge: [0.02, 0.06] } },
+  { id: 'pf_devastating', name: '毁灭性的', stats: { critDmg: [0.1, 0.3] } },
+];
+
+export const SUFFIXES = [
+  // ── 后缀(加在装备名后面) ──
+  { id: 'sf_power',    name: '之力',     stats: { atk: [1, 4] } },
+  { id: 'sf_guard',    name: '之守',     stats: { def: [1, 4] } },
+  { id: 'sf_life',     name: '之生',     stats: { maxHp: [10, 30] } },
+  { id: 'sf_mana',     name: '之意',     stats: { maxMp: [5, 15] } },
+  { id: 'sf_haste',    name: '之速',     stats: { aspd: [0.03, 0.1] } },
+  { id: 'sf_fortune',  name: '之运',     stats: { luck: [1, 5] } },
+  { id: 'sf_insight',  name: '之洞见',   stats: { crit: [0.01, 0.04] } },
+  { id: 'sf_revelation', name: '之启示', stats: { critDmg: [0.08, 0.2] } },
+  { id: 'sf_capture',  name: '之捕获',   stats: { itemFind: [0.03, 0.08] } },
+  { id: 'sf_transcend', name: '之超验',  stats: { rarityFind: [0.02, 0.06] } },
+  { id: 'sf_recovery', name: '之回收',   stats: { lifesteal: [0.01, 0.04] } },
+  { id: 'sf_deny',     name: '之否认',   stats: { dodge: [0.01, 0.04] } },
+];
+
+// 工具:随机范围取值
+function rollRange(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+// 从词缀池中随机选一条,按 level 缩放
+export function rollAffix(pool, level) {
+  const affix = pool[Math.floor(Math.random() * pool.length)];
+  const result = { id: affix.id, name: affix.name, stats: {} };
+  const scale = 1 + (level - 1) * 0.08; // 每级 +8%
+  for (const [key, [min, max]] of Object.entries(affix.stats)) {
+    result.stats[key] = parseFloat((rollRange(min, max) * scale).toFixed(3));
+  }
+  return result;
+}

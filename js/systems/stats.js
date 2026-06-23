@@ -15,15 +15,16 @@ const RATIO_STATS = new Set([
 export function recalcStats() {
   const p = state.player;
   // 等级基础(从 state.player 读取)
+  const cs = p.customStats || {};
   const levelBase = {
-    maxHp: p.baseMaxHp || 100,
-    maxMp: p.baseMaxMp || 30,
-    atk:   p.baseAtk   || 10,
-    def:   p.baseDef   || 2,
-    aspd:  p.baseAspd  || 1.0,
-    crit:  p.baseCrit  || 0.05,
+    maxHp: (p.baseMaxHp || 100) + (cs.maxHp || 0),
+    maxMp: (p.baseMaxMp || 30) + (cs.maxMp || 0),
+    atk:   (p.baseAtk   || 10) + (cs.atk   || 0),
+    def:   (p.baseDef   || 2)  + (cs.def   || 0),
+    aspd:  (p.baseAspd  || 1.0) + (cs.aspd  || 0),
+    crit:  (p.baseCrit  || 0.05) + (cs.crit  || 0),
     critDmg: p.baseCritDmg || 1.5,
-    dodge: 0, block: 0, luck: 0,
+    dodge: (cs.dodge || 0), block: 0, luck: (cs.luck || 0),
     itemFind: 0, rarityFind: 0, expGain: 0, goldGain: 0,
     lifesteal: 0, cooldownRed: 0,
   };

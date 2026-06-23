@@ -1,21 +1,4 @@
-# 《存在终端 Terminal of Being》AI 开发主文档 v5.0(命名统一版)
-
-> **本次更新(v5.0)**:统一小众度分层为 L1/L2/L3 三档,修正模板词库与示例不一致,对齐文件结构。
-
----
-
-## 变更日志(CHANGELOG)
-
-| 版本 | 日期 | 变更内容 |
-|------|------|---------|
-| v5.0 | 2026-06-21 | **命名统一**: §3.5 L1/L2/L3三档替换原4档; §3.3 词库扩展(钥/盾入A,冠/面纱/环/眼入B,律入C); 模板示例重排; §2.3文件结构对齐实际代码; §10.1/§11数量修正 |
-| v4.0 | - | 卷轴物理版(击退/粒子/飘字),Canvas固定布局 |
-| v3.0 | - | 12装备+17怪物完整数据,概念注释 |
-| v2.0 | - | 装备系统+掉落+背包 |
-| v1.2 | - | 原始设计大纲(1.txt备份) |
-| v1.0 | - | 脚手架(HTML+CSS+最简战斗) |
-
----
+# 《存在终端 Terminal of Being》AI 开发主文档 v3.0
 
 > **副标题**:`I idle, therefore I am. / 我挂机,故我在。`
 > **目标**:**纯 HTML + CSS + 原生 JS + Canvas(只画战斗动画)+ localStorage**
@@ -102,32 +85,32 @@ terminal-of-being/
 ├── style.css               # 终端风格样式
 ├── README.md               # 玩家向说明
 ├── GAME_DESIGN.md          # 本文档
-├── manifest.json           # PWA 清单(iOS 网页应用)
-├── sw.js                   # Service Worker(离线缓存)
 ├── js/
-│   ├── main.js             # 启动 + 主循环(约 275 行)
+│   ├── main.js             # 启动 + 主循环
+│   ├── constants.js        # 所有数值常量(单一真相源)
 │   ├── data/
-│   │   ├── constants.js    # 所有数值常量 + 稀有度/属性标签(单一真相源)
-│   │   ├── concepts.js     # 概念库(术语+派系+科普,17 条)
+│   │   ├── concepts.js     # 概念库(术语+派系+科普)
 │   │   ├── items.js        # 装备模板(12 件 MVP)
-│   │   ├── enemies.js      # 怪物模板(17 个:10普通+2精英+5Boss)
+│   │   ├── enemies.js      # 怪物模板(12 个 MVP)
+│   │   ├── bosses.js       # Boss 模板(本期从 enemies 引用)
+│   │   ├── skills.js       # 技能模板(本期占位,不实现)
 │   │   └── affixes.js      # 词缀池(20+ MVP)
 │   ├── core/
-│   │   ├── state.js        # 全局 state(单一对象,含 settings)
-│   │   ├── save.js         # 存档读写 + 版本迁移
-│   │   ├── renderer.js     # Canvas 战斗画面渲染
-│   │   └── world.js        # 战斗世界对象(enemies/projectiles/particles等)
+│   │   ├── state.js        # 全局 state(单一对象)
+│   │   ├── rng.js          # 种子化随机数(可选,本期可用 Math.random)
+│   │   └── save.js         # 存档读写 + 版本迁移
 │   ├── systems/
-│   │   ├── combat.js       # 战斗循环(伤害/暴击/闪避/吸血)
-│   │   ├── loot.js         # 掉落判定 + 装备生成
-│   │   ├── encounter.js    # 波次管理 + 敌人刷新 + 死亡处理
+│   │   ├── combat.js       # 战斗循环
+│   │   ├── loot.js         # 掉落判定
 │   │   ├── equipment.js    # 装备穿戴/卸下
 │   │   ├── stats.js        # 属性聚合计算
 │   │   └── progression.js  # 升级/层数推进
 │   └── ui/
-│       ├── hud.js          # 顶部状态栏 + 战斗日志系统
-│       └── inventory.js    # 背包面板 + 装备详情弹窗
-└── assets/                 # 图标等静态资源
+│       ├── render.js       # 战斗画面渲染(Canvas)
+│       ├── hud.js          # 顶部状态栏
+│       ├── inventory.js    # 背包面板
+│       └── log.js          # 日志面板
+└── assets/                 # 本期为空
 ```
 
 ---
@@ -160,53 +143,47 @@ MUST NOT 出现以下命名:
 ### 3.3 装备命名 5 套模板(AI 必须任选其一)
 
 ```
-【模板 A】[概念术语] + [冷兵器/攻防器具]
-  适用于: 武器 / 盾甲(武器类)
-  兵器词库: 刃 / 锋 / 匕 / 剑 / 枪 / 戟 / 锤 / 杖 / 鞭 / 钩 / 镰 / 锏 / 钥 / 盾
-  (钥=象征性刃器,盾=防御性武器,均纳入冷兵器范畴)
-  示例(来自 MVP 装备池):
-    - 偶因论之钥         (马勒伯朗士,L1 中等冷门)
-    - 物自体之盾         (康德,L1 中等冷门)
-    - 明希豪森困境之钥   (认识论,L3 真冷门)
+【模板 A】[概念术语] + [冷兵器]
+  适用于: 武器
+  兵器词库: 刃 / 锋 / 匕 / 剑 / 枪 / 戟 / 锤 / 杖 / 鞭 / 钩 / 镰 / 锏
+  示例:
+    - 偶因论之钥       (马勒伯朗士)
+    - 物自体之盾       (康德)
+    - 强力意志之冠     (尼采)
+    - 向死存在之靴     (海德格尔)
+    - 意向性指环       (胡塞尔)
+    - 绝对命令之律     (康德伦理学)
+    - 统觉之眼         (康德,L3 真冷门)
 
 【模板 B】[概念术语] + [身体隐喻部位]
   适用于: 防具 / 饰品
-  部位词库: 面具 / 披风 / 长靴 / 手套 / 指环 / 项链 / 护符 / 护手 / 胸甲 / 头盔 / 冠 / 面纱 / 环 / 眼
-  示例(来自 MVP 装备池):
-    - 强力意志之冠   (尼采,L1 中等冷门)
-    - 向死存在之靴   (海德格尔,L1 中等冷门)
-    - 意向性指环     (胡塞尔,L2 较冷门)
-    - 生活世界披风   (胡塞尔,L2 较冷门)
-    - 此在之靴       (海德格尔,L2 较冷门)
-    - 无知之幕面纱   (罗尔斯,L2 较冷门)
-    - 意志薄弱之环   (亚里士多德,L2 较冷门)
-    - 统觉之眼       (康德,L3 真冷门)
+  部位词库: 面具 / 披风 / 长靴 / 手套 / 指环 / 项链 / 护符 / 护手 / 胸甲 / 头盔
+  示例:
+    - 偶因论之钥   (L1 中等冷门)
+    - 意向性指环   (L2 较冷门)
+    - 统觉之眼     (L3 真冷门)
 
-【模板 C】[概念术语] + [抽象容器/规则]
-  适用于: 特殊装备(护符/项链/核心)
-  容器词库: 终端 / 棱镜 / 透镜 / 矩阵 / 阵列 / 协议 / 索引 / 档案 / 契约 / 律
-  (律=道德律令/法则,语义上紧邻"契约""协议",纳入抽象容器范畴)
-  示例(来自 MVP 装备池):
-    - 绝对命令之律   (康德伦理学,L2 较冷门)
-  非 MVP 示例(供后续扩展参考):
+【模板 C】[概念术语] + [抽象容器]
+  适用于: 特殊装备(终端核心 / 法器)
+  容器词库: 终端 / 棱镜 / 透镜 / 矩阵 / 阵列 / 协议 / 索引 / 档案 / 契约
+  示例:
     中文房间终端   (心灵哲学)
     巴别图书馆索引 (语言哲学)
     罗素悖论矩阵   (逻辑学)
 
 【模板 D】[概念术语] + [身体+动作复合]
   适用于: 概念词本身已是动作/状态时
-  示例(统觉之眼同时符合模板B和D):
-    - 统觉之眼       (康德,L3) — "统觉"是意识活动,"眼"是身体部位
-  非 MVP 示例(供后续扩展参考):
+  示例:
     凝视护手       (萨特/福柯)
     默读之唇       (语言哲学)
     失神之瞳       (现象学)
 
-【模板 E】[概念术语] + [自然物 / 锁链 / 靴履]
-  适用于: 概念本身描述抽象关系/存在状态时
-  示例(来自 MVP 装备池,与模板B可交叉):
-    - 此在之靴       (海德格尔 L2) — "靴"既是身体部位,也象征"在世"的足迹
-    - 意志薄弱之环   (亚里士多德 L2) — "环"象征循环/困境,也指戒指部位
+【模板 E】[概念术语] + [自然物 / 锁链]
+  适用于: 概念本身是抽象关系时
+  示例:
+    - 此在之靴     (海德格尔 L2)
+    - 意志薄弱之环 (亚里士多德 L2)
+    - 明希豪森困境之钥 (认识论 L3)
 ```
 
 ### 3.4 怪物命名规则
@@ -225,39 +202,14 @@ MUST NOT 出现以下命名:
   哥德尔裂隙    (Boss,  数理逻辑)
 ```
 
-### 3.5 小众度分层(MUST,全文档统一用此三档)
+### 3.5 难度配比(MUST)
 
 ```
-本游戏所有装备、怪物、概念的"认知门槛"分为三层:
-
-┌────────┬──────────────────────────────────────────────────────┐
-│ L1     │ 中等冷门                                              │
-│        │ 专业人士会点头,普通人看到会去搜索。                      │
-│        │ 例: 偶因论 / 物自体 / 强力意志 / 向死存在               │
-│        │ MVP 占比: 装备 4/12(33%),普通怪 3/10(30%)              │
-├────────┼──────────────────────────────────────────────────────┤
-│ L2     │ 较冷门                                                │
-│        │ 哲学专业外多数人没听过,但百度百科/Wikipedia 有清晰词条。  │
-│        │ 例: 意向性 / 生活世界 / 绝对命令 / 无知之幕 / 意志薄弱    │
-│        │ MVP 占比: 装备 6/12(50%),普通怪 5/10(50%)              │
-├────────┼──────────────────────────────────────────────────────┤
-│ L3     │ 真冷门                                                │
-│        │ 哲学专业研究生才常接触,词条仍然清晰、有学术文献支撑。      │
-│        │ 例: 统觉(先验统觉) / 明希豪森三重困境 / 证实原则 / 哥德尔  │
-│        │ MVP 占比: 装备 2/12(17%),普通怪 2/10(20%)              │
-└────────┴──────────────────────────────────────────────────────┘
-
-设计意图:
-  - 70% 普通玩家看到名字感到好奇 → 点开看概念说明
-  - 20% 哲学爱好者会心一笑 → "这个游戏懂行"
-  - 10% 哲学专业学生感到惊喜 → "你居然把明希豪森放进来了"
-
-MUST NOT:
-  - 任何"烂大街"词(我思/帕斯卡的精英变体不算)
-  - 任何网络梗
-  - 任何只在中文网络流传、无学术文献支撑的"伪概念"
-
-此节是 §6.3(装备)和 §7.1(怪物)中"冷门度"字段的唯一定义源。
+装备词缀池中:
+- 10% 大众词(我思 / 帕斯卡 / 普罗泰戈拉)        → 普通装备
+- 45% 中等专业词(意向性 / 生活世界 / 无知之幕)   → 魔法/超验装备
+- 30% 冷门术语(物自体 / 此在 / 强力意志)         → 超验/史诗装备
+- 15% 真冷门(统觉 / 明希豪森)                    → 传说/神话装备
 ```
 
 ### 3.6 概念即机制(MUST)
@@ -478,11 +430,9 @@ Boss(每 10 层):
   dropChance = 1.0
 ```
 
-### 5.4 伤害公式 + 击退公式(v4.0 卷轴物理版)
+### 5.4 伤害公式
 
 ```
-【伤害公式】
-
 基础伤害:
   raw = max(1, attacker.atk - defender.def * 0.5)
 
@@ -502,50 +452,6 @@ Boss(每 10 层):
 最终扣血:
   defender.hp -= raw
   attacker.hp  = min(attacker.maxHp, attacker.hp + heal)
-
-【击退公式】(物理效果核心)
-
-击退方向:从 attacker 指向 defender
-  dx = defender.x - attacker.x
-  dy = defender.y - attacker.y
-  len = sqrt(dx*dx + dy*dy)
-  nx = dx / len
-  ny = dy / len
-
-击退力:
-  knockbackForce = baseKnockback * (1 + attacker.atk / 200) * random(0.85, 1.15)
-
-应用:
-  defender.vx += nx * knockbackForce
-  defender.vy += ny * knockbackForce
-
-【击退衰减】(每帧)
-
-  defender.vx *= 0.88   // 摩擦
-  defender.vy *= 0.88
-  defender.x  += defender.vx * delta
-  defender.y  += defender.vy * delta
-
-baseKnockback 默认值: 120 像素/秒
-
-【链式击退】
-
-  击退中的敌人碰到另一个敌人,会传递部分动量(简化版):
-    if distance(enemyA, enemyB) < 24:
-      exchange = 0.3
-      tempVx = enemyA.vx
-      tempVy = enemyA.vy
-      enemyA.vx = lerp(enemyA.vx, enemyB.vx, exchange)
-      enemyA.vy = lerp(enemyA.vy, enemyB.vy, exchange)
-      enemyB.vx = lerp(enemyB.vx, tempVx, exchange)
-      enemyB.vy = lerp(enemyB.vy, tempVy, exchange)
-
-【击退出屏】
-
-  敌人被击退滚出屏幕左侧(x < -50):
-    = 死亡处理(给经验、可能掉装备)
-    = 不算"暴击击杀"(不触发 on_kill 的暴击加成)
-    = log "[击退]" 区别于 "[击杀]"
 ```
 
 ### 5.5 攻击速度 → 间隔
@@ -676,7 +582,7 @@ core    终端核心
 | 11 | apperception_eye | 统觉之眼 | charm | legendary | 统觉(先验统觉) | 康德哲学 | L3 | [50, 500] |
 | 12 | munchhausen_key | 明希豪森困境之钥 | weapon | legendary | 明希豪森三重困境 | 认识论 | L3 | [60, 999] |
 
-> **小众度配比**:L1 × 4 + L2 × 6 + L3 × 2 = 12 件。(L1/L2/L3 的定义见 §3.5)
+> **小众度配比**:L1 × 4 + L2 × 6 + L3 × 2 = 12 件。
 > 玩家群体画像:70% 普通玩家看到名字想点开;20% 哲学爱好者会兴奋;10% 哲学专业学生会心一笑。
 > 没有任何一件是"烂大街"概念,也**没有任何一件是网络梗**。
 
@@ -783,7 +689,6 @@ MUST NOT:
 | 17 | apperception_field | 统觉统一场 | A | boss | 先验统觉(Transzendentale Apperzeption) | L3 | [200] |
 
 > 备注:精英怪选用"我思"和"帕斯卡"作为 L1 简单精英,与普通怪形成"同概念不同强度"的对照。
-> L1/L2/L3 的定义见 §3.5。
 
 ### 7.2 怪物生成流程
 
@@ -818,131 +723,35 @@ MUST NOT:
 
 ---
 
-## 8. 战斗循环(v4.0 卷轴物理版,MUST 按此顺序实现)
+## 8. 战斗循环(MUST 按此顺序实现)
 
 ```js
-// 全局状态(由 state.js 管理)
-const world = {
-  enemies: [],         // 当前屏幕上所有敌人
-  projectiles: [],     // 玩家发射的投射物
-  particles: [],       // 击中/击杀的粒子
-  damageTexts: [],     // 飘字
-  drops: [],           // 掉落的装备(飞向玩家)
-  spawnTimer: 0,       // 敌人刷新计时
-};
-
 function gameTick(deltaMs) {
-  // ===== 1. 玩家射击计时(远程投射) =====
-  playerShootTimer += deltaMs;
-  if (playerShootTimer >= player.shootInterval) {
-    spawnProjectile({ x: player.x + 20, y: player.y, vx: 500, vy: 0 });
-    playerShootTimer = 0;
+  // 1. 累加计时器
+  playerTimer += deltaMs;
+  enemyTimer  += deltaMs;
+
+  // 2. 玩家攻击(用聚合后的最终属性)
+  const ps = aggregateStats(player, equipment);
+  if (playerTimer >= 1000 / ps.aspd) {
+    playerAttackEnemy(ps);
+    playerTimer = 0;
   }
 
-  // ===== 2. 玩家近战扇形(自动触发) =====
-  // 任何在玩家 60px 范围内的敌人,每 0.4s 受 1 次近战伤害
-  playerMeleeTimer += deltaMs;
-  if (playerMeleeTimer >= 400) {
-    for (const enemy of world.enemies) {
-      const d = distance(player, enemy);
-      if (d < 60) {
-        applyDamage(enemy, player.atk * 0.7, player);
-        applyKnockback(enemy, player, 80);   // 击退
-        spawnParticles(enemy.x, enemy.y, '*', 3);
-      }
-    }
-    playerMeleeTimer = 0;
+  // 3. 敌人攻击
+  if (enemyTimer >= 1000 / currentEnemy.stats.aspd) {
+    enemyAttackPlayer(currentEnemy.stats);
+    enemyTimer = 0;
   }
 
-  // ===== 3. 敌人刷新(从右往左) =====
-  world.spawnTimer += deltaMs;
-  const spawnInterval = Math.max(200, 1500 - state.stage * 20);
-  if (world.spawnTimer >= spawnInterval) {
-    spawnEnemy({ x: canvas.width + 30, y: 100 + Math.random() * 200 });
-    world.spawnTimer = 0;
-  }
+  // 4. 死亡判定
+  if (currentEnemy.stats.hp <= 0) onEnemyDeath();
+  if (player.hp <= 0) onPlayerDeath();
 
-  // ===== 4. 推进所有敌人(基础速度向左) =====
-  for (const enemy of world.enemies) {
-    // 基础左移
-    enemy.x -= enemy.baseSpeed * (deltaMs / 1000);
-    // 应用击退 velocity
-    enemy.x += enemy.vx * (deltaMs / 1000);
-    enemy.y += enemy.vy * (deltaMs / 1000);
-    // 摩擦衰减
-    enemy.vx *= 0.88;
-    enemy.vy *= 0.88;
-    // 边界检测:被击退出左屏
-    if (enemy.x < -30) {
-      handleEnemyDeath(enemy, 'knockback');
-      enemy.dead = true;
-    }
-    // 攻击玩家(进入攻击范围)
-    if (distance(enemy, player) < 30) {
-      applyDamageToPlayer(enemy.atk, enemy);
-      applyKnockbackToEnemy(player, enemy, 30);   // 玩家被撞后撤
-    }
-  }
-
-  // ===== 5. 推进所有投射物 =====
-  for (const proj of world.projectiles) {
-    proj.x += proj.vx * (deltaMs / 1000);
-    proj.y += proj.vy * (deltaMs / 1000);
-    // 碰撞检测
-    for (const enemy of world.enemies) {
-      if (!enemy.dead && distance(proj, enemy) < 20) {
-        applyDamage(enemy, proj.dmg, player);
-        applyKnockback(enemy, proj, 150);          // 投射物击退更大
-        spawnParticles(proj.x, proj.y, '!', 5);
-        spawnDamageText(enemy.x, enemy.y - 10, proj.dmg, false);
-        proj.dead = true;
-        break;
-      }
-    }
-    // 出右屏
-    if (proj.x > canvas.width + 30) proj.dead = true;
-  }
-
-  // ===== 6. 装备掉落飞向玩家 =====
-  for (const drop of world.drops) {
-    const dx = player.x - drop.x;
-    const dy = player.y - drop.y;
-    const d = Math.sqrt(dx*dx + dy*dy);
-    if (d > 0) {
-      const speed = 200;
-      drop.x += (dx/d) * speed * (deltaMs / 1000);
-      drop.y += (dy/d) * speed * (deltaMs / 1000);
-    }
-    if (d < 24) {
-      state.inventory.push(drop.item);
-      log(`[拾取] ${drop.item.name}`);
-      drop.dead = true;
-    }
-  }
-
-  // ===== 7. 推进粒子和飘字 =====
-  for (const p of world.particles) {
-    p.x += p.vx * (deltaMs / 1000);
-    p.y += p.vy * (deltaMs / 1000);
-    p.life -= deltaMs;
-  }
-  for (const t of world.damageTexts) {
-    t.y -= 30 * (deltaMs / 1000);
-    t.life -= deltaMs;
-  }
-
-  // ===== 8. 清理 dead 对象 =====
-  world.enemies     = world.enemies.filter(e => !e.dead);
-  world.projectiles = world.projectiles.filter(p => !p.dead);
-  world.particles   = world.particles.filter(p => p.life > 0);
-  world.damageTexts = world.damageTexts.filter(t => t.life > 0);
-  world.drops       = world.drops.filter(d => !d.dead);
-
-  // ===== 9. 玩家死亡 =====
-  if (state.player.hp <= 0) onPlayerDeath();
-
-  // ===== 10. 渲染 =====
-  render();
+  // 5. 渲染
+  renderCombat();   // Canvas 重绘战斗画面
+  updateHUD();      // DOM 更新顶部状态
+  appendLog();      // 批量刷新日志
 }
 ```
 
@@ -951,118 +760,29 @@ function gameTick(deltaMs) {
 ```
 使用 requestAnimationFrame,固定 60fps。
 deltaMs 通过 performance.now() 差值计算,封顶 100ms 防止卡顿后跳跃。
-所有运动/位移用 deltaMs / 1000 转换成秒。
 ```
 
-### 8.2 击退 + 粒子 + 飘字(物理效果三件套)
-
-```js
-// 击退
-function applyKnockback(target, source, force) {
-  const dx = target.x - source.x;
-  const dy = target.y - source.y;
-  const len = Math.sqrt(dx*dx + dy*dy) || 1;
-  target.vx += (dx / len) * force;
-  target.vy += (dy / len) * force;
-}
-
-// 粒子(击中时)
-function spawnParticles(x, y, symbol, count) {
-  for (let i = 0; i < count; i++) {
-    world.particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 100,
-      vy: (Math.random() - 0.5) * 100,
-      symbol,
-      life: 300,           // 毫秒
-    });
-  }
-}
-
-// 伤害飘字
-function spawnDamageText(x, y, value, isCrit) {
-  world.damageTexts.push({
-    x, y,
-    value: Math.floor(value),
-    isCrit,
-    life: 800,
-  });
-}
-
-// 装备掉落(从死亡敌人位置爆出来)
-function spawnDrop(x, y, item) {
-  world.drops.push({
-    x, y,
-    vx: (Math.random() - 0.5) * 200,
-    vy: -200,             // 向上弹起
-    item,
-    life: 30000,          // 30 秒后消失
-  });
-}
-```
-
-### 8.3 onEnemyDeath 流程
+### 8.2 onEnemyDeath 流程
 
 ```
 1. 给玩家加 exp 和 gold(应用 expGain / goldGain 加成)
 2. 检查升级,可能多次升级
 3. 判定掉装备(5.7 公式)
-4. 若掉,roll 装备(6.4 流程),用 spawnDrop 在敌人位置爆出
+4. 若掉,roll 装备(6.4 流程)
 5. 解锁 codex(本期只是 push 到 unlockedCodex,UI 不展示)
-6. bestStage = max(bestStage, stage)
-7. [不再 spawnEnemy —— 新怪物从右自动滚入,见 8.4]
-
-击杀分两类,日志前缀不同:
-  [击杀]  — 敌人血量降到 0
-  [击退]  — 敌人被击退滚出屏幕
+6. stage += 1
+7. spawnEnemy(stage)(7.2 流程)
+8. bestStage = max(bestStage, stage - 1)   // 因为已经 +1 了
 ```
 
-### 8.4 敌人刷新(卷轴核心)
-
-```
-world.spawnTimer 每帧累加 deltaMs
-当 timer >= spawnInterval 时,在屏幕右外侧生成新敌人
-
-spawnInterval 公式:
-  spawnInterval = max(200, 1500 - state.stage * 20)
-  // 1 层: 1480ms 一只 → 50 层: 500ms → 100 层: 200ms(封顶)
-
-新敌人在 y 轴随机:
-  y = 100 + Math.random() * 200   // 屏幕中段,避开 HUD 和日志
-
-每 stage 还会调整敌人类型:
-  if state.stage % 5 === 0: 30% 概率生成精英
-  if state.stage % 10 === 0: 必生成 Boss(从右外侧滚入)
-```
-
-### 8.5 onPlayerDeath 流程
+### 8.3 onPlayerDeath 流程
 
 ```
 1. log "[死亡] ..."
-2. 清除屏幕上所有敌人、投射物、粒子
-3. stage = max(1, stage - 5)
-4. player.hp = player.maxHp
-5. player.mp = player.maxMp
-6. 0.5 秒后恢复游戏循环(让玩家看到死亡画面)
-```
-
-### 8.6 双模式攻击:远程 + 近战(v4.0 关键设计)
-
-```
-远程(默认):
-  - shootInterval = 1000 / (aspd * 1.0) 毫秒
-  - 投射物从玩家右侧飞向右
-  - 击中第一个敌人后消失(或穿透,后续装备效果)
-
-近战(自动触发):
-  - 任何在玩家 60px 圆周内的敌人,每 400ms 受到 70% atk 伤害
-  - 同时产生击退(force = 80)
-  - 玩家被多个敌人围攻时,近战清场
-
-远近并存的目的:
-  - 远程保证输出稳定
-  - 近战防止敌人"贴脸无敌"——必须被推开
-  - 玩家没有"必须闪避"的操作压力,纯爽感
+2. stage = max(1, stage - 5)
+3. player.hp = player.maxHp
+4. player.mp = player.maxMp
+5. spawnEnemy(stage)
 ```
 
 ---
@@ -1080,7 +800,7 @@ spawnInterval 公式:
 行高:    1.4
 ```
 
-### 9.2 主页面布局(MUST,顶部到底部,v4.0 卷轴版)
+### 9.2 主页面布局(MUST,顶部到底部)
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -1089,57 +809,23 @@ spawnInterval 公式:
 │  HP ████████░░  MP ████░░░░  ATK 24 DEF 8    │
 ├─────────────────────────────────────────────┤
 │                                             │
-│   Canvas 战斗区(高度 320px,固定)            │
+│   Canvas 战斗区(高度 240px,固定)            │
 │                                             │
-│                                  S →        │
-│        @ →*           ←a   d →              │
-│              e →                            │
-│                                ←*           │
-│         玩家固定在中央偏左 (x=240, y=180)    │
-│         敌人从右往左涌入                    │
-│         粒子、伤害数字向上飘                │
+│       @====>             S                   │
+│                     帕斯卡之魔                   │
+│         CRIT 128!        * ! #               │
 │                                             │
 ├─────────────────────────────────────────────┤
 │ 日志滚动区(高度 120px,最多保留 50 条)       │
-│  [击杀] 帕斯卡赌局 +12 exp +5 金币          │
-│  [掉落] 偶因论之钥 飞向你                   │
+│  [LOG] 击败 我思故我在 +12 exp +5 金币         │
+│  [DROP] 经验 概念装备:偶因论之钥                │
 ├─────────────────────────────────────────────┤
 │ 底部按钮栏(固定,高度约 50px)                │
 │  [装备] [背包] [图鉴] [设置]                 │
 └─────────────────────────────────────────────┘
 ```
 
-### 9.3 Canvas 战斗区规范(v4.0 新增)
-
-```
-Canvas 元素:
-  - id: "combat-canvas"
-  - 宽 100% × 高 320px
-  - 通过 JS 设置 canvas.width = 800, canvas.height = 320(2x 高清)
-  - 上下文: 2D
-
-渲染顺序(每帧从底到顶):
-  1. 清空画布(fillRect 黑)
-  2. 绘制地面线(y=270,横贯一条灰线)
-  3. 绘制玩家符号 @ (居中偏左)
-  4. 绘制所有敌人(symbol + 位置)
-  5. 绘制所有投射物
-  6. 绘制所有飘字(数字)
-  7. 绘制所有粒子
-  8. 绘制掉落装备符号
-
-颜色规范:
-  玩家: 绿色
-  普通怪: 白色
-  精英怪: 黄色
-  Boss: 红色
-  投射物: 亮绿
-  粒子: 黄/白
-  飘字: 白(暴击黄)
-  掉落: 按稀有度上色(参考 6.2 表)
-```
-
-### 9.4 装备详情弹窗(MUST)
+### 9.3 装备详情弹窗(MUST)
 
 ```
 点击装备时弹出,显示(顺序固定):
@@ -1161,7 +847,7 @@ Canvas 元素:
   - 同部位已装备: "替换 {当前装备名}"
 ```
 
-### 9.5 背包面板布局
+### 9.4 背包面板布局
 
 ```
 左侧: 分类切换 [武器][头部][胸甲][护手][鞋子][戒指][项链][护符][核心] [全部]
@@ -1180,7 +866,7 @@ Canvas 元素:
 // ❌ 反模式 1: 用"主义"作装备名
 { name: "存在主义之剑" }
 // ✅ 正解
-{ name: "向死存在之靴" }    // 用具体概念"向死存在",不用"存在主义"
+{ name: "向死存在之枪" }    // 用具体概念"向死存在",不用"存在主义"
 
 // ❌ 反模式 2: 装备效果和概念无关
 {
@@ -1297,8 +983,8 @@ localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, ...data }
 2. 暴击数字、闪避 log
 3. 玩家死亡回退 5 层
 4. 5/10 层切换为精英/Boss
-5. 数据填入 enemies.js 全部 17 个怪物
-6. 数据填入 concepts.js 全部 17 个概念
+5. 数据填入 enemies.js 全部 15 个怪物
+6. 数据填入 concepts.js 全部 15 个概念
 ```
 
 ### 阶段 3:装备系统
@@ -1366,8 +1052,7 @@ localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, ...data }
 
 ```
 [ ] 每个装备名能用 5 套模板之一套上(见 3.3)
-[ ] 每个怪物名有"概念 + 类别后缀"(见 3.4)
-[ ] 每个装备/怪物的"冷门度"标签只能是 L1/L2/L3(定义见 3.5)
+[ ] 每个怪物名有"概念 + 类别后缀"
 [ ] 每件装备 effect 字段能用 "X 因为 Y" 讲清
 [ ] 每个 concept.summary 不超过 50 字
 [ ] 没有重复的 templateId

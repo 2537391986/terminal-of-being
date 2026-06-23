@@ -1,17 +1,18 @@
 // js/main.js
 // 存在终端 Terminal of Being — 入口文件 (v6.2 架构拆分)
+// v8.2 — 合并 import + 魔法数字抽常量 + filter→splice + init 错误边界 + confirm→自定义弹窗
 // 职责: 组装各模块 + 主循环调度 + UI 绑定
 // 渲染 → core/renderer.js    HUD → ui/hud.js
 // 遭遇 → systems/encounter.js  伤害 → systems/combat.js
 
-import { state, initialState, setState } from './core/state.js';
+import { state, initialState, mergeState } from './core/state.js';
 import { loadGame, saveGame } from './core/save.js';
 import {
   world, PLAYER_X, PLAYER_Y, CANVAS_W, CANVAS_H, SCROLL_SPEED,
 } from './core/world.js';
 import {
-  hitEnemy, getTimeScale,
-  damageEnemy, damagePlayer,
+  hitEnemy, getTimeScale, damageEnemy, damagePlayer,
+  registerCombatLog, flushBossDamageBuffer, updateShake,
 } from './systems/combat.js';
 import { generateItem, dropMessage } from './systems/loot.js';
 import { recalcStats } from './systems/stats.js';
@@ -25,18 +26,60 @@ import { render } from './core/renderer.js';
 import {
   registerGetStats, updateHUD, refreshHUDLabels, log,
 } from './ui/hud.js';
-import { DROP_LIFETIME } from './data/constants.js';
+import {
+  DROP_LIFETIME, AUTO_SAVE_INTERVAL,
+  MELEE_RANGE, MELEE_INTERVAL, RANGED_RANGE, WAVE_REST_MIN_MS,
+  ENEMY_CULL_X, PROJECTILE_HIT_RADIUS, PROJECTILE_CULL_X, DROP_CULL_X,
+  GROUND_LINE_Y, PARTICLE_GRAVITY, GORE_GRAVITY, DAMAGE_TEXT_RISE_SPEED,
+  DYING_TIMER_MS,
+} from './data/constants.js';
 import {
   getFinalStats,
 } from './systems/effects.js';
 import { getWeaponType } from './data/weaponTypes.js';
+import { initDebugUI } from './ui/debug.js';
+import { initStatPointsUI, hasUnspentPoints } from './ui/statPoints.js';
+
+// ============================================================
+// 自定义确认弹窗（替代 confirm()）
+// ============================================================
+function customConfirm(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirm-modal');
+    const msgEl = document.getElementById('confirm-message');
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    if (!modal || !msgEl || !okBtn || !cancelBtn) {
+      // 降级：如果 DOM 不存在，用 confirm
+      resolve(confirm(message));
+      return;
+    }
+    msgEl.textContent = message;
+    modal.style.display = 'flex';
+
+    const cleanup = () => {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+    };
+    const onOk = () => { cleanup(); resolve(true); };
+    const onCancel = () => { cleanup(); resolve(false); };
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+// ============================================================
+// 自动保存 interval（可清理）
+// ============================================================
+let _saveIntervalId = null;
 
 // ============================================================
 // 初始化
 // ============================================================
 function init() {
   // 存档
-  if (!loadGame()) setState(initialState());
+  if (!loadGame()) mergeState(initialState());
   recalcStats();
   syncPlayerStats();
 
@@ -51,6 +94,7 @@ function init() {
   // 注入回调(避免循环依赖)
   registerGetStats(getFinalStats);
   registerEncounterCallbacks(log, syncPlayerStats);
+  registerCombatLog(log);
 
   // 启动
   startWave();
@@ -58,6 +102,8 @@ function init() {
   refreshHUDLabels();
   initInventoryUI();
   initCodexUI();
+  initDebugUI();
+  initStatPointsUI(syncPlayerStats, log);
   requestAnimationFrame(loop);
 }
 
@@ -88,11 +134,14 @@ function syncPlayerStats() {
 // ============================================================
 function loop(now) {
   try {
-  const rawDelta = Math.min(now - world.lastTime, 100);
-  world.lastTime = now;
-  const timeScale = getTimeScale();
-  const delta = rawDelta * timeScale;
-  const stats = getFinalStats();
+    const rawDelta = Math.min(now - world.lastTime, 100);
+    world.lastTime = now;
+    const timeScale = getTimeScale();
+    const delta = rawDelta * timeScale;
+    const stats = getFinalStats();
+
+  // 统觉伤害合并刷新
+  flushBossDamageBuffer(now);
 
   // 卷轴推进(仅无怪时)
   const inCombat = world.waveState === 'combat' || world.enemies.length > 0;
@@ -106,7 +155,7 @@ function loop(now) {
   const shootInterval = (1000 / stats.aspd);
 
   if (world.playerShootTimer >= shootInterval) {
-    const inRange = world.enemies.some(e => !e.dead && e.x - PLAYER_X > -10 && e.x - PLAYER_X < 400);
+    const inRange = world.enemies.some(e => !e.dead && e.x - PLAYER_X > -10 && e.x - PLAYER_X < RANGED_RANGE);
     if (inRange) {
       world.playerShotCount = (world.playerShotCount || 0) + 1;
       let count = wt.projCount;
@@ -140,10 +189,10 @@ function loop(now) {
 
   // ── 玩家近战 ──
   world.playerMeleeTimer += delta;
-  if (world.playerMeleeTimer >= 400) {
+  if (world.playerMeleeTimer >= MELEE_INTERVAL) {
     for (const enemy of world.enemies) {
       if (enemy.dead) continue;
-      if (Math.abs(enemy.x - PLAYER_X) < 60) {
+      if (Math.abs(enemy.x - PLAYER_X) < MELEE_RANGE) {
         const enemyHpPct = enemy.hp / Math.max(1, enemy.maxHp || 100);
         const isCrit = Math.random() < stats.crit;
         const dmg = damageEnemy(enemy, stats.atk * 0.7, isCrit, stats.critDmg, stats.lifesteal, enemyHpPct);
@@ -160,7 +209,7 @@ function loop(now) {
   // ── 波间休息 ──
   if (world.waveState !== 'combat') {
     world.waveTimer += delta;
-    if (world.drops.length === 0 && world.waveTimer > 2000) startWave();
+    if (world.drops.length === 0 && world.waveTimer > WAVE_REST_MIN_MS) startWave();
   }
 
   // ── 敌人推进 + AI ──
@@ -168,7 +217,7 @@ function loop(now) {
     if (enemy.dead) continue;
     if (enemy.dying) {
       enemy.dyingTimer -= delta;
-      enemy.dyingAlpha = Math.max(0, enemy.dyingTimer / 400);
+      enemy.dyingAlpha = Math.max(0, enemy.dyingTimer / DYING_TIMER_MS);
       enemy.x += enemy.vx * (delta / 1000);
       enemy.y += enemy.vy * (delta / 1000);
       enemy.vx *= 0.85; enemy.vy *= 0.85;
@@ -176,7 +225,7 @@ function loop(now) {
       continue;
     }
     if (enemy.hitStun > 0) {
-      enemy.hitStun -= rawDelta;
+      enemy.hitStun -= delta;
     } else {
       enemy.x -= enemy.baseSpeed * (delta / 1000);
     }
@@ -184,19 +233,17 @@ function loop(now) {
     enemy.vx *= 0.85;
     enemy.x -= scrollDelta;
 
-    // 被卷轴抛出
-    if (enemy.x < -30) {
-      enemy.dead = true;
-      const exp = 2 * Math.pow(state.stage, 1.15);
-      state.player.exp += exp;
+    // 被卷轴抛出 — 等同于击杀，走完整的 onEnemyDeath 流程
+    if (enemy.x < ENEMY_CULL_X) {
+      enemy.dying = true;
+      enemy.scrollCulled = true;
       log(`[存在卷轴] ${enemy.name} 被抛入不可追溯的过去`);
-      world.waveEnemiesLeft -= 1;
-      if (world.waveEnemiesLeft <= 0 && world.waveState === 'combat') endWave();
+      onEnemyDeath(enemy);
       continue;
     }
 
     // 攻击玩家
-    if (Math.abs(enemy.x - PLAYER_X) < 60) {
+    if (Math.abs(enemy.x - PLAYER_X) < MELEE_RANGE) {
       if (enemy.hitStun <= 0) enemy.x += enemy.baseSpeed * (delta / 1000);
       enemy.attackCooldown -= delta / 1000;
       if (enemy.attackCooldown <= 0) {
@@ -215,7 +262,7 @@ function loop(now) {
     proj.y += (proj.vy || 0) * (delta / 1000);
     for (const enemy of world.enemies) {
       if (enemy.dead) continue;
-      if (Math.hypot(proj.x - enemy.x, proj.y - enemy.y) < 20) {
+      if (Math.hypot(proj.x - enemy.x, proj.y - enemy.y) < PROJECTILE_HIT_RADIUS) {
         // 穿透弹：跳过已命中的敌人
         if (proj.pierce && proj.pierced.has(enemy)) continue;
 
@@ -236,7 +283,7 @@ function loop(now) {
         if (!proj.pierce) break;
       }
     }
-    if (proj.x > CANVAS_W + 30 || proj.x < -30) proj.dead = true;
+    if (proj.x > CANVAS_W + PROJECTILE_CULL_X || proj.x < -PROJECTILE_CULL_X) proj.dead = true;
   }
 
   // ── 掉落物更新 ──
@@ -244,16 +291,16 @@ function loop(now) {
   for (const drop of world.drops) {
     if (drop.dead) continue;
     drop.x -= scrollDelta;
-    if (drop.x < -50) drop.dead = true;
+    if (drop.x < DROP_CULL_X) drop.dead = true;
   }
 
   // ── 血渣 + 粒子 + 飘字物理 ──
   for (const g of world.gore) {
     if (!g.landed) {
-      g.vy += 800 * (delta / 1000);
+      g.vy += GORE_GRAVITY * (delta / 1000);
       g.x += g.vx * (delta / 1000);
       g.y += g.vy * (delta / 1000);
-      if (g.y >= 280 - 4) { g.y = 280 - 4; g.vy = 0; g.vx = 0; g.landed = true; }
+      if (g.y >= GROUND_LINE_Y - 4) { g.y = GROUND_LINE_Y - 4; g.vy = 0; g.vx = 0; g.landed = true; }
     }
     g.x -= scrollDelta;
     g.life -= delta;
@@ -261,35 +308,63 @@ function loop(now) {
   for (const p of world.particles) {
     p.x += p.vx * (delta / 1000);
     p.y += p.vy * (delta / 1000);
-    p.vy += 200 * (delta / 1000);
+    p.vy += PARTICLE_GRAVITY * (delta / 1000);
     p.x -= scrollDelta;
     p.life -= delta;
   }
   for (const t of world.damageTexts) {
-    t.y -= 40 * (delta / 1000);
+    t.y -= DAMAGE_TEXT_RISE_SPEED * (delta / 1000);
     t.x -= scrollDelta;
     t.life -= delta;
   }
 
-  // ── 清理 ──
-  world.enemies = world.enemies.filter(e => !e.dead);
-  world.projectiles = world.projectiles.filter(p => !p.dead);
-  world.particles = world.particles.filter(p => p.life > 0);
-  world.damageTexts = world.damageTexts.filter(t => t.life > 0);
-  world.drops = world.drops.filter(d => !d.dead);
-  world.gore = world.gore.filter(g => g.life > 0);
+  // ── 清理（原地 splice 替代 filter，避免每帧创建新数组） ──
+  inPlaceCleanup(world.enemies, e => !e.dead);
+  inPlaceCleanup(world.projectiles, p => !p.dead);
+  inPlaceCleanup(world.particles, p => p.life > 0);
+  inPlaceCleanup(world.damageTexts, t => t.life > 0);
+  inPlaceCleanup(world.drops, d => !d.dead);
+  inPlaceCleanup(world.gore, g => g.life > 0);
 
   // ── 玩家死亡 ──
   if (state.player.hp <= 0) onPlayerDeath();
 
-  // ── 渲染 + HUD ──
+  // ── 震动衰减 + 渲染 + HUD ──
+  updateShake(delta);
   render(now);
   updateHUD();
-
-  requestAnimationFrame(loop);
-  } catch (e) {
-    console.error('[崩溃]', e.message, '行:', e.lineNumber, '\n', e.stack);
+  // 更新天赋点数角标
+  const badge = document.getElementById('sp-badge');
+  if (badge) {
+    const pts = state.player.statPoints || 0;
+    if (pts > 0) { badge.textContent = pts; badge.style.display = 'inline-block'; }
+    else { badge.style.display = 'none'; }
   }
+  } catch (e) {
+    // 每 5 秒最多报一次错，避免刷屏
+    const now2 = Date.now();
+    if (!world._lastErrorTime || now2 - world._lastErrorTime > 5000) {
+      world._lastErrorTime = now2;
+      console.error('[游戏异常]', e.message, '\n', e.stack);
+      log(`[系统] 异常: ${e.message}`);
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+/**
+ * 原地清理数组 — 替代 filter() 避免每帧创建新数组
+ * @param {Array} arr - 要清理的数组
+ * @param {(item) => boolean} keepFn - 返回 true 的元素保留
+ */
+function inPlaceCleanup(arr, keepFn) {
+  let writeIdx = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (keepFn(arr[i])) {
+      arr[writeIdx++] = arr[i];
+    }
+  }
+  arr.length = writeIdx;
 }
 
 // ============================================================
@@ -297,8 +372,12 @@ function loop(now) {
 // ============================================================
 function bindUI() {
   document.getElementById('btn-save').onclick = () => { saveGame(); log('[系统] 存在状态已锚定'); };
-  document.getElementById('btn-clear').onclick = () => {
-    if (confirm('清空存档?')) { localStorage.removeItem('terminal_of_being_save_v1'); location.reload(); }
+  document.getElementById('btn-clear').onclick = async () => {
+    const confirmed = await customConfirm('清空存档？此操作不可撤销。');
+    if (confirmed) {
+      localStorage.removeItem('terminal_of_being_save_v1');
+      location.reload();
+    }
   };
   // 术语切换按钮
   const btnTerms = document.getElementById('btn-terms');
@@ -320,10 +399,24 @@ function bindUI() {
     });
     log(`[现象凝结] ${dropMessage(item)}`);
   };
-  setInterval(saveGame, 10000);
+  _saveIntervalId = setInterval(saveGame, AUTO_SAVE_INTERVAL);
+
+  // 页面卸载时清理 interval
+  window.addEventListener('beforeunload', () => {
+    if (_saveIntervalId) clearInterval(_saveIntervalId);
+  });
 }
 
 // ============================================================
 // 启动
 // ============================================================
-init();
+try {
+  init();
+} catch (e) {
+  console.error('[系统初始化失败]', e.message, '\n', e.stack);
+  // 显示错误提示
+  const app = document.getElementById('app');
+  if (app) {
+    app.innerHTML = '<div style="color:#f44;padding:20px;font-family:monospace;">系统初始化失败: ' + e.message + '<br>请刷新或清除存档后重试。</div>';
+  }
+}
