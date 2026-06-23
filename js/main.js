@@ -98,6 +98,22 @@ function updateCanvasSize() {
 }
 
 // ============================================================
+// 动态布局 — 根据屏幕高度调整日志区高度
+// ============================================================
+function fitLayout() {
+  const h = window.innerHeight;
+  const log = document.getElementById('log');
+  if (!log) return;
+  if (h < 700) {
+    log.style.height = '110px';
+  } else if (h < 850) {
+    log.style.height = '140px';
+  } else {
+    log.style.height = '170px';
+  }
+}
+
+// ============================================================
 // 初始化
 // ============================================================
 function init() {
@@ -110,7 +126,8 @@ function init() {
   world.canvas = document.getElementById('combat-canvas');
   world.ctx = world.canvas.getContext('2d');
   updateCanvasSize();
-  window.addEventListener('resize', () => updateCanvasSize());
+  fitLayout();
+  window.addEventListener('resize', () => { updateCanvasSize(); fitLayout(); });
   world.lastTime = performance.now();
   world.scrollDistance = 0;
 
@@ -402,33 +419,18 @@ function inPlaceCleanup(arr, keepFn) {
 // ============================================================
 function bindUI() {
   document.getElementById('btn-save').onclick = () => { saveGame(); log('[系统] 存在状态已锚定'); };
-  document.getElementById('btn-clear').onclick = async () => {
-    const confirmed = await customConfirm('清空存档？此操作不可撤销。');
-    if (confirmed) {
-      localStorage.removeItem('terminal_of_being_save_v1');
-      location.reload();
-    }
-  };
+
   // 术语切换按钮
   const btnTerms = document.getElementById('btn-terms');
-  btnTerms.onclick = () => {
-    state.settings.usePlainTerms = !state.settings.usePlainTerms;
-    btnTerms.innerHTML = `<kbd>T</kbd> ${state.settings.usePlainTerms ? '[terms] 术语' : '[terms] 哲学'}`;
-    btnTerms.title = state.settings.usePlainTerms
-      ? '当前: 游戏术语模式 — 点击切换为哲学术语'
-      : '当前: 哲学术语模式 — 点击切换为游戏术语';
-    refreshHUDLabels();
-  };
-  document.getElementById('btn-test-drop').onclick = () => {
-    const item = generateItem(state.stage, state.stage % 10 === 0 ? 'boss' : state.stage % 5 === 0 ? 'elite' : 'normal');
-    if (!item) { log('[系统] 当前层数无可用装备模板'); return; }
-    world.drops.push({
-      x: PLAYER_X + 200, y: PLAYER_Y - 60,
-      vx: 0, vy: 0,
-      item, landed: false, dead: false, life: DROP_LIFETIME,
-    });
-    log(`[现象凝结] ${dropMessage(item)}`);
-  };
+  if (btnTerms) {
+    btnTerms.onclick = () => {
+      state.settings.usePlainTerms = !state.settings.usePlainTerms;
+      const cmdSpan = btnTerms.querySelector('.cmd');
+      if (cmdSpan) cmdSpan.textContent = state.settings.usePlainTerms ? 'PLAIN' : 'TERMS';
+      refreshHUDLabels();
+    };
+  }
+
   _saveIntervalId = setInterval(saveGame, AUTO_SAVE_INTERVAL);
 
   // 页面卸载时清理 interval
