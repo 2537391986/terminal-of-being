@@ -1,0 +1,228 @@
+{
+  "project": {
+    "name": "存在终端 游戏UI",
+    "path": "c:\\Users\\LLuvYa\\Desktop\\game\\存在终端\\terminal-of-being-ui",
+    "operation": "create",
+    "deviceType": "desktop",
+    "language": "zh-CN",
+    "dashboardMode": false,
+    "replicationMode": null,
+    "sourceUrl": null,
+    "visualSpecExcerpt": null,
+    "styleDefinitionBrief": "Philosophy-themed Idle RPG game UI: CRT terminal aesthetic meets Apple-style restrained elegance. Dark background with phosphor-green and amber accents, monospace typography, glass-morphism panels, high information density.",
+    "designRead": "Game UI / Idle RPG players / dark terminal + Apple restraint / high density / avoid neon glow and generic game UI",
+    "designDials": {
+      "layoutVariance": 2,
+      "motionIntensity": 1,
+      "visualDensity": 4
+    },
+    "styleContinuityAnchors": {
+      "colorSystem": {
+        "primaryColorRole": "phosphor green (#00ff88) for primary feedback, amber (#CC9933) for loot/special, red (#CC3333) for danger",
+        "brandHuePolicy": "dark terminal palette with green/amber/red semantic accents, no purple/blue",
+        "stateColors": "green=success/kill, amber=loot/special, red=error/death, yellow=warning"
+      },
+      "shapeSystem": "sharp edges (0-2px radius) for terminal feel, subtle glass-morphism panels with 8-12px radius",
+      "typographySystem": "JetBrains Mono for all terminal text, Noto Serif SC for Chinese concept names",
+      "spacingSystem": "compact terminal density: 4-8px base, tight line-height 1.3-1.5",
+      "componentLanguage": "ASCII progress bars, terminal prompt syntax, CRT scan-line overlays",
+      "surfaceAndDepth": "flat dark surfaces, 1px borders (#111), subtle backdrop-blur for panels",
+      "imageryAndIconography": "no images, pure text/icon terminal aesthetic",
+      "interactionTone": "subtle hover glow, CRT flicker animation, phosphor text-shadow"
+    },
+    "specsConstraints": null,
+    "sharedProjectShellContract": {
+      "navigationShell": "bottom button bar with F-key shortcuts, terminal header with system metrics",
+      "primaryColorSystem": "phosphor green primary, amber secondary, red danger",
+      "typographySystem": "JetBrains Mono 13-15px body, 11px labels, Noto Serif SC for concept names",
+      "radiusScale": "0px terminal elements, 8px glass panels, 12px modal frames",
+      "surfaceDepthModel": "flat dark bg (#000), 1px borders (#111), backdrop-blur panels",
+      "ctaStyle": "terminal-style buttons with key hints, hover glow effect",
+      "alignmentRules": "three-column grid layout, left/right info sidebars, center canvas"
+    },
+    "generationTree": {
+      "root": {
+        "nodeId": "gen-project-shell",
+        "kind": "project-shell",
+        "pageIds": ["page-main-hud", "page-inventory", "page-codex"],
+        "output": null,
+        "sharedRegions": [],
+        "privateRegions": [],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": [
+          {
+            "nodeId": "gen-main-hud",
+            "kind": "page-leaf",
+            "pageIds": ["page-main-hud"],
+            "output": "pages/main-hud.html",
+            "sharedRegions": [],
+            "privateRegions": ["full page"],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-inventory",
+            "kind": "page-leaf",
+            "pageIds": ["page-inventory"],
+            "output": "pages/inventory.html",
+            "sharedRegions": [],
+            "privateRegions": ["full page"],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-codex",
+            "kind": "page-leaf",
+            "pageIds": ["page-codex"],
+            "output": "pages/codex.html",
+            "sharedRegions": [],
+            "privateRegions": ["full page"],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          }
+        ]
+      }
+    }
+  },
+  "designSource": {
+    "operatingMode": "library-bound",
+    "libraryIdentity": {
+      "name": "苹果",
+      "id": "dl_builtin_apple",
+      "version": null,
+      "scope": "built-in-global",
+      "path": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple",
+      "versionSource": "metadata.json"
+    },
+    "libraryPath": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple",
+    "cssFilePath": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple\\colors_and_type.css",
+    "brandPrefix": "brand",
+    "themeMode": "dark",
+    "designDecisionSummary": "Apple design system adapted for dark terminal game UI: using Apple's spacing rhythm, shadow philosophy (whisper-light), motion curves (cubic-bezier 0.32,0.72,0,1), and radius scale, but overriding colors with CRT terminal palette (green/amber/red on black)",
+    "componentContractKind": "legacy-json",
+    "forbiddenInventedComponents": [],
+    "allowedComponents": [],
+    "styleConstraints": {
+      "radiusMax": 12,
+      "spacingBase": 4,
+      "fontSizeBody": 13,
+      "fontSizeMin": 10,
+      "controlHeightDefault": 32,
+      "controlHeightLarge": 38
+    },
+    "productContext": {
+      "kitType": "game-ui",
+      "productType": "Idle RPG game interface"
+    },
+    "actualTokenNameReference": [
+      { "semanticPurpose": "Primary brand color", "tokenName": "brand-500" },
+      { "semanticPurpose": "Background dark", "tokenName": "background-900" },
+      { "semanticPurpose": "Background secondary", "tokenName": "background-800" },
+      { "semanticPurpose": "Text primary", "tokenName": "text-50" },
+      { "semanticPurpose": "Text secondary", "tokenName": "text-400" },
+      { "semanticPurpose": "Text muted", "tokenName": "text-500" },
+      { "semanticPurpose": "Success green", "tokenName": "state-success" },
+      { "semanticPurpose": "Warning amber", "tokenName": "state-warning" },
+      { "semanticPurpose": "Error red", "tokenName": "state-error" }
+    ]
+  },
+  "pages": [
+    {
+      "nodeId": "page-main-hud",
+      "slug": "main-hud",
+      "title": "游戏主界面",
+      "htmlSrc": "pages/main-hud.html",
+      "pageIndex": 1,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "information-dense",
+      "businessScenario": "Main game HUD showing player stats, combat canvas, battle log, and action buttons",
+      "visualNorthStar": "CRT terminal with three-column layout: left stats, center canvas, right episteme, bottom log and CLI",
+      "compositionPattern": "three-column grid with header and footer bars",
+      "continuityAnchors": ["terminal header style", "button bar layout", "CRT scan-line overlay", "phosphor text glow"],
+      "libraryRestraintMode": true,
+      "uiKitPath": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple\\ui_kits\\website\\index.html",
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "soulElement": "CRT scan-line overlay + phosphor text-shadow on all terminal text, ASCII progress bars for HP/MP/EXP"
+    },
+    {
+      "nodeId": "page-inventory",
+      "slug": "inventory",
+      "title": "装备面板",
+      "htmlSrc": "pages/inventory.html",
+      "pageIndex": 2,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "information-dense",
+      "businessScenario": "Equipment and inventory management panel with item list and detail view",
+      "visualNorthStar": "Glass-morphism overlay panel with terminal window chrome, two-column item list + detail layout",
+      "compositionPattern": "overlay modal with two-column internal grid",
+      "continuityAnchors": ["terminal header style", "CRT scan-line overlay", "phosphor text glow", "glass panel backdrop-blur"],
+      "libraryRestraintMode": true,
+      "uiKitPath": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple\\ui_kits\\website\\index.html",
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "soulElement": "Terminal window chrome with being@terminal:~$ prompt, philosophy-themed equipment names in Noto Serif SC"
+    },
+    {
+      "nodeId": "page-codex",
+      "slug": "codex",
+      "title": "图鉴面板",
+      "htmlSrc": "pages/codex.html",
+      "pageIndex": 3,
+      "stateGroupId": null,
+      "stateRole": null,
+      "baseStatePageId": null,
+      "sharedShellContract": [],
+      "mutableRegions": [],
+      "derivedFromHtmlSrc": null,
+      "derivationType": "original",
+      "sourcePageId": null,
+      "sourceHtmlSrc": null,
+      "pageType": "information-dense",
+      "businessScenario": "Philosophy concept codex/encyclopedia with concept cards and detailed explanations",
+      "visualNorthStar": "Glass-morphism overlay panel showing philosophy concept cards with school tags and summaries",
+      "compositionPattern": "overlay modal with two-column concept list + detail layout",
+      "continuityAnchors": ["terminal header style", "CRT scan-line overlay", "phosphor text glow", "glass panel backdrop-blur"],
+      "libraryRestraintMode": true,
+      "uiKitPath": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple\\ui_kits\\website\\index.html",
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "miniProgramStyle": false,
+      "soulElement": "Philosophy concepts displayed as terminal codex entries with school-of-thought tags, amber accent for design notes"
+    }
+  ],
+  "assets": [],
+  "wiringPlan": [
+    { "fromPageId": "page-main-hud", "toPageId": "page-inventory", "domId": "btn-inventory", "label": "F1 DEVICE" },
+    { "fromPageId": "page-main-hud", "toPageId": "page-codex", "domId": "btn-codex", "label": "F2 CODEX" }
+  ],
+  "hiddenInteractionPlan": [
+    { "fromPageId": "page-inventory", "toPageId": "page-main-hud", "domId": "btn-close-inv", "label": "ESC close" },
+    { "fromPageId": "page-codex", "toPageId": "page-main-hud", "domId": "btn-close-codex", "label": "ESC close" }
+  ]
+}

@@ -160,10 +160,14 @@ export function updateHUD() {
   safeText('stage', state.stage);
   safeText('gold', Math.floor(state.player.gold));
   safeText('enemy-count', Math.max(0, world.waveEnemiesLeft));
+  // CRT 监控区：敌人数量
+  safeText('enemy-count-display', 'ENEMIES: ' + Math.max(0, world.waveEnemiesLeft));
 
   const isCombat = world.waveState === 'combat';
   const waveText = isCombat ? 'IN COMBAT' : 'EXPANDING';
   safeText('wave-state', waveText);
+  // CRT 监控区：波次状态
+  safeText('wave-display', 'STATUS: ' + (isCombat ? 'IN COMBAT' : 'NOMINAL'));
   const waveEl = document.getElementById('wave-state');
   if (waveEl) {
     waveEl.classList.toggle('active', isCombat);
@@ -178,6 +182,14 @@ export function updateHUD() {
   const expPct = Math.max(0, Math.min(1, state.player.exp / (state.player.expToNext || 1)));
   safeText('exp', `${Math.floor(state.player.exp)} / ${state.player.expToNext || 0}`);
   updateAsciiBar('exp-bar', expPct);
+  // CRT 风格进度条（32 格带百分比）
+  updateCrtProgressBar('exp-bar-crt', expPct);
+  // CRT 信息区：存在强度百分比
+  const expPctStr = (expPct * 100).toFixed(1) + '%';
+  safeText('exp-pct-display', expPctStr);
+  safeText('exp-pct-display-2', expPctStr);
+  // CRT 信息区：存在指数（HP%）
+  safeText('hp-pct-display', Math.round(hpPct * 100) + '%');
 
   // ── HP / MP 条（ASCII 填充）──
   const hpPct = Math.max(0, state.player.hp / (state.player.maxHp || 1));
@@ -203,7 +215,9 @@ export function updateHUD() {
   // ── 页脚时间 ──
   const now = new Date();
   safeText('current-time', now.toTimeString().split(' ')[0]);
-  safeText('current-date', now.toISOString().split('T')[0]);
+  // CRT 命令行区时间
+  safeText('current-time-2', 'TIME: ' + now.toTimeString().split(' ')[0]);
+  safeText('current-date', 'DATE: ' + now.toISOString().split('T')[0]);
 
   // ── 伪系统指标（每 3 秒微动）──
   updateFakeMetrics();
@@ -223,6 +237,21 @@ function updateAsciiBar(id, pct) {
   const clamped = Math.max(0, Math.min(1, pct));
   const filled = Math.round(clamped * 10);
   el.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
+}
+
+/** CRT 风格进度条：[████░░] XX.X%  · 32 格 */
+function updateCrtProgressBar(id, pct) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const clamped = Math.max(0, Math.min(1, pct));
+  const totalSlots = 32;
+  const filledSlots = Math.round(clamped * totalSlots);
+  const emptySlots = totalSlots - filledSlots;
+  let html = '<span class="bar-bracket">[</span>';
+  html += '<span class="bar-fill">' + '█'.repeat(filledSlots) + '</span>';
+  html += '<span class="bar-empty">' + '░'.repeat(emptySlots) + '</span>';
+  html += '<span class="bar-bracket">]</span> ' + (pct * 100).toFixed(1) + '%';
+  el.innerHTML = html;
 }
 
 // ============================================================
@@ -251,6 +280,14 @@ function updateFakeMetrics() {
   if (procEl) {
     const proc = 5 + Math.floor(Math.random() * 6);
     procEl.textContent = `PROC:${proc}`;
+  }
+  // CRT 监控区：系统指标汇总行
+  const sysDisp = document.getElementById('sys-display');
+  if (sysDisp) {
+    const mem = 48 + Math.floor(Math.random() * 80);
+    const cpu = 1 + Math.floor(Math.random() * 11);
+    const proc = 5 + Math.floor(Math.random() * 6);
+    sysDisp.textContent = `MEM:${mem}M CPU:${cpu}% PROC:${proc}`;
   }
 }
 

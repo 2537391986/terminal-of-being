@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal of Being - 存在终端</title>
+    <style id="theme-vars">
+/*
+ * Pinguo design tokens
+ * Brand: Pinguo
+ * Domain: Consumer imaging product
+ * Style: Restrained, elegant, Apple-inspired
+ * Theme mode: light-dark
+ * Source language: zh
+ * Output language: en
+ *
+ * Color architecture (two layers):
+ *   1. Primitive palette - six categories. brand / background / text / icon
+ *      are each a 10-step scale (50 lightest to 900 darkest). state-success and
+ *      state-error are functional colors anchored on Apple system colors.
+ *      Anchors follow Apple Human Interface Guidelines system colors
+ *      (System Blue #007AFF, System Green #34C759, System Red #FF3B30,
+ *      system grays / label / background colors).
+ *   2. Semantic tokens - :root (light) and .dark map roles onto primitives.
+ *      Components and UI kits must only consume the semantic tokens below.
+ */
+
+/* @group-priority: brand, background, text, icon, state-success, state-error */
+
+:root {
+  /* ===== PRIMITIVE PALETTE ===== */
+
+  /* brand */
+  --brand-50: #e8f2ff;
+  --brand-100: #cfe5ff;
+  --brand-200: #9fcbff;
+  --brand-300: #66abff;
+  --brand-400: #2e8dff;
+  --brand-500: #007aff; /* @primary */
+  --brand-600: #0064d6;
+  --brand-700: #004fad;
+  --brand-800: #003b82;
+  --brand-900: #00275a;
+
+  /* background */
+  --background-50: #ffffff;
+  --background-100: #f7f7fa;
+  --background-200: #f2f2f7;
+  --background-300: #e5e5ea;
+  --background-400: #d1d1d6;
+  --background-500: #aeaeb2;
+  --background-600: #8e8e93;
+  --background-700: #3a3a3c;
+  --background-800: #1c1c1e;
+  --background-900: #000000;
+
+  /* text */
+  --text-50: #f5f5f7;
+  --text-100: #e3e3e8;
+  --text-200: #c7c7cc;
+  --text-300: #aeaeb2;
+  --text-400: #8e8e93;
+  --text-500: #6e6e73;
+  --text-600: #48484a;
+  --text-700: #3c3c43;
+  --text-800: #1d1d1f;
+  --text-900: #000000;
+
+  /* icon */
+  --icon-50: #f5f5f7;
+  --icon-100: #e5e5ea;
+  --icon-200: #d1d1d6;
+  --icon-300: #c7c7cc;
+  --icon-400: #aeaeb2;
+  --icon-500: #8e8e93;
+  --icon-600: #6e6e73;
+  --icon-700: #48484a;
+  --icon-800: #2c2c2e;
+  --icon-900: #1d1d1f;
+
+  /* state-success */
+  --state-success: #34c759; /* @primary */
+  --state-success-dark: #30d158;
+  --state-success-surface: #e9f9ee;
+  --state-success-foreground: #ffffff;
+
+  /* state-error */
+  --state-error: #ff3b30; /* @primary */
+  --state-error-dark: #ff453a;
+  --state-error-surface: #ffecea;
+  --state-error-foreground: #ffffff;
+
+  /* ===== SEMANTIC ROLES ===== */
+
+  /* semantic */
+  --background: var(--background-50);
+  --foreground: var(--text-800);
+  --card: var(--background-50);
+  --card-foreground: var(--text-800);
+  --popover: var(--background-50);
+  --popover-foreground: var(--text-900);
+
+  --primary: var(--brand-500);
+  --primary-foreground: var(--background-50);
+  --secondary: var(--background-200);
+  --secondary-foreground: var(--text-800);
+  --muted: var(--background-200);
+  --muted-foreground: var(--text-400);
+  --accent: var(--background-100);
+  --accent-foreground: var(--text-800);
+  --destructive: var(--state-error);
+  --destructive-foreground: var(--state-error-foreground);
+  --success: var(--state-success);
+  --success-foreground: var(--state-success-foreground);
+  --border: var(--background-300);
+  --input: var(--background-400);
+  --ring: var(--brand-500);
+
+  --icon: var(--icon-900);
+  --icon-muted: var(--icon-500);
+
+  /* chart */
+  --chart-1: var(--state-success);
+  --chart-2: var(--brand-500);
+  --chart-3: #ff9500;
+  --chart-4: #5856d6;
+  --chart-5: #af52de;
+
+  /* sidebar */
+  --sidebar: var(--background-200);
+  --sidebar-foreground: var(--text-800);
+  --sidebar-primary: var(--brand-500);
+  --sidebar-primary-foreground: var(--background-50);
+  --sidebar-accent: var(--background-300);
+  --sidebar-accent-foreground: var(--text-800);
+  --sidebar-border: var(--background-300);
+  --sidebar-ring: var(--brand-500);
+
+  /* TYPOGRAPHY */
+  --font-sans: DM Sans, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: DM Sans, ui-sans-serif, sans-serif, system-ui;
+  --font-mono: JetBrains Mono, monospace;
+  --tracking-normal: 0em;
+
+  /* RADIUS */
+  --radius: 1.2rem;
+
+  /* SHADOWS */
+  --shadow-2xs: 0 1px 2px -1px rgba(0, 0, 0, 0.04); /* Hairline */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04); /* Subtle */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 3px -1px rgba(0, 0, 0, 0.05); /* Card */
+  --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.05); /* Raised */
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.05); /* Card Hover */
+  --shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.05); /* Float */
+  --shadow-xl: 0 16px 40px -10px rgba(0, 0, 0, 0.10), 0 8px 16px -8px rgba(0, 0, 0, 0.06); /* Overlay */
+  --shadow-2xl: 0 24px 64px -12px rgba(0, 0, 0, 0.12); /* Modal */
+
+  /* SPACING */
+  --spacing: 0.24rem;
+}
+
+/* ===== SEMANTIC ROLES - dark (primitive palette inherited) ===== */
+.dark {
+  --background: var(--background-900);
+  --foreground: var(--text-50);
+  --card: var(--background-800);
+  --card-foreground: var(--text-50);
+  --popover: var(--background-700);
+  --popover-foreground: var(--text-50);
+
+  --primary: var(--brand-400);
+  --primary-foreground: var(--background-900);
+  --secondary: var(--background-800);
+  --secondary-foreground: var(--text-50);
+  --muted: var(--background-800);
+  --muted-foreground: var(--text-400);
+  --accent: var(--background-700);
+  --accent-foreground: var(--text-50);
+  --destructive: var(--state-error-dark);
+  --destructive-foreground: var(--state-error-foreground);
+  --success: var(--state-success-dark);
+  --success-foreground: var(--state-success-foreground);
+  --border: var(--background-700);
+  --input: var(--background-700);
+  --ring: var(--brand-400);
+
+  --icon: var(--icon-50);
+  --icon-muted: var(--icon-500);
+
+  --chart-1: var(--state-success-dark);
+  --chart-2: var(--brand-400);
+  --chart-3: #ff9f0a;
+  --chart-4: #5e5ce6;
+  --chart-5: #bf5af2;
+
+  --sidebar: var(--background-800);
+  --sidebar-foreground: var(--text-50);
+  --sidebar-primary: var(--brand-400);
+  --sidebar-primary-foreground: var(--background-900);
+  --sidebar-accent: var(--background-700);
+  --sidebar-accent-foreground: var(--text-50);
+  --sidebar-border: var(--background-700);
+  --sidebar-ring: var(--brand-400);
+
+  --shadow-2xs: 0 1px 2px -1px rgba(0, 0, 0, 0.30);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.36), 0 1px 3px -1px rgba(0, 0, 0, 0.36);
+  --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.40), 0 1px 2px -1px rgba(0, 0, 0, 0.36);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.44), 0 2px 4px -2px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.50), 0 4px 8px -4px rgba(0, 0, 0, 0.40);
+  --shadow-xl: 0 16px 40px -10px rgba(0, 0, 0, 0.55), 0 8px 16px -8px rgba(0, 0, 0, 0.44);
+  --shadow-2xl: 0 24px 64px -12px rgba(0, 0, 0, 0.60);
+}
+
+    </style>
+    <style id="component-vars">
+/*
+ * components.css - aggregated component CSS
+ * Auto-extracted from preview/component-*.html files.
+ * DO NOT EDIT. Regenerate with extract-components-css.mjs.
+ *
+ * Foundation tokens live in colors_and_type.css.
+ * This file consumes those tokens via var(--*) references.
+ */
+
+/* ============================================================
+ * Button
+ * source: preview/component-button.html
+ * rules: 10
+ */
+/* @anatomy
+   <div class="row"><span class="label">Primary 56</span><button class="btn btn-primary btn-lg">Buy now</button><button class="btn btn-primary btn-lg" disabled>Buy now</button></div>
+*/
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--spacing)*1.5);height:40px;padding:0 20px;border:none;border-radius:calc(var(--radius)*2);background:transparent;color:var(--foreground);font:600 14px/1 var(--font-sans);letter-spacing:var(--tracking-normal);white-space:nowrap;box-shadow:var(--shadow-sm);cursor:pointer;transition:background-color .18s ease,color .18s ease,opacity .18s ease,filter .18s ease}
+.btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:var(--primary-foreground)}
+.btn-primary:hover{filter:brightness(.96)}
+.btn-secondary{height:48px;padding:0 24px;background:var(--secondary);color:var(--secondary-foreground)}
+.btn-secondary:hover{background:var(--muted)}
+.btn-text{height:48px;padding:0 4px;box-shadow:none}
+.btn-text:hover{color:var(--primary)}
+.btn-lg{height:56px;padding:0 28px;font-size:16px}
+
+/* ============================================================
+ * Card
+ * source: preview/component-card.html
+ * rules: 12
+ */
+/* @anatomy
+   <div class="row">
+   <span class="label">Info</span>
+   <article class="card">
+   <div><div class="eyebrow">Pinguo Apple</div>
+*/
+.card{width:188px;min-height:148px;padding:calc(var(--spacing)*5);display:flex;flex-direction:column;justify-content:space-between;background:var(--card);color:var(--card-foreground);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.card.disabled,.card.disabled:hover{opacity:.5;transform:none;box-shadow:var(--shadow-md)}
+.eyebrow,.meta{color:var(--muted-foreground);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.title{margin:6px 0 8px;font-size:18px;line-height:1.15}
+.body-copy{margin:0;color:var(--muted-foreground);font-size:13px}
+.cta{display:inline-flex;align-items:center;justify-content:center;width:max-content;margin-top:12px;padding:calc(var(--spacing)*2) calc(var(--spacing)*3.5);border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:12px;font-weight:700;text-decoration:none}
+.media{aspect-ratio:4/3;border-radius:calc(var(--radius) - 4px);background:linear-gradient(135deg,var(--secondary),var(--accent));border:1px solid var(--border)}
+.media-card{min-height:212px;padding:calc(var(--spacing)*4)}
+.media-card .title{font-size:16px;margin:10px 0 6px}
+.price{font-size:12px;color:var(--muted-foreground)}
+.dark{background:var(--card);color:var(--card-foreground)}
+
+/* ============================================================
+ * Comparison Table
+ * source: preview/component-comparison-table.html
+ * rules: 13
+ */
+/* @anatomy
+   <div class="row"><span class="label">Default</span><div class="t"><div class="c m">Compare models</div>
+*/
+.t{display:grid;grid-template-columns:96px repeat(3,1fr);overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--card-foreground);box-shadow:var(--shadow-sm)}
+.q{grid-template-columns:82px repeat(4,1fr)}
+.c{padding:10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.t>.c:nth-child(4n),.q>.c:nth-child(5n){border-right:0}
+.t>.c:nth-last-child(-n+4),.q>.c:nth-last-child(-n+5){border-bottom:0}
+.m{background:var(--background);color:var(--muted-foreground);font:700 10px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+.h{background:var(--background);font-weight:700}
+.k{display:block;font-size:14px;line-height:1.1}
+.s{display:block;margin-top:4px;color:var(--chart-2);font-size:11px;font-weight:700}
+.b .k{color:var(--chart-2)}
+.v{font-weight:600}
+.n{color:var(--muted-foreground);font-size:12px}
+.x{opacity:.45}
+
+/* ============================================================
+ * Input
+ * source: preview/component-input.html
+ * rules: 10
+ */
+/* @anatomy
+   <div class="row">
+   <span class="label">Search 44</span>
+   <div class="field">
+   <span class="icon">⌕</span>
+   <input class="control" aria-label="Search products" placeholder="Search products">
+   <button class="clear" type="button" aria-label="Clear search">×</button>
+   </div>
+*/
+.surface{display:flex;gap:calc(var(--spacing)*2);padding:calc(var(--spacing)*3);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow-sm)}
+.dark{background:var(--background);color:var(--foreground)}
+.field{display:flex;align-items:center;gap:calc(var(--spacing)*2);min-width:240px;height:44px;padding:0 calc(var(--spacing)*3);border:1px solid var(--input);border-radius:var(--radius);background:var(--background);color:var(--foreground);box-shadow:var(--shadow-xs)}
+.field.small{height:40px}
+.field:focus-within{border-color:var(--ring);box-shadow:0 0 0 1px var(--ring)}
+.field.disabled{opacity:.55}
+.icon,.clear{padding:0;border:0;background:transparent;color:var(--icon-muted);font:inherit}
+.icon{font-size:13px}
+.control{flex:1;border:0;outline:0;background:transparent;color:inherit;font:inherit}
+.control::placeholder{color:var(--muted-foreground)}
+
+/* ============================================================
+ * Navigation
+ * source: preview/component-navigation.html
+ * rules: 16
+ */
+/* @anatomy
+   <div class="row"><span class="label">Global 44</span><nav class="webbar dark" aria-label="Pinguo Apple global navigation"><span class="brand">Pinguo Apple</span><div class="rail"><a class="link" href="#">Store</a><a class="link" href="#">Explore</a><a class="link" href="#">Community</a><a class="link" href="#">Support</a></div>
+*/
+.webbar,.mobile{border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.webbar{display:flex;align-items:center;gap:calc(var(--spacing)*2);min-width:320px;height:44px;padding:0 calc(var(--spacing)*3);border-radius:var(--radius);background:var(--sidebar)}
+.brand{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.link,.tab{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:inherit;text-decoration:none;white-space:nowrap;transition:background-color .18s ease,color .18s ease,opacity .18s ease}
+.link{height:32px;padding:0 calc(var(--spacing)*2.5)}
+.link:hover,.tab:hover{background:var(--secondary)}
+.link:focus-visible,.tab:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.dark{background:var(--sidebar);color:var(--foreground)}
+.disabled{opacity:.48}
+.disabled .link,.disabled .tab{pointer-events:none}
+.mobile{padding:calc(var(--spacing)*2);border-radius:calc(var(--radius)*1.1);background:var(--card)}
+.screen{display:flex;align-items:flex-end;justify-content:center;width:188px;height:164px;padding:calc(var(--spacing)*3);border-radius:calc(var(--radius)*.9);background:linear-gradient(180deg,var(--background),var(--secondary))}
+.tabbar{display:flex;gap:calc(var(--spacing)*1.5);padding:calc(var(--spacing)*1.5);border:1px solid var(--border);border-radius:999px;background:var(--card);box-shadow:var(--shadow-md)}
+.tab{flex-direction:column;gap:2px;min-width:56px;height:56px;padding:0 calc(var(--spacing)*1.5);font-size:11px;text-align:center}
+.dot{width:18px;height:18px;border-radius:999px;background:var(--secondary);box-shadow:inset 0 0 0 1px var(--border)}
+.tab:hover .dot{background:var(--primary)}
+
+/* ============================================================
+ * Product Grid
+ * source: preview/component-product-grid.html
+ * rules: 12
+ */
+/* @anatomy
+   <div class="row">
+   <span class="label">4-up</span>
+   <div class="grid grid-4">
+   <article class="card"><div class="media"></div>
+*/
+.grid{display:grid;gap:8px;flex:1}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--card-foreground);box-shadow:var(--shadow-xs);transition:border-color .2s ease,transform .2s ease}
+.card:hover{border-color:var(--primary);transform:translateY(-1px)}
+.media{aspect-ratio:1;border-radius:calc(var(--radius) - 4px);background:linear-gradient(135deg,var(--secondary),var(--background));border:1px solid var(--border)}
+.eyebrow{color:var(--muted-foreground);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.title{font-size:15px;line-height:1.25}
+.price{font-variant-numeric:tabular-nums}
+.cta{display:inline-flex;align-self:flex-start;padding:7px 10px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:12px;text-decoration:none}
+.muted{color:var(--muted-foreground)}
+.is-disabled{opacity:.55}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-foreground: var(--card-foreground);
+  }
+  @layer base {
+    body { background: var(--card-background); color: var(--card-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body>
+    <div class="terminal-shell">
+        <!-- HEADER -->
+        <div class="header-bar">
+            <div class="header-title">TERMINAL-OF-BEING <span class="version">v0.15</span></div>
+            <div class="header-status">
+                <div class="led-dot"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- LEFT PANEL: SYSTEM STATUS -->
+            <div class="panel-left">
+                <div class="section-label">SYSTEM STATUS</div>
+
+                <!-- HP -->
+                <div class="stat-row">
+                    <span class="stat-label">HP</span>
+                    <span class="stat-value green">340/420</span>
+                </div>
+                <div class="progress-bar">
+                    <span class="bar-filled">████████</span>
+                    <span class="bar-empty">░░</span>
+                </div>
+
+                <!-- MP -->
+                <div class="stat-row">
+                    <span class="stat-label">MP</span>
+                    <span class="stat-value" style="color:var(--rarity-magic);">85/200</span>
+                </div>
+                <div class="progress-bar">
+                    <span class="bar-filled amber">████</span>
+                    <span class="bar-empty">░░░░░</span>
+                </div>
+
+                <!-- Level & Gold -->
+                <div class="stat-row">
+                    <span class="stat-label">LV</span>
+                    <span class="stat-value green">7</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">GOLD</span>
+                    <span class="stat-value amber">2,450</span>
+                </div>
+
+                <!-- EXP -->
+                <div class="stat-row">
+                    <span class="stat-label">EXP</span>
+                    <span class="stat-value">1240/3500</span>
+                </div>
+                <div class="progress-bar">
+                    <span class="bar-filled amber">███</span>
+                    <span class="bar-empty">░░░░░░</span>
+                </div>
+
+                <!-- Being -->
+                <div class="stat-row">
+                    <span class="stat-label">BEING</span>
+                    <span class="stat-value">78.4%</span>
+                </div>
+                <div class="progress-bar">
+                    <span class="bar-filled">██████</span>
+                    <span class="bar-empty">░░</span>
+                </div>
+
+                <!-- Ontological Data -->
+                <div class="onto-section">
+                    <div class="section-label" style="border-top:none; padding-top:0; margin-top:0;">ONTOLOGICAL</div>
+                    <div class="onto-row">
+                        <span class="onto-key">OBJECT</span>
+                        <span class="onto-val">2.14 m</span>
+                    </div>
+                    <div class="onto-row">
+                        <span class="onto-key">SUBJECT</span>
+                        <span class="onto-val">FIXED</span>
+                    </div>
+                    <div class="onto-row">
+                        <span class="onto-key">REALITY</span>
+                        <span class="onto-val">STABLE</span>
+                    </div>
+                    <div class="onto-row">
+                        <span class="onto-key">DRIFT</span>
+                        <span class="onto-val">0.0031</span>
+                    </div>
+                    <div class="onto-row">
+                        <span class="onto-key">EXISTENCE</span>
+                        <span class="onto-val green">0.8927</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER: GAME CANVAS -->
+            <div class="panel-center">
+                <div class="game-canvas">
+                    <!-- Ground line -->
+                    <div class="ground-line"></div>
+
+                    <!-- Player -->
+                    <div class="player-char">
+                        <span class="player-name">&#9670;此在</span>
+                    </div>
+
+                    <!-- Player HP bar in canvas -->
+                    <div class="canvas-player-hp">████████░░</div>
+
+                    <!-- Projectile -->
+                    <div class="projectile">──·──&gt;</div>
+
+                    <!-- Enemy group -->
+                    <div class="enemy-group">
+                        <div class="enemy-unit">
+                            <div class="enemy-sprite">&#9671;虚无主义虫</div>
+                            <div class="enemy-hp-bar">-42 ████░░</div>
+                        </div>
+                        <div class="enemy-unit">
+                            <div class="enemy-sprite">&#9671;二元对立体</div>
+                            <div class="enemy-hp-bar">████░░░░</div>
+                        </div>
+                    </div>
+
+                    <!-- Damage numbers -->
+                    <div class="enemy-dmg dmg-1">-42</div>
+                    <div class="enemy-dmg dmg-2">-18</div>
+                    <div class="enemy-dmg dmg-3">-7</div>
+
+                    <!-- Blood particles -->
+                    <div class="blood-particle bp-1"></div>
+                    <div class="blood-particle bp-2"></div>
+                    <div class="blood-particle bp-3"></div>
+                    <div class="blood-particle bp-4"></div>
+
+                    <!-- Loot drops -->
+                    <div class="loot-drop loot-1">◆</div>
+                    <div class="loot-drop loot-2">◆</div>
+
+                    <!-- Floating philosophy text -->
+                    <div class="philosophy-text ph-1">π人是万物的尺度</div>
+                    <div class="philosophy-text ph-2">©我思故我在 ?</div>
+                    <div class="philosophy-text ph-3">±二元对立</div>
+                    <div class="philosophy-text ph-4">∞存在先于本质</div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="panel-right">
+                <!-- Session Info -->
+                <div class="section-label">SESSION INFO</div>
+                <div class="session-section">
+                    <div class="stat-row">
+                        <span class="stat-label">USER</span>
+                        <span class="stat-value">BEING_01</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">MODE</span>
+                        <span class="stat-value green">COMBAT</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">STAGE</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">WAVE</span>
+                        <span class="stat-value amber">7/10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ENEMIES</span>
+                        <span class="stat-value red">5</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">KILLS</span>
+                        <span class="stat-value">142</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">DPS</span>
+                        <span class="stat-value green">847</span>
+                    </div>
+                </div>
+
+                <!-- Log Output -->
+                <div class="section-label">LOG OUTPUT</div>
+                <div class="log-section">
+                    <div class="log-list">
+                        <div class="log-entry system"><span class="timestamp">[05:12:45]</span> <span class="msg">SYSTEM BOOT</span></div>
+                        <div class="log-entry system"><span class="timestamp">[05:12:46]</span> <span class="msg">ONTOLOGY SYNC</span></div>
+                        <div class="log-entry warning"><span class="timestamp">[05:12:47]</span> <span class="msg">ENEMY DETECT</span></div>
+                        <div class="log-entry system"><span class="timestamp">[05:12:48]</span> <span class="msg">WAVE 7 START</span></div>
+                        <div class="log-entry kill"><span class="timestamp">[05:12:49]</span> <span class="msg">KILL +15 EXP</span></div>
+                        <div class="log-entry loot"><span class="timestamp">[05:12:50]</span> <span class="msg">LOOT RARE</span></div>
+                        <div class="log-entry crit"><span class="timestamp">[05:12:51]</span> <span class="msg">CRIT 42 DMG</span></div>
+                        <div class="log-entry system"><span class="timestamp">[05:12:52]</span> <span class="msg">SYSTEM OK</span></div>
+                        <div class="log-entry dodge"><span class="timestamp">[05:12:53]</span> <span class="msg">DODGE</span></div>
+                        <div class="log-entry kill"><span class="timestamp">[05:12:54]</span> <span class="msg">KILL +8 EXP</span></div>
+                        <div class="log-entry loot"><span class="timestamp">[05:12:55]</span> <span class="msg">LOOT EPIC</span></div>
+                    </div>
+                </div>
+
+                <!-- Equipment -->
+                <div class="section-label">EQUIPMENT</div>
+                <div class="equip-section">
+                    <div class="equip-row">
+                        <span class="equip-item rare">⚔偶因论之刃</span>
+                        <span class="equip-item magic">🛡物自体盾</span>
+                    </div>
+                    <div class="equip-row">
+                        <span class="equip-item common">⚐先验头盔</span>
+                        <span class="equip-item common">👢现象学靴</span>
+                    </div>
+                    <div class="equip-row">
+                        <span class="equip-item equip-empty">💍—</span>
+                        <span class="equip-item equip-empty">💍—</span>
+                        <span class="equip-item equip-empty">🔮—</span>
+                        <span class="equip-item equip-empty">◈—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-bar">
+            <div class="cli-prompt">
+                <span class="user">&gt; observer_01@crt ~ $</span> <span class="cursor"></span>
+            </div>
+            <div class="footer-buttons">
+                <button class="footer-btn" data-dom-id="btn-inventory">F1 装置</button>
+                <button class="footer-btn" data-dom-id="btn-codex">F2 图鉴</button>
+                <button class="footer-btn">F3 天赋</button>
+            </div>
+            <div class="footer-time">TIME:05:12</div>
+        </div>
+    </div>
+
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        width: 100%; height: 100vh;
+        overflow: hidden;
+        background: var(--terminal-bg);
+        color: var(--terminal-text);
+        font-family: 'Source Code Pro', 'Noto Serif SC', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* CRT Scanline overlay */
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9999;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          var(--terminal-scanline) 2px,
+          var(--terminal-scanline) 4px
+        );
+      }
+
+      /* CRT Vignette */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9998;
+        background: radial-gradient(ellipse at center, transparent 60%, var(--terminal-vignette) 100%);
+      }
+
+      /* === LAYOUT === */
+      .terminal-shell {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100vh;
+        padding: 2px;
+        gap: 2px;
+      }
+
+      /* Header bar */
+      .header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 12px;
+        min-height: 28px;
+        flex-shrink: 0;
+      }
+      .header-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--terminal-text-label);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        text-shadow: 0 0 2px var(--terminal-phosphor);
+      }
+      .header-title span.version {
+        color: var(--terminal-green);
+      }
+      .header-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--terminal-text-label);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .led-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--terminal-green-led);
+        box-shadow: 0 0 4px var(--terminal-green-led);
+        animation: led-pulse 2s ease-in-out infinite;
+      }
+      @keyframes led-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Main content area */
+      .main-content {
+        display: flex;
+        flex: 1;
+        gap: 2px;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* Left panel - System Status */
+      .panel-left {
+        width: 180px;
+        flex-shrink: 0;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .panel-left::-webkit-scrollbar { width: 3px; }
+      .panel-left::-webkit-scrollbar-track { background: transparent; }
+      .panel-left::-webkit-scrollbar-thumb { background: var(--terminal-text-dim); border-radius: 2px; }
+
+      /* Center - Game Canvas */
+      .panel-center {
+        flex: 1;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Right panel */
+      .panel-right {
+        width: 220px;
+        flex-shrink: 0;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .panel-right::-webkit-scrollbar { width: 3px; }
+      .panel-right::-webkit-scrollbar-track { background: transparent; }
+      .panel-right::-webkit-scrollbar-thumb { background: var(--terminal-text-dim); border-radius: 2px; }
+
+      /* Footer bar */
+      .footer-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 12px;
+        min-height: 28px;
+        flex-shrink: 0;
+      }
+
+      /* === SECTION LABELS === */
+      .section-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--terminal-text-label);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-shadow: 0 0 2px var(--terminal-phosphor);
+        padding-bottom: 2px;
+        margin-bottom: 2px;
+      }
+
+      /* === STAT ROWS === */
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 1px 0;
+      }
+      .stat-label {
+        font-size: 10px;
+        color: var(--terminal-text-label);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        flex-shrink: 0;
+      }
+      .stat-value {
+        font-size: 12px;
+        color: var(--terminal-text);
+        font-weight: 600;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .stat-value.green { color: var(--terminal-green); }
+      .stat-value.amber { color: var(--terminal-amber); }
+      .stat-value.red { color: var(--terminal-red); }
+
+      /* === PROGRESS BARS === */
+      .progress-bar {
+        display: flex;
+        gap: 1px;
+        padding: 2px 0;
+        font-size: 10px;
+        line-height: 1;
+      }
+      .bar-filled { color: var(--terminal-green); }
+      .bar-filled.amber { color: var(--terminal-amber); }
+      .bar-filled.red { color: var(--terminal-red); }
+      .bar-empty { color: var(--terminal-text-dim); }
+
+      /* === ONTOLOGICAL DATA === */
+      .onto-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-top: 4px;
+        border-top: 1px solid #1a1a1a;
+      }
+      .onto-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .onto-key {
+        font-size: 10px;
+        color: var(--terminal-text-label);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .onto-val {
+        font-size: 11px;
+        color: var(--terminal-text);
+        font-weight: 500;
+      }
+
+      /* === GAME CANVAS === */
+      .game-canvas {
+        width: 100%;
+        height: 100%;
+        background: var(--terminal-bg-canvas);
+        position: relative;
+        overflow: hidden;
+        font-size: 13px;
+      }
+
+      /* Ground line */
+      .ground-line {
+        position: absolute;
+        bottom: 25%;
+        left: 0;
+        right: 0;
+        border-top: 1px dashed #1a3a1a;
+      }
+
+      /* Player character */
+      .player-char {
+        position: absolute;
+        bottom: calc(25% + 2px);
+        left: 18%;
+        color: var(--terminal-green);
+        font-size: 14px;
+        text-shadow: 0 0 6px rgba(0,255,136,0.3);
+        white-space: nowrap;
+      }
+      .player-name {
+        font-weight: 700;
+        font-family: 'Noto Serif SC', serif;
+      }
+
+      /* Enemy characters */
+      .enemy-group {
+        position: absolute;
+        bottom: calc(25% + 2px);
+        right: 15%;
+        display: flex;
+        gap: 30px;
+        align-items: flex-end;
+      }
+      .enemy-unit {
+        text-align: center;
+        white-space: nowrap;
+      }
+      .enemy-sprite {
+        font-size: 13px;
+        color: var(--terminal-red);
+        text-shadow: 0 0 4px rgba(204,51,51,0.3);
+      }
+      .enemy-hp-bar {
+        font-size: 9px;
+        color: var(--terminal-red);
+        margin-top: 1px;
+      }
+      .enemy-dmg {
+        position: absolute;
+        font-size: 11px;
+        color: var(--terminal-text);
+        font-weight: 700;
+        animation: float-up 1.2s ease-out forwards;
+      }
+      .dmg-1 { top: 30%; left: 65%; animation-delay: 0s; }
+      .dmg-2 { top: 35%; left: 70%; animation-delay: 0.3s; }
+      .dmg-3 { top: 28%; left: 75%; animation-delay: 0.6s; }
+      @keyframes float-up {
+        0% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-30px); }
+      }
+
+      /* Projectile */
+      .projectile {
+        position: absolute;
+        bottom: calc(25% + 8px);
+        left: 28%;
+        color: var(--terminal-green);
+        font-size: 10px;
+        animation: projectile-fly 0.8s ease-in infinite;
+        text-shadow: 0 0 4px rgba(0,255,136,0.4);
+      }
+      @keyframes projectile-fly {
+        0% { left: 28%; opacity: 1; }
+        100% { left: 62%; opacity: 0; }
+      }
+
+      /* Blood particles */
+      .blood-particle {
+        position: absolute;
+        width: 2px; height: 2px;
+        background: rgba(204,51,51,0.4);
+        border-radius: 50%;
+        animation: blood-spread 0.6s ease-out forwards;
+      }
+      .bp-1 { bottom: calc(25% + 12px); left: 68%; animation-delay: 0.2s; }
+      .bp-2 { bottom: calc(25% + 16px); left: 70%; animation-delay: 0.4s; }
+      .bp-3 { bottom: calc(25% + 8px); left: 72%; animation-delay: 0.1s; }
+      .bp-4 { bottom: calc(25% + 14px); left: 66%; animation-delay: 0.3s; }
+      @keyframes blood-spread {
+        0% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0; transform: scale(3); }
+      }
+
+      /* Loot drops */
+      .loot-drop {
+        position: absolute;
+        bottom: calc(25% + 4px);
+        color: var(--terminal-amber);
+        font-size: 10px;
+        animation: loot-bounce 1.5s ease-in-out infinite;
+      }
+      .loot-1 { left: 40%; animation-delay: 0s; }
+      .loot-2 { left: 55%; animation-delay: 0.5s; }
+      @keyframes loot-bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+      }
+
+      /* Floating philosophy text */
+      .philosophy-text {
+        position: absolute;
+        color: var(--terminal-text-dim);
+        font-family: 'Noto Serif SC', serif;
+        font-size: 12px;
+        opacity: 0.5;
+        white-space: nowrap;
+      }
+      .ph-1 { top: 20%; left: 10%; }
+      .ph-2 { top: 40%; left: 30%; }
+      .ph-3 { top: 55%; left: 50%; }
+      .ph-4 { top: 35%; left: 65%; }
+
+      /* Player HP bar in canvas */
+      .canvas-player-hp {
+        position: absolute;
+        bottom: calc(25% + 20px);
+        left: 16%;
+        font-size: 9px;
+        color: var(--terminal-green);
+        white-space: nowrap;
+      }
+
+      /* === SESSION INFO (right panel) === */
+      .session-section {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      /* === LOG OUTPUT === */
+      .log-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-height: 0;
+        overflow: hidden;
+  }
+  .log-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .log-list::-webkit-scrollbar { width: 3px; }
+  .log-list::-webkit-scrollbar-track { background: transparent; }
+  .log-list::-webkit-scrollbar-thumb { background: var(--terminal-text-dim); border-radius: 2px; }
+  .log-entry {
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .log-entry .timestamp { color: var(--terminal-text-dim); }
+  .log-entry.kill .msg { color: var(--terminal-green); }
+  .log-entry.loot .msg { color: var(--terminal-amber); }
+  .log-entry.crit .msg { color: var(--terminal-text); font-weight: 600; }
+  .log-entry.system .msg { color: var(--terminal-text-dim); }
+  .log-entry.warning .msg { color: var(--terminal-amber); }
+  .log-entry.dodge .msg { color: var(--terminal-text-label); }
+
+  /* === EQUIPMENT === */
+  .equip-section {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .equip-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    font-size: 11px;
+  }
+  .equip-item {
+    white-space: nowrap;
+    padding: 1px 4px;
+    border: 1px solid #222;
+    transition: background 150ms ease;
+    cursor: default;
+  }
+  .equip-item:hover {
+    background: var(--terminal-hover);
+  }
+  .equip-item.common { color: var(--rarity-common); border-color: var(--terminal-text-dim); }
+  .equip-item.magic { color: var(--rarity-magic); border-color: var(--rarity-magic); }
+  .equip-item.rare { color: var(--rarity-rare); border-color: var(--rarity-rare); }
+  .equip-item.epic { color: var(--rarity-epic); border-color: var(--rarity-epic); }
+  .equip-item.legendary { color: var(--rarity-legendary); border-color: var(--rarity-legendary); }
+  .equip-empty {
+    color: var(--terminal-text-dim);
+    opacity: 0.4;
+  }
+
+  /* === FOOTER === */
+  .cli-prompt {
+    font-size: 12px;
+    color: var(--terminal-green);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+  }
+  .cli-prompt .user { color: var(--terminal-text-label); }
+  .cli-prompt .cursor {
+    display: inline-block;
+    width: 7px;
+    height: 14px;
+    background: var(--terminal-green);
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .footer-buttons {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .footer-btn {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10px;
+    color: var(--terminal-text-label);
+    background: transparent;
+    border: 1px solid #222;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
+    white-space: nowrap;
+  }
+  .footer-btn:hover {
+    color: var(--terminal-green);
+    border-color: var(--terminal-green);
+    text-shadow: 0 0 4px var(--terminal-phosphor);
+  }
+  .footer-time {
+    font-size: 11px;
+    color: var(--terminal-text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* === HOVER STATES === */
+  .panel-left:hover,
+  .panel-right:hover {
+    background: var(--terminal-hover);
+    transition: background 150ms ease;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 900px) {
+    .panel-left { width: 140px; font-size: 11px; }
+    .panel-right { width: 170px; font-size: 11px; }
+    .equip-row { font-size: 10px; }
+    .log-entry { font-size: 9px; }
+  }
+  @media (max-width: 680px) {
+    .main-content { flex-direction: column; }
+    .panel-left, .panel-right {
+      width: 100%;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 120px;
+      overflow-y: auto;
+      padding: 4px 8px;
+    }
+    .panel-center { min-height: 200px; }
+    .section-label { width: 100%; }
+    .stat-row { min-width: 80px; }
+    .onto-section { flex-direction: row; flex-wrap: wrap; gap: 4px; border-top: none; padding-top: 0; }
+    .log-section { max-height: 80px; }
+    .equip-section { flex-direction: row; flex-wrap: wrap; }
+    .footer-buttons { display: none; }
+  }
+    </style>
+</body>
+</html>

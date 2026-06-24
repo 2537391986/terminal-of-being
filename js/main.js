@@ -38,6 +38,7 @@ import {
   getFinalStats,
 } from './systems/effects.js';
 import { getWeaponType } from './data/weaponTypes.js';
+import { initThemeSwitcher } from './ui/theme.js';
 import { initDebugUI } from './ui/debug.js';
 import { initStatPointsUI, hasUnspentPoints } from './ui/statPoints.js';
 
@@ -143,6 +144,7 @@ function init() {
   initInventoryUI();
   initCodexUI();
   initDebugUI();
+  initThemeSwitcher();
   initStatPointsUI(syncPlayerStats, log);
   requestAnimationFrame(loop);
 }

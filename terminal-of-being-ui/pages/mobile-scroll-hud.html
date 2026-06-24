@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>存在终端 Terminal of Being</title>
+    <style id="theme-vars">
+/*
+ * Pinguo design tokens
+ * Brand: Pinguo
+ * Domain: Consumer imaging product
+ * Style: Restrained, elegant, Apple-inspired
+ * Theme mode: light-dark
+ * Source language: zh
+ * Output language: en
+ *
+ * Color architecture (two layers):
+ *   1. Primitive palette - six categories. brand / background / text / icon
+ *      are each a 10-step scale (50 lightest to 900 darkest). state-success and
+ *      state-error are functional colors anchored on Apple system colors.
+ *      Anchors follow Apple Human Interface Guidelines system colors
+ *      (System Blue #007AFF, System Green #34C759, System Red #FF3B30,
+ *      system grays / label / background colors).
+ *   2. Semantic tokens - :root (light) and .dark map roles onto primitives.
+ *      Components and UI kits must only consume the semantic tokens below.
+ */
+
+/* @group-priority: brand, background, text, icon, state-success, state-error */
+
+:root {
+  /* ===== PRIMITIVE PALETTE ===== */
+
+  /* brand */
+  --brand-50: #e8f2ff;
+  --brand-100: #cfe5ff;
+  --brand-200: #9fcbff;
+  --brand-300: #66abff;
+  --brand-400: #2e8dff;
+  --brand-500: #007aff; /* @primary */
+  --brand-600: #0064d6;
+  --brand-700: #004fad;
+  --brand-800: #003b82;
+  --brand-900: #00275a;
+
+  /* background */
+  --background-50: #ffffff;
+  --background-100: #f7f7fa;
+  --background-200: #f2f2f7;
+  --background-300: #e5e5ea;
+  --background-400: #d1d1d6;
+  --background-500: #aeaeb2;
+  --background-600: #8e8e93;
+  --background-700: #3a3a3c;
+  --background-800: #1c1c1e;
+  --background-900: #000000;
+
+  /* text */
+  --text-50: #f5f5f7;
+  --text-100: #e3e3e8;
+  --text-200: #c7c7cc;
+  --text-300: #aeaeb2;
+  --text-400: #8e8e93;
+  --text-500: #6e6e73;
+  --text-600: #48484a;
+  --text-700: #3c3c43;
+  --text-800: #1d1d1f;
+  --text-900: #000000;
+
+  /* icon */
+  --icon-50: #f5f5f7;
+  --icon-100: #e5e5ea;
+  --icon-200: #d1d1d6;
+  --icon-300: #c7c7cc;
+  --icon-400: #aeaeb2;
+  --icon-500: #8e8e93;
+  --icon-600: #6e6e73;
+  --icon-700: #48484a;
+  --icon-800: #2c2c2e;
+  --icon-900: #1d1d1f;
+
+  /* state-success */
+  --state-success: #34c759; /* @primary */
+  --state-success-dark: #30d158;
+  --state-success-surface: #e9f9ee;
+  --state-success-foreground: #ffffff;
+
+  /* state-error */
+  --state-error: #ff3b30; /* @primary */
+  --state-error-dark: #ff453a;
+  --state-error-surface: #ffecea;
+  --state-error-foreground: #ffffff;
+
+  /* ===== SEMANTIC ROLES ===== */
+
+  /* semantic */
+  --background: var(--background-50);
+  --foreground: var(--text-800);
+  --card: var(--background-50);
+  --card-foreground: var(--text-800);
+  --popover: var(--background-50);
+  --popover-foreground: var(--text-900);
+
+  --primary: var(--brand-500);
+  --primary-foreground: var(--background-50);
+  --secondary: var(--background-200);
+  --secondary-foreground: var(--text-800);
+  --muted: var(--background-200);
+  --muted-foreground: var(--text-400);
+  --accent: var(--background-100);
+  --accent-foreground: var(--text-800);
+  --destructive: var(--state-error);
+  --destructive-foreground: var(--state-error-foreground);
+  --success: var(--state-success);
+  --success-foreground: var(--state-success-foreground);
+  --border: var(--background-300);
+  --input: var(--background-400);
+  --ring: var(--brand-500);
+
+  --icon: var(--icon-900);
+  --icon-muted: var(--icon-500);
+
+  /* chart */
+  --chart-1: var(--state-success);
+  --chart-2: var(--brand-500);
+  --chart-3: #ff9500;
+  --chart-4: #5856d6;
+  --chart-5: #af52de;
+
+  /* sidebar */
+  --sidebar: var(--background-200);
+  --sidebar-foreground: var(--text-800);
+  --sidebar-primary: var(--brand-500);
+  --sidebar-primary-foreground: var(--background-50);
+  --sidebar-accent: var(--background-300);
+  --sidebar-accent-foreground: var(--text-800);
+  --sidebar-border: var(--background-300);
+  --sidebar-ring: var(--brand-500);
+
+  /* TYPOGRAPHY */
+  --font-sans: DM Sans, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: DM Sans, ui-sans-serif, sans-serif, system-ui;
+  --font-mono: JetBrains Mono, monospace;
+  --tracking-normal: 0em;
+
+  /* RADIUS */
+  --radius: 1.2rem;
+
+  /* SHADOWS */
+  --shadow-2xs: 0 1px 2px -1px rgba(0, 0, 0, 0.04); /* Hairline */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04); /* Subtle */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 3px -1px rgba(0, 0, 0, 0.05); /* Card */
+  --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.05); /* Raised */
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.05); /* Card Hover */
+  --shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.05); /* Float */
+  --shadow-xl: 0 16px 40px -10px rgba(0, 0, 0, 0.10), 0 8px 16px -8px rgba(0, 0, 0, 0.06); /* Overlay */
+  --shadow-2xl: 0 24px 64px -12px rgba(0, 0, 0, 0.12); /* Modal */
+
+  /* SPACING */
+  --spacing: 0.24rem;
+}
+
+/* ===== SEMANTIC ROLES - dark (primitive palette inherited) ===== */
+.dark {
+  --background: var(--background-900);
+  --foreground: var(--text-50);
+  --card: var(--background-800);
+  --card-foreground: var(--text-50);
+  --popover: var(--background-700);
+  --popover-foreground: var(--text-50);
+
+  --primary: var(--brand-400);
+  --primary-foreground: var(--background-900);
+  --secondary: var(--background-800);
+  --secondary-foreground: var(--text-50);
+  --muted: var(--background-800);
+  --muted-foreground: var(--text-400);
+  --accent: var(--background-700);
+  --accent-foreground: var(--text-50);
+  --destructive: var(--state-error-dark);
+  --destructive-foreground: var(--state-error-foreground);
+  --success: var(--state-success-dark);
+  --success-foreground: var(--state-success-foreground);
+  --border: var(--background-700);
+  --input: var(--background-700);
+  --ring: var(--brand-400);
+
+  --icon: var(--icon-50);
+  --icon-muted: var(--icon-500);
+
+  --chart-1: var(--state-success-dark);
+  --chart-2: var(--brand-400);
+  --chart-3: #ff9f0a;
+  --chart-4: #5e5ce6;
+  --chart-5: #bf5af2;
+
+  --sidebar: var(--background-800);
+  --sidebar-foreground: var(--text-50);
+  --sidebar-primary: var(--brand-400);
+  --sidebar-primary-foreground: var(--background-900);
+  --sidebar-accent: var(--background-700);
+  --sidebar-accent-foreground: var(--text-50);
+  --sidebar-border: var(--background-700);
+  --sidebar-ring: var(--brand-400);
+
+  --shadow-2xs: 0 1px 2px -1px rgba(0, 0, 0, 0.30);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.36), 0 1px 3px -1px rgba(0, 0, 0, 0.36);
+  --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.40), 0 1px 2px -1px rgba(0, 0, 0, 0.36);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.44), 0 2px 4px -2px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.50), 0 4px 8px -4px rgba(0, 0, 0, 0.40);
+  --shadow-xl: 0 16px 40px -10px rgba(0, 0, 0, 0.55), 0 8px 16px -8px rgba(0, 0, 0, 0.44);
+  --shadow-2xl: 0 24px 64px -12px rgba(0, 0, 0, 0.60);
+}
+
+    </style>
+    <style id="component-vars">
+/*
+ * components.css - aggregated component CSS
+ * Auto-extracted from preview/component-*.html files.
+ * DO NOT EDIT. Regenerate with extract-components-css.mjs.
+ *
+ * Foundation tokens live in colors_and_type.css.
+ * This file consumes those tokens via var(--*) references.
+ */
+
+/* ============================================================
+ * Button
+ * source: preview/component-button.html
+ * rules: 10
+ */
+/* @anatomy
+   <div class="row"><span class="label">Primary 56</span><button class="btn btn-primary btn-lg">Buy now</button><button class="btn btn-primary btn-lg" disabled>Buy now</button></div>
+*/
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--spacing)*1.5);height:40px;padding:0 20px;border:none;border-radius:calc(var(--radius)*2);background:transparent;color:var(--foreground);font:600 14px/1 var(--font-sans);letter-spacing:var(--tracking-normal);white-space:nowrap;box-shadow:var(--shadow-sm);cursor:pointer;transition:background-color .18s ease,color .18s ease,opacity .18s ease,filter .18s ease}
+.btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:var(--primary-foreground)}
+.btn-primary:hover{filter:brightness(.96)}
+.btn-secondary{height:48px;padding:0 24px;background:var(--secondary);color:var(--secondary-foreground)}
+.btn-secondary:hover{background:var(--muted)}
+.btn-text{height:48px;padding:0 4px;box-shadow:none}
+.btn-text:hover{color:var(--primary)}
+.btn-lg{height:56px;padding:0 28px;font-size:16px}
+
+/* ============================================================
+ * Card
+ * source: preview/component-card.html
+ * rules: 12
+ */
+/* @anatomy
+   <div class="row">
+   <span class="label">Info</span>
+   <article class="card">
+   <div><div class="eyebrow">Pinguo Apple</div>
+*/
+.card{width:188px;min-height:148px;padding:calc(var(--spacing)*5);display:flex;flex-direction:column;justify-content:space-between;background:var(--card);color:var(--card-foreground);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.card.disabled,.card.disabled:hover{opacity:.5;transform:none;box-shadow:var(--shadow-md)}
+.eyebrow,.meta{color:var(--muted-foreground);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.title{margin:6px 0 8px;font-size:18px;line-height:1.15}
+.body-copy{margin:0;color:var(--muted-foreground);font-size:13px}
+.cta{display:inline-flex;align-items:center;justify-content:center;width:max-content;margin-top:12px;padding:calc(var(--spacing)*2) calc(var(--spacing)*3.5);border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:12px;font-weight:700;text-decoration:none}
+.media{aspect-ratio:4/3;border-radius:calc(var(--radius) - 4px);background:linear-gradient(135deg,var(--secondary),var(--accent));border:1px solid var(--border)}
+.media-card{min-height:212px;padding:calc(var(--spacing)*4)}
+.media-card .title{font-size:16px;margin:10px 0 6px}
+.price{font-size:12px;color:var(--muted-foreground)}
+.dark{background:var(--card);color:var(--card-foreground)}
+
+/* ============================================================
+ * Comparison Table
+ * source: preview/component-comparison-table.html
+ * rules: 13
+ */
+/* @anatomy
+   <div class="row"><span class="label">Default</span><div class="t"><div class="c m">Compare models</div>
+*/
+.t{display:grid;grid-template-columns:96px repeat(3,1fr);overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--card-foreground);box-shadow:var(--shadow-sm)}
+.q{grid-template-columns:82px repeat(4,1fr)}
+.c{padding:10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.t>.c:nth-child(4n),.q>.c:nth-child(5n){border-right:0}
+.t>.c:nth-last-child(-n+4),.q>.c:nth-last-child(-n+5){border-bottom:0}
+.m{background:var(--background);color:var(--muted-foreground);font:700 10px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+.h{background:var(--background);font-weight:700}
+.k{display:block;font-size:14px;line-height:1.1}
+.s{display:block;margin-top:4px;color:var(--chart-2);font-size:11px;font-weight:700}
+.b .k{color:var(--chart-2)}
+.v{font-weight:600}
+.n{color:var(--muted-foreground);font-size:12px}
+.x{opacity:.45}
+
+/* ============================================================
+ * Input
+ * source: preview/component-input.html
+ * rules: 10
+ */
+/* @anatomy
+   <div class="row">
+   <span class="label">Search 44</span>
+   <div class="field">
+   <span class="icon">⌕</span>
+   <input class="control" aria-label="Search products" placeholder="Search products">
+   <button class="clear" type="button" aria-label="Clear search">×</button>
+   </div>
+*/
+.surface{display:flex;gap:calc(var(--spacing)*2);padding:calc(var(--spacing)*3);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow-sm)}
+.dark{background:var(--background);color:var(--foreground)}
+.field{display:flex;align-items:center;gap:calc(var(--spacing)*2);min-width:240px;height:44px;padding:0 calc(var(--spacing)*3);border:1px solid var(--input);border-radius:var(--radius);background:var(--background);color:var(--foreground);box-shadow:var(--shadow-xs)}
+.field.small{height:40px}
+.field:focus-within{border-color:var(--ring);box-shadow:0 0 0 1px var(--ring)}
+.field.disabled{opacity:.55}
+.icon,.clear{padding:0;border:0;background:transparent;color:var(--icon-muted);font:inherit}
+.icon{font-size:13px}
+.control{flex:1;border:0;outline:0;background:transparent;color:inherit;font:inherit}
+.control::placeholder{color:var(--muted-foreground)}
+
+/* ============================================================
+ * Navigation
+ * source: preview/component-navigation.html
+ * rules: 16
+ */
+/* @anatomy
+   <div class="row"><span class="label">Global 44</span><nav class="webbar dark" aria-label="Pinguo Apple global navigation"><span class="brand">Pinguo Apple</span><div class="rail"><a class="link" href="#">Store</a><a class="link" href="#">Explore</a><a class="link" href="#">Community</a><a class="link" href="#">Support</a></div>
+*/
+.webbar,.mobile{border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.webbar{display:flex;align-items:center;gap:calc(var(--spacing)*2);min-width:320px;height:44px;padding:0 calc(var(--spacing)*3);border-radius:var(--radius);background:var(--sidebar)}
+.brand{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.link,.tab{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:inherit;text-decoration:none;white-space:nowrap;transition:background-color .18s ease,color .18s ease,opacity .18s ease}
+.link{height:32px;padding:0 calc(var(--spacing)*2.5)}
+.link:hover,.tab:hover{background:var(--secondary)}
+.link:focus-visible,.tab:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.dark{background:var(--sidebar);color:var(--foreground)}
+.disabled{opacity:.48}
+.disabled .link,.disabled .tab{pointer-events:none}
+.mobile{padding:calc(var(--spacing)*2);border-radius:calc(var(--radius)*1.1);background:var(--card)}
+.screen{display:flex;align-items:flex-end;justify-content:center;width:188px;height:164px;padding:calc(var(--spacing)*3);border-radius:calc(var(--radius)*.9);background:linear-gradient(180deg,var(--background),var(--secondary))}
+.tabbar{display:flex;gap:calc(var(--spacing)*1.5);padding:calc(var(--spacing)*1.5);border:1px solid var(--border);border-radius:999px;background:var(--card);box-shadow:var(--shadow-md)}
+.tab{flex-direction:column;gap:2px;min-width:56px;height:56px;padding:0 calc(var(--spacing)*1.5);font-size:11px;text-align:center}
+.dot{width:18px;height:18px;border-radius:999px;background:var(--secondary);box-shadow:inset 0 0 0 1px var(--border)}
+.tab:hover .dot{background:var(--primary)}
+
+/* ============================================================
+ * Product Grid
+ * source: preview/component-product-grid.html
+ * rules: 12
+ */
+/* @anatomy
+   <div class="row">
+   <span class="label">4-up</span>
+   <div class="grid grid-4">
+   <article class="card"><div class="media"></div>
+*/
+.grid{display:grid;gap:8px;flex:1}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--card-foreground);box-shadow:var(--shadow-xs);transition:border-color .2s ease,transform .2s ease}
+.card:hover{border-color:var(--primary);transform:translateY(-1px)}
+.media{aspect-ratio:1;border-radius:calc(var(--radius) - 4px);background:linear-gradient(135deg,var(--secondary),var(--background));border:1px solid var(--border)}
+.eyebrow{color:var(--muted-foreground);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.title{font-size:15px;line-height:1.25}
+.price{font-variant-numeric:tabular-nums}
+.cta{display:inline-flex;align-self:flex-start;padding:7px 10px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);font-size:12px;text-decoration:none}
+.muted{color:var(--muted-foreground)}
+.is-disabled{opacity:.55}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-foreground: var(--card-foreground);
+  }
+  @layer base {
+    body { background: var(--card-background); color: var(--card-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="crt-flicker">
+
+    <!-- CRT overlays -->
+    <div class="crt-overlay" aria-hidden="true"></div>
+    <div class="crt-vignette" aria-hidden="true"></div>
+
+    <div class="game-root">
+
+        <!-- ===== TOP BAR ===== -->
+        <header class="top-bar phosphor">
+            <span class="top-bar__left">SYS:TERMINAL v0.15</span>
+            <span class="top-bar__center">
+                STG 3<span class="wave">· WAVE 7/10</span>
+            </span>
+            <span class="top-bar__right">
+                <span class="status-dot" aria-label="Combat active"></span>
+                <span>00:42:17</span>
+            </span>
+        </header>
+
+        <!-- ===== CANVAS AREA ===== -->
+        <section class="canvas-area" aria-label="Combat scene">
+
+            <!-- CSS Mockup Scene -->
+            <div class="scene">
+
+                <!-- Parallax particles -->
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+                <span class="particle" aria-hidden="true"></span>
+
+                <!-- Ground line -->
+                <div class="ground" aria-hidden="true"></div>
+
+                <!-- Player character -->
+                <div class="player">
+                    <div class="player__aura" aria-hidden="true"></div>
+                    <span class="player__glyph phosphor-strong">◆</span>
+                    <span class="player__name phosphor">此在</span>
+                    <div class="player__hp-bar">
+                        <div class="player__hp-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Enemy 1: Normal -->
+                <div class="enemy enemy--1 enemy--normal">
+                    <span class="enemy__glyph">π</span>
+                    <span class="enemy__label">人是万物的尺度</span>
+                    <div class="enemy__hp-bar">
+                        <div class="enemy__hp-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Enemy 2: Normal, firing -->
+                <div class="enemy enemy--2 enemy--firing">
+                    <span class="enemy__glyph">©</span>
+                    <span class="enemy__label">我思故我在</span>
+                    <div class="enemy__hp-bar">
+                        <div class="enemy__hp-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Enemy 3: Elite -->
+                <div class="enemy enemy--3 enemy--elite">
+                    <span class="enemy__glyph">±</span>
+                    <span class="enemy__label">二元对立体</span>
+                    <div class="enemy__hp-bar">
+                        <div class="enemy__hp-fill"></div>
+                    </div>
+                    <span class="elite-pill">ELITE</span>
+                </div>
+
+                <!-- Player projectile -->
+                <div class="projectile" aria-hidden="true">
+                    <span class="projectile__dot">·</span>
+                </div>
+
+                <!-- Enemy projectile -->
+                <div class="projectile--enemy" aria-hidden="true">
+                    <span class="projectile__dot">?</span>
+                </div>
+
+                <!-- Damage number -->
+                <div class="damage-number damage-number--hit" aria-hidden="true">-42</div>
+                <div class="damage-number damage-number--exp phosphor" aria-hidden="true">+15 EXP</div>
+
+                <!-- Blood particles -->
+                <div class="blood-particles" aria-hidden="true">
+                    <span>x</span>
+                    <span>+</span>
+                    <span>✦</span>
+                    <span>·</span>
+                </div>
+
+                <!-- Loot drop -->
+                <div class="loot-drop" aria-hidden="true">
+                    <span class="loot-drop__icon">◆</span>
+                </div>
+            </div>
+
+            <!-- Floating player stats (top-left of canvas) -->
+            <div class="player-stats phosphor" aria-label="Player stats">
+                <span class="player-stats__level">LV.7</span>
+                <div class="player-stats__bar">
+                    <span class="player-stats__bar-label">HP</span>
+                    <div class="player-stats__bar-track">
+                        <div class="player-stats__bar-fill player-stats__bar-fill--hp"></div>
+                    </div>
+                    <span class="player-stats__bar-text">340/420</span>
+                </div>
+                <div class="player-stats__bar">
+                    <span class="player-stats__bar-label">MP</span>
+                    <div class="player-stats__bar-track">
+                        <div class="player-stats__bar-fill player-stats__bar-fill--mp"></div>
+                    </div>
+                    <span class="player-stats__bar-text">85/200</span>
+                </div>
+                <span class="player-stats__gold">◆ 2,450</span>
+            </div>
+
+            <!-- Floating enemy info (top-right of canvas) -->
+            <div class="enemy-info" aria-label="Target info">
+                <span class="enemy-info__name">◇ 虚无主义虫</span>
+                <div class="enemy-info__hp-bar">
+                    <div class="enemy-info__hp-fill"></div>
+                </div>
+                <span class="enemy-info__elite">ELITE</span>
+            </div>
+
+        </section>
+
+        <!-- ===== BOTTOM PANEL ===== -->
+        <div class="bottom-panel" id="bottomPanel">
+
+            <!-- Stats strip (desktop/landscape only) -->
+            <div class="stats-strip phosphor">
+                <span class="stats-strip__item"><span>ATK</span> <span class="stats-strip__value">47</span></span>
+                <span class="stats-strip__item"><span>DEF</span> <span class="stats-strip__value">23</span></span>
+                <span class="stats-strip__item"><span>CRIT</span> <span class="stats-strip__value">12%</span></span>
+                <span class="stats-strip__item"><span>SPD</span> <span class="stats-strip__value">1.8</span></span>
+                <span class="stats-strip__item"><span>EXP</span> <span class="stats-strip__value">1,280/2,100</span></span>
+            </div>
+
+            <!-- Battle log -->
+            <div class="battle-log no-scrollbar phosphor" id="battleLog" aria-label="Battle log" role="log">
+                <div class="log-line log-line--system"><span class="tag">[系统]</span>涌现: 第7波 — 3个实体已生成</div>
+                <div class="log-line log-line--system"><span class="tag">[系统]</span>精英实体检测: 二元对立体 (LV.9)</div>
+                <div class="log-line log-line--crit"><span class="tag">[暴击]</span>洞见一击! 42 伤害 → π 人是万物的尺度</div>
+                <div class="log-line log-line--kill"><span class="tag">[击杀]</span>命题被否证 +15 EXP</div>
+                <div class="log-line log-line--loot"><span class="tag">[掉落]</span>辩证法之刃 (RARE)</div>
+                <div class="log-line log-line--warning"><span class="tag">[警告]</span>© 我思故我在 发射了 "怀疑论" 弹幕</div>
+                <div class="log-line log-line--crit"><span class="tag">[暴击]</span>存在之矛命中! 28 伤害 → © 我思故我在</div>
+                <div class="log-line log-line--system"><span class="tag">[系统]</span>MP 恢复 +3 (被动: 思辨力场)</div>
+                <div class="log-line log-line--loot"><span class="tag">[掉落]</span>◆ 45 金币</div>
+            </div>
+
+            <!-- CLI line -->
+            <div class="cli-line phosphor">
+                <span class="cli-line__prompt">root@being:~$</span>
+                <span class="cli-line__cursor" aria-hidden="true"></span>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="action-buttons">
+                <button class="action-btn" data-dom-id="btn-inventory" aria-label="Open inventory">
+                    <span class="action-btn__key">F1</span>
+                    装置
+                </button>
+                <button class="action-btn" data-dom-id="btn-codex" aria-label="Open codex">
+                    <span class="action-btn__key">F2</span>
+                    图鉴
+                </button>
+                <button class="action-btn" aria-label="Open talents">
+                    <span class="action-btn__key">F3</span>
+                    天赋
+                    <span class="action-btn__badge" aria-label="3 available">3</span>
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Minimal interaction script -->
+    <script>
+    (function() {
+        'use strict';
+
+        // Auto-scroll battle log to bottom
+        const log = document.getElementById('battleLog');
+        if (log) {
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Bottom panel expand/collapse on tap (landscape/desktop)
+        const panel = document.getElementById('bottomPanel');
+        if (panel && window.innerWidth >= 641) {
+            panel.addEventListener('click', function(e) {
+                // Only toggle if clicking the log area
+                if (e.target.closest('.battle-log') || e.target.closest('.stats-strip')) {
+                    panel.classList.toggle('expanded');
+                }
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                document.querySelector('[data-dom-id="btn-inventory"]')?.click();
+            } else if (e.key === 'F2') {
+                e.preventDefault();
+                document.querySelector('[data-dom-id="btn-codex"]')?.click();
+            } else if (e.key === 'F3') {
+                e.preventDefault();
+                document.querySelectorAll('.action-btn')[2]?.click();
+            }
+        });
+
+        // Handle resize: reset panel state
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (panel) {
+                    if (window.innerWidth < 641) {
+                        panel.classList.remove('expanded');
+                    }
+                }
+            }, 150);
+        });
+    })();
+    </script>
+
+
+    <style id="game-ui">
+/* ============================================================
+ * 存在终端 Terminal of Being — Game HUD
+ * Mobile-first, CRT terminal aesthetic
+ * ============================================================ */
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--terminal-bg);
+  color: var(--terminal-white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ===== PHOSPHOR TEXT GLOW ===== */
+.phosphor {
+  text-shadow:
+    0 0 1px rgba(0,255,136,0.4),
+    0 0 4px rgba(0,255,136,0.1);
+}
+
+.phosphor-strong {
+  text-shadow:
+    0 0 2px rgba(0,255,136,0.6),
+    0 0 8px rgba(0,255,136,0.2),
+    0 0 20px rgba(0,255,136,0.05);
+}
+
+/* ===== CRT SCAN-LINE OVERLAY ===== */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0,255,136,0.015) 2px,
+    rgba(0,255,136,0.015) 3px
+  );
+}
+
+/* CRT vignette */
+.crt-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0,0,0,0.4) 100%
+  );
+}
+
+/* Subtle screen flicker */
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.98; }
+  75% { opacity: 1; }
+  92% { opacity: 0.985; }
+}
+
+.crt-flicker {
+  animation: crt-flicker 8s ease-in-out infinite;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.game-root {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===== TOP BAR ===== */
+.top-bar {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-bottom: 1px solid var(--terminal-border-faint);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.top-bar__left {
+  font-size: 9px;
+  color: var(--terminal-green);
+  letter-spacing: 2px;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.top-bar__center {
+  font-size: 11px;
+  color: var(--terminal-white);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.top-bar__center .wave {
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--terminal-dim);
+  margin-left: 4px;
+}
+
+.top-bar__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: var(--terminal-dim);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--terminal-red);
+  box-shadow: 0 0 4px var(--terminal-red);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--terminal-red); }
+  50% { opacity: 0.5; box-shadow: 0 0 8px var(--terminal-red); }
+}
+
+/* ===== CANVAS AREA ===== */
+.canvas-area {
+  position: relative;
+  overflow: hidden;
+  background: var(--terminal-bg);
+  min-height: 0;
+}
+
+/* Combat border glow when in combat */
+.canvas-area::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 30px rgba(204,51,51,0.08);
+  animation: combat-glow 3s ease-in-out infinite;
+  z-index: 5;
+}
+
+@keyframes combat-glow {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(204,51,51,0.05); }
+  50% { box-shadow: inset 0 0 40px rgba(204,51,51,0.12); }
+}
+
+/* ===== CANVAS SCENE (CSS mockup) ===== */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Parallax particles */
+.particle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: var(--terminal-green);
+  opacity: 0.15;
+  animation: drift-left linear infinite;
+}
+
+@keyframes drift-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-110vw); }
+}
+
+.particle:nth-child(1) { top: 12%; left: 95%; animation-duration: 22s; animation-delay: 0s; }
+.particle:nth-child(2) { top: 28%; left: 88%; animation-duration: 28s; animation-delay: -5s; opacity: 0.1; }
+.particle:nth-child(3) { top: 45%; left: 92%; animation-duration: 25s; animation-delay: -12s; }
+.particle:nth-child(4) { top: 60%; left: 97%; animation-duration: 30s; animation-delay: -8s; opacity: 0.08; }
+.particle:nth-child(5) { top: 75%; left: 85%; animation-duration: 20s; animation-delay: -3s; }
+.particle:nth-child(6) { top: 20%; left: 100%; animation-duration: 35s; animation-delay: -15s; opacity: 0.06; }
+.particle:nth-child(7) { top: 55%; left: 90%; animation-duration: 26s; animation-delay: -10s; opacity: 0.12; }
+.particle:nth-child(8) { top: 35%; left: 96%; animation-duration: 32s; animation-delay: -20s; opacity: 0.09; }
+
+/* Ground line */
+.ground {
+  position: absolute;
+  bottom: 11%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--terminal-green);
+  opacity: 0.2;
+}
+
+.ground::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to top, rgba(0,255,136,0.02), transparent);
+}
+
+/* ===== PLAYER CHARACTER ===== */
+.player {
+  position: absolute;
+  bottom: 14%;
+  left: 28%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3;
+}
+
+.player__aura {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,136,0.12) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: aura-pulse 3s ease-in-out infinite;
+}
+
+@keyframes aura-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+
+.player__glyph {
+  font-size: 28px;
+  color: var(--terminal-green);
+  text-shadow:
+    0 0 6px rgba(0,255,136,0.6),
+    0 0 20px rgba(0,255,136,0.2),
+    0 0 40px rgba(0,255,136,0.05);
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+}
+
+.player__name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 10px;
+  color: var(--terminal-green);
+  margin-top: 4px;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+
+.player__hp-bar {
+  width: 48px;
+  height: 3px;
+  background: var(--terminal-darker);
+  border-radius: 2px;
+  margin-top: 3px;
+  overflow: hidden;
+}
+
+.player__hp-fill {
+  height: 100%;
+  width: 81%;
+  background: var(--terminal-green);
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(0,255,136,0.4);
+}
+
+/* ===== ENEMIES ===== */
+.enemy {
+  position: absolute;
+  bottom: 14%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.enemy--1 { right: 18%; }
+.enemy--2 { right: 38%; }
+.enemy--3 { right: 55%; }
+
+.enemy__glyph {
+  font-size: 22px;
+  line-height: 1;
+  position: relative;
+}
+
+.enemy--normal .enemy__glyph {
+  color: var(--terminal-white);
+  text-shadow: 0 0 4px rgba(255,255,255,0.2);
+}
+
+.enemy--firing .enemy__glyph {
+  color: var(--terminal-white);
+  text-shadow: 0 0 4px rgba(255,255,255,0.3);
+  animation: enemy-idle 2s ease-in-out infinite;
+}
+
+.enemy--elite .enemy__glyph {
+  color: var(--terminal-amber);
+  text-shadow:
+    0 0 4px rgba(204,153,51,0.5),
+    0 0 12px rgba(204,153,51,0.15);
+}
+
+.enemy--elite::before {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid rgba(204,153,51,0.2);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  animation: elite-ring 3s linear infinite;
+}
+
+@keyframes elite-ring {
+  0% { transform: translate(-50%, -55%) rotate(0deg); opacity: 0.6; }
+  50% { opacity: 0.3; }
+  100% { transform: translate(-50%, -55%) rotate(360deg); opacity: 0.6; }
+}
+
+@keyframes enemy-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.enemy__label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 8px;
+  color: var(--terminal-dim);
+  margin-top: 3px;
+  white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.enemy--elite .enemy__label {
+  color: var(--terminal-amber);
+  opacity: 0.8;
+}
+
+.enemy__hp-bar {
+  width: 40px;
+  height: 2px;
+  background: var(--terminal-darker);
+  border-radius: 1px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+
+.enemy__hp-fill {
+  height: 100%;
+  border-radius: 1px;
+}
+
+.enemy--normal .enemy__hp-fill,
+.enemy--firing .enemy__hp-fill {
+  width: 56%;
+  background: var(--terminal-red);
+  box-shadow: 0 0 3px rgba(204,51,51,0.3);
+}
+
+.enemy--elite .enemy__hp-fill {
+  width: 72%;
+  background: var(--terminal-amber);
+  box-shadow: 0 0 3px rgba(204,153,51,0.3);
+}
+
+/* Elite pill */
+.elite-pill {
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--terminal-bg);
+  background: var(--terminal-amber);
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-top: 2px;
+}
+
+/* ===== PROJECTILE ===== */
+.projectile {
+  position: absolute;
+  bottom: 20%;
+  left: 34%;
+  z-index: 4;
+  animation: projectile-fly 0.8s ease-out infinite;
+}
+
+.projectile__dot {
+  font-size: 14px;
+  color: var(--terminal-green);
+  text-shadow: 0 0 6px rgba(0,255,136,0.8), 0 0 12px rgba(0,255,136,0.3);
+}
+
+@keyframes projectile-fly {
+  0% { left: 34%; opacity: 1; }
+  80% { opacity: 1; }
+  100% { left: 72%; opacity: 0; }
+}
+
+/* Enemy projectile */
+.projectile--enemy {
+  position: absolute;
+  bottom: 22%;
+  right: 38%;
+  z-index: 4;
+  animation: projectile-fly-reverse 1.2s ease-out infinite;
+  animation-delay: -0.4s;
+}
+
+.projectile--enemy .projectile__dot {
+  color: var(--terminal-white);
+  text-shadow: 0 0 4px rgba(255,255,255,0.5);
+  font-size: 12px;
+}
+
+@keyframes projectile-fly-reverse {
+  0% { right: 38%; opacity: 1; }
+  80% { opacity: 0.8; }
+  100% { right: 68%; opacity: 0; }
+}
+
+/* ===== DAMAGE NUMBERS ===== */
+.damage-number {
+  position: absolute;
+  z-index: 6;
+  font-weight: 700;
+  pointer-events: none;
+  animation: float-up 1.2s ease-out forwards;
+}
+
+.damage-number--hit {
+  right: 20%;
+  bottom: 28%;
+  font-size: 16px;
+  color: var(--terminal-white);
+  text-shadow: 0 0 6px rgba(255,255,255,0.4);
+}
+
+.damage-number--exp {
+  right: 24%;
+  bottom: 34%;
+  font-size: 10px;
+  color: var(--terminal-green);
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0); opacity: 1; }
+  60% { opacity: 0.8; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+
+/* ===== BLOOD PARTICLES ===== */
+.blood-particles {
+  position: absolute;
+  right: 19%;
+  bottom: 18%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.blood-particles span {
+  position: absolute;
+  font-size: 8px;
+  color: var(--terminal-red);
+  opacity: 0.5;
+  animation: scatter 1s ease-out forwards;
+}
+
+.blood-particles span:nth-child(1) { left: 0; top: 0; animation-delay: 0s; }
+.blood-particles span:nth-child(2) { left: 8px; top: -4px; animation-delay: 0.05s; font-size: 6px; }
+.blood-particles span:nth-child(3) { left: -6px; top: 2px; animation-delay: 0.1s; font-size: 7px; }
+.blood-particles span:nth-child(4) { left: 12px; top: -8px; animation-delay: 0.08s; font-size: 5px; }
+
+@keyframes scatter {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
+  100% { transform: translate(var(--sx, 10px), var(--sy, -15px)) rotate(180deg); opacity: 0; }
+}
+
+.blood-particles span:nth-child(1) { --sx: 8px; --sy: -12px; }
+.blood-particles span:nth-child(2) { --sx: 15px; --sy: -8px; }
+.blood-particles span:nth-child(3) { --sx: -5px; --sy: -18px; }
+.blood-particles span:nth-child(4) { --sx: 12px; --sy: -20px; }
+
+/* ===== LOOT DROP ===== */
+.loot-drop {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  z-index: 3;
+  animation: loot-pulse 2s ease-in-out infinite;
+}
+
+.loot-drop__icon {
+  font-size: 14px;
+  color: var(--terminal-amber);
+  text-shadow: 0 0 6px rgba(204,153,51,0.5);
+}
+
+@keyframes loot-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+/* ===== FLOATING PLAYER STATS (on canvas, top-left) ===== */
+.player-stats {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.player-stats__level {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--terminal-green);
+  text-shadow:
+    0 0 2px rgba(0,255,136,0.6),
+    0 0 8px rgba(0,255,136,0.2);
+}
+
+.player-stats__bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.player-stats__bar-label {
+  color: var(--terminal-dim);
+  min-width: 18px;
+}
+
+.player-stats__bar-track {
+  width: 60px;
+  height: 5px;
+  background: var(--terminal-darker);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.player-stats__bar-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+.player-stats__bar-fill--hp {
+  width: 81%;
+  background: var(--terminal-green);
+  box-shadow: 0 0 3px rgba(0,255,136,0.4);
+}
+
+.player-stats__bar-fill--mp {
+  width: 42%;
+  background: var(--terminal-blue);
+  box-shadow: 0 0 3px rgba(68,136,255,0.4);
+}
+
+.player-stats__bar-text {
+  color: var(--terminal-dim);
+  font-size: 9px;
+}
+
+.player-stats__gold {
+  font-size: 10px;
+  color: var(--terminal-amber);
+  margin-top: 1px;
+}
+
+/* ===== FLOATING ENEMY INFO (on canvas, top-right) ===== */
+.enemy-info {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.enemy-info__name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px;
+  color: var(--terminal-red);
+  text-shadow: 0 0 4px rgba(204,51,51,0.3);
+}
+
+.enemy-info__hp-bar {
+  width: 70px;
+  height: 4px;
+  background: var(--terminal-darker);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.enemy-info__hp-fill {
+  height: 100%;
+  width: 56%;
+  background: var(--terminal-red);
+  border-radius: 2px;
+  box-shadow: 0 0 3px rgba(204,51,51,0.3);
+}
+
+.enemy-info__elite {
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--terminal-bg);
+  background: var(--terminal-amber);
+  padding: 1px 5px;
+  border-radius: 2px;
+  display: none;
+}
+
+/* ===== BOTTOM PANEL ===== */
+.bottom-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--terminal-panel);
+  border-top: 1px solid var(--terminal-border);
+  z-index: 10;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* ===== STATS STRIP (desktop/landscape only) ===== */
+.stats-strip {
+  display: none;
+  height: 22px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--terminal-border-faint);
+  align-items: center;
+  gap: 16px;
+  font-size: 10px;
+  color: var(--terminal-dim);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.stats-strip__item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.stats-strip__value {
+  color: var(--terminal-white);
+  font-weight: 600;
+}
+
+/* ===== BATTLE LOG ===== */
+.battle-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.85);
+  position: relative;
+}
+
+/* Scan-line on log */
+.battle-log::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0,255,136,0.01) 2px,
+    rgba(0,255,136,0.01) 3px
+  );
+}
+
+.log-line {
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-line--kill { color: var(--terminal-green); }
+.log-line--loot { color: var(--terminal-amber); }
+.log-line--crit { color: var(--terminal-white); font-weight: 600; }
+.log-line--system { color: var(--terminal-dim); }
+.log-line--warning { color: var(--terminal-amber); opacity: 0.7; }
+
+.log-line .tag {
+  opacity: 0.6;
+  margin-right: 4px;
+}
+
+/* ===== CLI LINE ===== */
+.cli-line {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background: var(--terminal-bg-soft);
+  border-top: 1px solid var(--terminal-border-faint);
+  font-size: 11px;
+  color: var(--terminal-green);
+  flex-shrink: 0;
+}
+
+.cli-line__prompt {
+  color: var(--terminal-dim);
+  margin-right: 6px;
+}
+
+.cli-line__cursor {
+  display: inline-block;
+  width: 7px;
+  height: 12px;
+  background: var(--terminal-green);
+  animation: blink-cursor 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+  display: flex;
+  height: 44px;
+  border-top: 1px solid var(--terminal-border-faint);
+  flex-shrink: 0;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--terminal-border-faint);
+  color: var(--terminal-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-btn:last-child {
+  border-right: none;
+}
+
+.action-btn:hover {
+  color: var(--terminal-green);
+  background: rgba(0,255,136,0.04);
+}
+
+.action-btn:active {
+  color: var(--terminal-green);
+  background: rgba(0,255,136,0.08);
+  text-shadow: 0 0 6px rgba(0,255,136,0.4);
+}
+
+.action-btn__key {
+  display: none;
+  font-size: 8px;
+  color: var(--terminal-darker);
+  margin-right: 2px;
+}
+
+.action-btn__badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 24px);
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--terminal-red);
+  color: var(--terminal-white);
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+/* ===== MOBILE PORTRAIT (max-width: 640px) ===== */
+@media (max-width: 640px) {
+  .top-bar {
+    height: 20px;
+    padding: 0 8px;
+  }
+
+  .top-bar__left {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+  }
+
+  .top-bar__center {
+    font-size: 10px;
+  }
+
+  .top-bar__center .wave {
+    font-size: 9px;
+  }
+
+  .top-bar__right {
+    font-size: 8px;
+  }
+
+  .canvas-area {
+    min-height: 55vh;
+  }
+
+  .player-stats__level {
+    font-size: 12px;
+  }
+
+  .player-stats__bar {
+    font-size: 9px;
+  }
+
+  .player-stats__bar-track {
+    width: 48px;
+    height: 4px;
+  }
+
+  .player-stats__bar-text {
+    font-size: 8px;
+  }
+
+  .player-stats__gold {
+    font-size: 9px;
+  }
+
+  .enemy-info__name {
+    font-size: 10px;
+  }
+
+  .enemy-info__hp-bar {
+    width: 56px;
+    height: 3px;
+  }
+
+  .player__glyph {
+    font-size: 24px;
+  }
+
+  .enemy__glyph {
+    font-size: 18px;
+  }
+
+  .enemy__label {
+    font-size: 7px;
+  }
+
+  .bottom-panel {
+    height: 45vh;
+  }
+
+  .battle-log {
+    padding: 5px 8px;
+  }
+
+  .log-line {
+    font-size: 10px;
+  }
+
+  .action-buttons {
+    height: 44px;
+  }
+
+  .action-btn {
+    font-size: 12px;
+  }
+
+  .action-btn__key {
+    display: none;
+  }
+}
+
+/* ===== MOBILE LANDSCAPE & DESKTOP (min-width: 641px) ===== */
+@media (min-width: 641px) {
+  .canvas-area {
+    min-height: 0;
+  }
+
+  .bottom-panel {
+    height: 180px;
+    transition: height 0.3s ease;
+  }
+
+  .bottom-panel.expanded {
+    height: 50vh;
+  }
+
+  .stats-strip {
+    display: flex;
+  }
+
+  .action-btn__key {
+    display: inline;
+  }
+
+  .player__glyph {
+    font-size: 32px;
+  }
+
+  .enemy__glyph {
+    font-size: 26px;
+  }
+
+  .player__aura {
+    width: 80px;
+    height: 80px;
+  }
+
+  .damage-number--hit {
+    font-size: 20px;
+  }
+
+  .enemy-info__elite {
+    display: inline-block;
+  }
+}
+
+/* ===== LARGE DESKTOP ===== */
+@media (min-width: 1024px) {
+  .player-stats__bar-track {
+    width: 72px;
+  }
+
+  .enemy-info__hp-bar {
+    width: 90px;
+  }
+
+  .player__glyph {
+    font-size: 36px;
+  }
+
+  .enemy__glyph {
+    font-size: 28px;
+  }
+}
+
+/* ===== NO SCROLLBAR ===== */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    </style>
+</body>
+</html>

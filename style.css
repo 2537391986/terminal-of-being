@@ -28,7 +28,7 @@ html, body {
   width:100%;
   position:fixed;
   overflow:hidden;
-  background:var(--bg);
+  /* background 由 crt.css 接管 */
   color:var(--white);
   font-family:var(--mono);
   font-size:15px;
@@ -37,11 +37,15 @@ html, body {
   letter-spacing:0.4px;
 }
 
-/* ═══ CRT 全局特效 ═══ */
+/* ═══ CRT 全局特效：被 crt.css 中的 .crt-container::before 替代
+   body::before 扫描线效果已移至 CRT 容器内，避免双重扫描线 ═══
+   保留此区块仅供旧版兼容，新 CRT 主题下不生效 */
+/*
 body::before {
   content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
   background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(255,255,255,0.025) 2px,rgba(255,255,255,0.025) 3px);
 }
+*/
 
 /* ═══ CRT 磷光文字效果 ═══ */
 .glow, #terminal-header, .col-left, .col-right, .cli, .panel-title, .modal-header {
@@ -59,25 +63,22 @@ body::before {
   92% { opacity:1; }
 }
 
-/* ═══ 主容器 ═══ */
+/* ═══ 主容器 — CRT 模式下由 crt.css .crt-content 接管
+   保留此块仅用于非 CRT 旧布局回退 ═══ */
 #app {
-  height:100%;
-  height:100dvh;
   display:flex;
   flex-direction:column;
   position:relative;
   z-index:10;
   max-width:1440px;
   margin:0 auto;
-  animation:crtFlicker 5s infinite;
 }
 
-/* ── 头部 ── */
+/* ── 头部 — CRT 模式下背景透明（crt.css .header 接管文字颜色）──── */
 #terminal-header {
   display:flex;
   justify-content:space-between;
   padding:8px 18px;
-  background:var(--bg-soft);
   flex-shrink:0;
 }
 .h-left { font-size:15px; letter-spacing:3px; font-weight:700; }

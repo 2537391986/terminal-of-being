@@ -1,0 +1,325 @@
+{
+  "data": [
+    {
+      "id": "page-immersive-hud",
+      "title": "沉浸式主界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782297400000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/immersive-hud.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-side-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-side-inventory"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-side-inventory",
+      "title": "侧滑装备面板",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782297400000,
+      "canvasData": {
+        "x": 620,
+        "y": 0,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/side-inventory.html",
+        "interactions": [
+          {
+            "domId": "btn-close-inv",
+            "targetPageId": "page-immersive-hud",
+            "hideEdge": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-scroll-hud",
+      "title": "卷轴游戏主界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782300600000,
+      "canvasData": {
+        "x": 0,
+        "y": 377,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/scroll-hud.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-scroll-inventory",
+      "title": "卷轴装备面板",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782300600000,
+      "canvasData": {
+        "x": 620,
+        "y": 377,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/scroll-inventory.html",
+        "interactions": [
+          {
+            "domId": "btn-close-inv",
+            "targetPageId": "page-scroll-hud",
+            "hideEdge": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-scroll-codex",
+      "title": "卷轴图鉴面板",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782300600000,
+      "canvasData": {
+        "x": 620,
+        "y": 754,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/scroll-codex.html",
+        "interactions": [
+          {
+            "domId": "btn-close-codex",
+            "targetPageId": "page-scroll-hud",
+            "hideEdge": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-mobile-scroll-hud",
+      "title": "移动端卷轴界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782303200000,
+      "canvasData": {
+        "x": 0,
+        "y": 3016,
+        "group": 3
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/mobile-scroll-hud.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-dense-hud",
+      "title": "高密度终端界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782305000000,
+      "canvasData": {
+        "x": 0,
+        "y": 2639,
+        "group": 4
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/dense-hud.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-paperwhite-hud",
+      "title": "纸白终端界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782306000000,
+      "canvasData": {
+        "x": 0,
+        "y": 2262,
+        "group": 5
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/paperwhite-hud.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-paperwhite-v2",
+      "title": "纸白终端v2",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782308000000,
+      "canvasData": {
+        "x": 0,
+        "y": 1885,
+        "group": 6
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/paperwhite-v2.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-pw-game",
+      "title": "纸白游戏界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782310000000,
+      "canvasData": {
+        "x": 0,
+        "y": 1508,
+        "group": 7
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/pw-game.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-dk-game",
+      "title": "暗色游戏界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782310000000,
+      "canvasData": {
+        "x": 0,
+        "y": 1131,
+        "group": 7
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/dk-game.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-exact-replica",
+      "title": "精确复刻界面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782312000000,
+      "canvasData": {
+        "x": 0,
+        "y": 754,
+        "group": 8
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/exact-replica.html",
+        "interactions": [
+          {
+            "domId": "btn-inventory",
+            "targetPageId": "page-scroll-inventory"
+          },
+          {
+            "domId": "btn-codex",
+            "targetPageId": "page-scroll-codex"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-crt-replica",
+      "title": "CRT终端复刻",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782314000000,
+      "canvasData": {
+        "x": 0,
+        "y": 3384,
+        "group": 9
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/crt-replica.html",
+        "interactions": []
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": false,
+    "deviceType": "desktop",
+    "projectName": "存在终端 游戏UI",
+    "designLibrary": {
+      "name": "苹果",
+      "id": "dl_builtin_apple",
+      "version": null,
+      "scope": "built-in-global",
+      "path": "c:\\Users\\LLuvYa\\.trae-cn\\design_libraries\\dl_builtin_apple",
+      "versionSource": "metadata.json"
+    },
+    "showEdge": true
+  }
+}
