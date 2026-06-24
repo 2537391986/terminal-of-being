@@ -222,6 +222,9 @@ export function updateHUD() {
   // ── 伪系统指标（每 3 秒微动）──
   updateFakeMetrics();
 
+  // ── 四角 HUD 科技文字（每 4 秒切换）──
+  updateCrtHudCorners();
+
   updateLog();
 }
 
@@ -252,6 +255,49 @@ function updateCrtProgressBar(id, pct) {
   html += '<span class="bar-empty">' + '░'.repeat(emptySlots) + '</span>';
   html += '<span class="bar-bracket">]</span> ' + (pct * 100).toFixed(1) + '%';
   el.innerHTML = html;
+}
+
+/** 更新四角 HUD 科技文字（随游戏状态动态变化） */
+const CRT_HUD_TEXTS = {
+  tl: [
+    () => `WAVE: ${world?.wave ?? 1}`,
+    () => `STAGE: ${state?.player?.stage ?? 1}`,
+    () => `MODE: ${world?.waveState === 'combat' ? 'COMBAT' : 'IDLE'}`,
+  ],
+  tr: [
+    () => `ENEMY: ${Math.max(0, (world?.waveEnemiesLeft ?? 0))}`,
+    () => `${world?.waveState === 'combat' ? '●● ACTIVE' : '○ STANDBY'}`,
+    () => `THREAT: ${world?.waveEnemiesLeft > 5 ? 'HIGH' : 'LOW'}`,
+  ],
+  bl: [
+    () => `FREQ: ${(2.4 + Math.random() * 0.3).toFixed(1)}GHZ`,
+    () => `PING: ${12 + Math.floor(Math.random() * 8)}ms`,
+    () => `UPS: ${55 + Math.floor(Math.random() * 10)}/60`,
+  ],
+  br: [
+    () => `HP: ${Math.round((state?.player?.hp ?? 100) / (state?.player?.maxHp || 1) * 100)}%`,
+    () => `PCT: ${((state?.player?.exp ?? 0) / (state?.player?.expToNext || 1) * 100).toFixed(1)}%`,
+    () => `LINK: ${world?.waveState === 'combat' ? 'COMBAT' : 'SECURE'}`,
+  ],
+};
+let _hudIdx = 0;
+let _hudTimer = 0;
+const HUD_SWITCH_INTERVAL = 4000; // 每 4 秒切换一次文字
+
+function updateCrtHudCorners() {
+  const now = Date.now();
+  if (now - _hudTimer > HUD_SWITCH_INTERVAL) {
+    _hudTimer = now;
+    _hudIdx = (_hudIdx + 1) % 3;
+  }
+  const getTxt = (pos) => {
+    const fns = CRT_HUD_TEXTS[pos];
+    try { return fns[_hudIdx](); } catch { return fns[_hudIdx](); }
+  };
+  safeText('hud-tl', getTxt('tl'));
+  safeText('hud-tr', getTxt('tr'));
+  safeText('hud-bl', getTxt('bl'));
+  safeText('hud-br', getTxt('br'));
 }
 
 // ============================================================

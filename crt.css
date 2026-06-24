@@ -1,7 +1,8 @@
 /* ============================================================
-   crt.css — 存在终端 CRT 终端外壳皮肤 v0.19
+   crt.css — 存在终端 CRT 终端外壳皮肤 v0.20
    CRT 扫描线 / 噪点 / 暗角 / 曲面效果 + 三套主题
-   必须在 style.css 之后加载
+   + 科技感增强：透视网格 / Glitch / 四角HUD框 / 角落科技文字
+     必须在 style.css 之后加载
    ============================================================ */
 
 /* ========== CRT 主题变量 ========== */
@@ -23,6 +24,8 @@
   --crt-progress-empty: 0.3;
   --crt-cursor: #000000;
   --crt-theme-name: "PAPER-WHITE";
+  --crt-grid-color: rgba(0, 0, 0, 0.06);
+  --crt-hud-color: rgba(0, 0, 0, 0.25);
 }
 
 [data-theme="amber"] {
@@ -42,6 +45,8 @@
   --crt-progress-empty: 0.2;
   --crt-cursor: #ffb000;
   --crt-theme-name: "AMBER CRT";
+  --crt-grid-color: rgba(255, 176, 0, 0.05);
+  --crt-hud-color: rgba(255, 176, 0, 0.2);
 }
 
 [data-theme="mono"] {
@@ -61,6 +66,8 @@
   --crt-progress-empty: 0.15;
   --crt-cursor: #ffffff;
   --crt-theme-name: "MONO GLOW";
+  --crt-grid-color: rgba(255, 255, 255, 0.04);
+  --crt-hud-color: rgba(255, 255, 255, 0.18);
 }
 
 /* ========== Body & Base ========== */
@@ -87,7 +94,7 @@ body {
   margin: 0 auto;
 }
 
-/* 扫描线 */
+/* 扫描线（容器伪元素，最底层覆盖） */
 .crt-container::before {
   content: '';
   position: absolute;
@@ -104,7 +111,7 @@ body {
   z-index: 3;
 }
 
-/* RGB 色差 */
+/* RGB 色差（容器伪元素） */
 .crt-container::after {
   content: '';
   position: absolute;
@@ -144,48 +151,143 @@ body {
   transition: color 0.5s ease, text-shadow 0.5s ease;
 }
 
-/* ========== CRT 高级效果 ========== */
+/* ========== CRT 科技感覆盖层 ========== */
 
-/* 滚动扫描线 */
+/* 透视网格 —— 科技感核心 */
+.crt-grid {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    /* 横线 */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 39px,
+      var(--crt-grid-color) 39px,
+      var(--crt-grid-color) 40px
+    ),
+    /* 竖线 */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 59px,
+      var(--crt-grid-color) 59px,
+      var(--crt-grid-color) 60px
+    ),
+    /* 中心发光 */
+    radial-gradient(
+      ellipse at 50% 50%,
+      rgba(255, 255, 255, 0.02) 0%,
+      transparent 70%
+    );
+  border-radius: 18px;
+  animation: crt-grid-pulse 4s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+@keyframes crt-grid-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+/* 增强扫描线（滚动高亮条 + 静止扫描线双重效果） */
 .crt-scanroll {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 120px;
+  height: 4px;
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.08) 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 60%,
     transparent 100%
   );
   pointer-events: none;
   z-index: 5;
-  animation: crt-scanroll 8s linear infinite;
+  animation: crt-scanroll 6s linear infinite;
   mix-blend-mode: screen;
+  box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.06);
+}
+
+/* 第二根扫描线（错位，更浓科技感） */
+.crt-scanroll::after {
+  content: '';
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  animation: crt-scanroll-2 6s linear infinite;
 }
 
 @keyframes crt-scanroll {
-  0%   { transform: translateY(-120px); }
+  0%   { transform: translateY(-4px); }
   100% { transform: translateY(900px); }
 }
 
-/* 噪点 */
+@keyframes crt-scanroll-2 {
+  0%   { transform: translateY(-64px); }
+  100% { transform: translateY(840px); }
+}
+
+/* Glitch 闪烁 —— 随机色差 + 位置抖动 */
+.crt-glitch {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 6;
+  mix-blend-mode: screen;
+  animation: crt-glitch-flash 8s step-end infinite;
+}
+
+@keyframes crt-glitch-flash {
+  0%, 94%, 100% { opacity: 0; }
+  /* 短暂红蓝错位 */
+  95%   { opacity: 1; background: linear-gradient(
+           90deg,
+           rgba(255, 0, 0, 0.04) 0%,
+           transparent 20%,
+           transparent 80%,
+           rgba(0, 150, 255, 0.05) 100%
+         ); }
+  95.5% { opacity: 1; background: none; transform: translateX(1px); }
+  96%   { opacity: 0; transform: translateX(0); }
+  97.5% { opacity: 1; background: linear-gradient(
+           0deg,
+           transparent 0%,
+           rgba(255, 0, 0, 0.03) 48%,
+           rgba(0, 150, 255, 0.03) 52%,
+           transparent 100%
+         ); }
+  98%   { opacity: 0; }
+}
+
+/* 噪点（增强：更大、更明显） */
 .crt-noise {
   position: absolute;
   top: -50%; left: -50%;
   width: 200%; height: 200%;
   pointer-events: none;
   z-index: 6;
-  opacity: 0.04;
+  opacity: 0.06;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='1'/></svg>");
-  animation: crt-noise-shift 0.3s steps(4) infinite;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.8'/></svg>");
+  animation: crt-noise-shift 0.4s steps(3) infinite;
 }
 
 @keyframes crt-noise-shift {
   0%   { transform: translate(0, 0); }
-  25%  { transform: translate(-8px, 4px); }
-  50%  { transform: translate(6px, -6px); }
-  75%  { transform: translate(-4px, -8px); }
+  33%  { transform: translate(-12px, 8px); }
+  66%  { transform: translate(10px, -10px); }
   100% { transform: translate(0, 0); }
 }
 
@@ -200,6 +302,50 @@ body {
     inset 0 0 20px rgba(0, 0, 0, 0.2);
   border-radius: 18px;
 }
+
+/* 四角 HUD 框 —— 科技感关键元素
+   用 linear-gradient 画四角 L 括号，无需额外 DOM */
+.crt-corners {
+  position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  pointer-events: none;
+  z-index: 8;
+  border-radius: 14px;
+  /* 四角括号（每角 18px 长，2px 粗）*/
+  background:
+    /* 左上 ┌ */
+    linear-gradient(to right,  var(--crt-hud-color) 2px, transparent 2px) 0 0 / 18px 2px no-repeat,
+    linear-gradient(to bottom, var(--crt-hud-color) 2px, transparent 2px) 0 0 / 2px 18px no-repeat,
+    /* 右上 ┐ */
+    linear-gradient(to left,   var(--crt-hud-color) 2px, transparent 2px) 100% 0 / 18px 2px no-repeat,
+    linear-gradient(to bottom, var(--crt-hud-color) 2px, transparent 2px) 100% 0 / 2px 18px no-repeat,
+    /* 左下 └ */
+    linear-gradient(to right,  var(--crt-hud-color) 2px, transparent 2px) 0 100% / 18px 2px no-repeat,
+    linear-gradient(to top,    var(--crt-hud-color) 2px, transparent 2px) 0 100% / 2px 18px no-repeat,
+    /* 右下 ┘ */
+    linear-gradient(to left,   var(--crt-hud-color) 2px, transparent 2px) 100% 100% / 18px 2px no-repeat,
+    linear-gradient(to top,    var(--crt-hud-color) 2px, transparent 2px) 100% 100% / 2px 18px no-repeat;
+}
+
+/* 角落科技文字（由 JS 动态填充，CSS 只负责定位） */
+.crt-hud-text {
+  position: absolute;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--crt-text);
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 8;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+}
+
+.crt-hud-text.hud-tl { top: 14px; left: 32px; }
+.crt-hud-text.hud-tr { top: 14px; right: 32px; text-align: right; }
+.crt-hud-text.hud-bl { bottom: 14px; left: 32px; }
+.crt-hud-text.hud-br { bottom: 14px; right: 32px; text-align: right; }
+
+/* ========== CRT 动画 ========== */
 
 /* 开机动画 */
 .crt-container {
@@ -348,7 +494,6 @@ body {
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  /* 16:9 宽高比容器（800x320 = 2.5:1，用 45% 接近）*/
   aspect-ratio: 800 / 320;
   border-radius: 4px;
   overflow: hidden;
@@ -505,7 +650,7 @@ body {
 #log .log-warn   { color: var(--crt-text); opacity: 0.7; }
 #log .log-err    { color: var(--crt-text); opacity: 1; }
 #log .log-loot   { color: var(--crt-text); opacity: var(--crt-text-opacity); }
-#log .log-kill    { color: var(--crt-text); opacity: 1; }
+#log .log-kill   { color: var(--crt-text); opacity: 1; }
 
 /* ========== 命令行 ========== */
 .command-line-section {
@@ -663,13 +808,21 @@ body {
   .crt-content,
   .crt-noise,
   .crt-scanroll,
+  .crt-glitch,
+  .crt-grid,
   .crt-container,
   .main-title,
   .progress-terminal {
     animation: none !important;
   }
-  .crt-noise { display: none; }
-  .crt-scanroll { display: none; }
+  .crt-noise,
+  .crt-scanroll,
+  .crt-glitch,
+  .crt-grid,
+  .crt-corners,
+  .crt-hud-text {
+    display: none !important;
+  }
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -734,6 +887,12 @@ body {
   .btn-tool {
     font-size: 9px;
     padding: 5px 10px;
+  }
+
+  /* 手机上隐藏耗性能的覆盖层 */
+  .crt-grid,
+  .crt-glitch {
+    display: none !important;
   }
 }
 

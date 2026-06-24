@@ -28,11 +28,18 @@
 
 <!-- CRT 终端外壳 -->
 <div class="crt-container">
-  <!-- CRT 覆盖层（全部 pointer-events: none，不挡交互） -->
-  <div class="crt-noise"></div>
-  <div class="crt-scanroll"></div>
-  <div class="crt-vignette"></div>
-  <div class="crt-curve"></div>
+  <!-- ═── CRT 覆盖层（全部 pointer-events: none，不挡交互）──╗ -->
+  <div class="crt-grid"></div>         <!-- 透视网格 -->
+  <div class="crt-scanroll"></div>     <!-- 滚动扫描线 -->
+  <div class="crt-glitch"></div>       <!-- 随机 Glitch 闪烁 -->
+  <div class="crt-noise"></div>        <!-- 噪点 -->
+  <div class="crt-vignette"></div>     <!-- 暗角 -->
+  <div class="crt-curve"></div>        <!-- 曲面内阴影 -->
+  <div class="crt-corners"></div>      <!-- 四角 HUD 框 -->
+  <div class="crt-hud-text hud-tl" id="hud-tl">SCAN: ACTIVE</span>
+  <span class="crt-hud-text hud-tr" id="hud-tr">SIGNAL: NOMINAL</span>
+  <span class="crt-hud-text hud-bl" id="hud-bl">FREQ: 2.4GHZ</span>
+  <span class="crt-hud-text hud-br" id="hud-br">LINK: SECURE</span>
 
   <!-- 游戏内容区 -->
   <div class="crt-content" id="app">
