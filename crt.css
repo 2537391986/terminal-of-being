@@ -84,7 +84,7 @@ body {
 .crt-container {
   background-color: var(--crt-screen-bg);
   width: 100%;
-  max-width: 720px;
+  max-width: 820px;
   padding: 22px 26px;
   position: relative;
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
@@ -478,6 +478,12 @@ body {
   margin-left: 1.2ch;
 }
 
+/* 战斗态高亮：跟随 CRT 主题发光 */
+#wave-state.active {
+  text-shadow: var(--crt-glow);
+  opacity: 1 !important;
+}
+
 /* 右列向右推 */
 .info-grid > .info-section:last-child {
   padding-left: 9ch;
@@ -491,12 +497,14 @@ body {
   margin: 8px 0 6px;
   position: relative;
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   margin-left: auto;
   margin-right: auto;
-  aspect-ratio: 800 / 320;
+  aspect-ratio: 800 / 480;
+  min-height: 260px;
   border-radius: 4px;
   overflow: hidden;
+  box-sizing: border-box;
   /* 游戏画面周围的 CRT 内边框效果 */
   box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
 }
@@ -504,11 +512,9 @@ body {
 .eye-container canvas {
   position: absolute;
   top: 0; left: 0;
-  width: 100%;
-  height: 100%;
   display: block;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  /* 不用百分比 — JS 直接设 px，确保内部坐标 1:1 映射到显示像素 */
+  box-sizing: border-box;
 }
 
 /* ========== 标题区 ========== */
@@ -894,6 +900,10 @@ body {
   .crt-glitch {
     display: none !important;
   }
+
+  .eye-container {
+    min-height: 180px;
+  }
 }
 
 @media (max-width: 380px) {
@@ -924,18 +934,691 @@ body {
   }
 }
 
-/* ========== 覆层面板在 CRT 主题下的边框色彩 ========== */
-/* 面板在外层，用游戏原有变量；这里只统一边框颜色跟随 CRT 主题 */
-[data-theme="paper"] .panel-frame {
-  border-color: #000000;
+/* ========== 覆层面板全面 CRT 化 ========== */
+
+/* 背景底色：遮罩层跟随主题 */
+.overlay-panel {
+  background: rgba(0, 0, 0, 0.92) !important;
 }
 
-[data-theme="amber"] .panel-frame {
-  border-color: #ffb000;
+[data-theme="paper"] .overlay-panel {
+  background: rgba(240, 235, 224, 0.94) !important;
 }
 
-[data-theme="mono"] .panel-frame {
-  border-color: #ffffff;
+[data-theme="amber"] .overlay-panel {
+  background: rgba(13, 7, 0, 0.96) !important;
+}
+
+/* 面板外框 */
+.panel-frame {
+  background: var(--crt-screen-bg) !important;
+  border-top: 2px solid var(--crt-border) !important;
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 0 80px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(0, 0, 0, 0.5),
+    inset 0 0 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 面板头 */
+.panel-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--crt-border) !important;
+  opacity: 0.9;
+}
+
+.panel-title {
+  color: var(--crt-text) !important;
+  opacity: var(--crt-text-dim);
+}
+
+.panel-title b {
+  color: var(--crt-text) !important;
+  opacity: 1;
+}
+
+.panel-ctrls {
+  color: var(--crt-text) !important;
+  opacity: var(--crt-text-dim);
+}
+
+.panel-ctrls b {
+  color: var(--crt-text) !important;
+  opacity: 1;
+}
+
+/* 面板头按钮 */
+.panel-header button,
+.panel-ctrls button {
+  color: var(--crt-text) !important;
+  opacity: var(--crt-text-dim);
+  font-family: 'Courier New', monospace;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.panel-header button:hover,
+.panel-ctrls button:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  border-color: var(--crt-border);
+  background: transparent;
+  text-shadow: var(--crt-glow);
+}
+
+/* 面板体 */
+.panel-body {
+  background: transparent !important;
+}
+
+/* 分组标题 */
+.inv-section h3,
+.codex-section h3 {
+  color: var(--crt-text) !important;
+  border-bottom: 1px solid var(--crt-border) !important;
+  opacity: 0.6;
+}
+
+.inv-section h3::before,
+.codex-section h3::before {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+/* 装备槽 */
+.equip-slot {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+  border-left-color: transparent;
+}
+
+.equip-slot.filled {
+  background: transparent !important;
+  border-left-color: var(--crt-border) !important;
+  opacity: 0.55;
+}
+
+.equip-slot.filled:hover {
+  color: var(--crt-text) !important;
+  background: transparent !important;
+  border-left-color: var(--crt-text) !important;
+  opacity: 1;
+  text-shadow: var(--crt-glow);
+}
+
+.equip-slot::before,
+.equip-slot.filled:hover::before {
+  color: var(--crt-text) !important;
+}
+
+.equip-slot.empty {
+  opacity: 0.2 !important;
+}
+
+.slot-label {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.slot-item {
+  color: var(--crt-text) !important;
+}
+
+.slot-rarity {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+.slot-empty {
+  color: var(--crt-text) !important;
+  opacity: 0.3;
+}
+
+/* 背包物品 */
+.inv-item {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+  border-left-color: transparent;
+}
+
+.inv-item::before {
+  color: var(--crt-text) !important;
+  opacity: 0.35;
+}
+
+.inv-item:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  background: transparent !important;
+  border-left-color: var(--crt-border) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.inv-item:hover::before {
+  color: var(--crt-text) !important;
+  opacity: 1;
+}
+
+.inv-item.selected {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  background: transparent !important;
+  border-left-color: var(--crt-text) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.inv-item.selected::before {
+  color: var(--crt-text) !important;
+}
+
+.inv-item-icon {
+  opacity: 0.7;
+}
+
+.inv-item-name {
+  color: var(--crt-text) !important;
+}
+
+.inv-item-rarity {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+/* 属性芯片 */
+.stats-grid .stat-item {
+  color: var(--crt-text) !important;
+  background: transparent !important;
+  border: 1px solid var(--crt-border) !important;
+  opacity: 0.6;
+}
+
+/* 图鉴卡片 */
+.codex-card {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+  border-left-color: transparent;
+}
+
+.codex-card::before {
+  color: var(--crt-text) !important;
+  opacity: 0.35;
+}
+
+.codex-card:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  background: transparent !important;
+  border-left-color: var(--crt-border) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.codex-card:hover::before {
+  color: var(--crt-text) !important;
+  opacity: 1;
+}
+
+.codex-card.selected {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  background: transparent !important;
+  border-left-color: var(--crt-text) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.codex-card.selected::before {
+  color: var(--crt-text) !important;
+}
+
+.codex-term {
+  color: inherit !important;
+}
+
+.codex-school {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+.codex-summary {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.codex-empty {
+  color: var(--crt-text) !important;
+  opacity: 0.3;
+}
+
+/* 图鉴详情 */
+.codex-detail-inner h3 {
+  color: var(--crt-text) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.codex-detail-inner h3::before {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.codex-meta {
+  color: var(--crt-text) !important;
+  opacity: 0.45;
+  border-bottom: 1px solid var(--crt-border) !important;
+}
+
+.codex-summary-full {
+  color: var(--crt-text) !important;
+  opacity: 0.6;
+}
+
+.codex-design-note {
+  color: var(--crt-text) !important;
+  opacity: 0.7;
+}
+
+.codex-design-note::before {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.codex-term-en {
+  color: var(--crt-text) !important;
+  opacity: 0.35;
+}
+
+/* 通用详情区 */
+#item-detail,
+#codex-detail {
+  border-left: 1px solid var(--crt-border) !important;
+}
+
+.detail-hint {
+  color: var(--crt-text) !important;
+  opacity: 0.3;
+}
+
+.detail-name {
+  color: var(--crt-text) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.detail-name::before {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.detail-rarity {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.detail-slot {
+  color: var(--crt-text) !important;
+  opacity: 0.45;
+}
+
+.detail-stats {
+  border-bottom: 1px solid var(--crt-border) !important;
+}
+
+.detail-stat {
+  color: var(--crt-text) !important;
+}
+
+.detail-stat::before {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.detail-affix {
+  color: var(--crt-text) !important;
+}
+
+.affix-name {
+  color: var(--crt-text) !important;
+  opacity: 0.85;
+  font-weight: bold;
+}
+
+.affix-stat {
+  color: var(--crt-text) !important;
+  opacity: 0.7;
+}
+
+.detail-effect {
+  color: var(--crt-text) !important;
+}
+
+.detail-effect::before {
+  color: var(--crt-text) !important;
+  opacity: 0.6;
+}
+
+.effect-label {
+  color: var(--crt-text) !important;
+  font-weight: bold;
+}
+
+.detail-concept::before {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+.concept-term {
+  color: var(--crt-text) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.concept-school {
+  color: var(--crt-text) !important;
+  opacity: 0.45;
+}
+
+.concept-summary {
+  color: var(--crt-text) !important;
+  opacity: 0.6;
+}
+
+.concept-archive-toggle {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.concept-archive-toggle:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+}
+
+.archive-section {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+}
+
+.archive-label {
+  color: var(--crt-text) !important;
+  opacity: 0.85;
+}
+
+.concept-design-note {
+  color: var(--crt-text) !important;
+  opacity: 0.65;
+}
+
+.concept-design-note::before {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+.detail-flavor {
+  color: var(--crt-text) !important;
+  opacity: 0.45;
+  border-top: 1px solid var(--crt-border) !important;
+}
+
+/* 详情操作按钮 */
+.detail-actions .btn-equip,
+.detail-actions .btn-discard {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.detail-actions .btn-equip::before,
+.detail-actions .btn-equip::after,
+.detail-actions .btn-discard::before,
+.detail-actions .btn-discard::after {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+.detail-actions .btn-equip:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  border-color: var(--crt-border);
+  text-shadow: var(--crt-glow);
+}
+
+.detail-actions .btn-discard:hover {
+  color: var(--crt-text) !important;
+  opacity: 0.8;
+  border-color: var(--crt-border);
+}
+
+/* 面板底栏 */
+.panel-footer {
+  color: var(--crt-text) !important;
+  opacity: 0.35;
+  border-top: 1px solid var(--crt-border) !important;
+  background: transparent !important;
+}
+
+/* 天赋面板 */
+.sp-body .sp-row {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+}
+
+.sp-body .sp-row::before {
+  color: var(--crt-text) !important;
+  opacity: 0.35;
+}
+
+.sp-body .sp-row:hover {
+  background: transparent !important;
+  opacity: 0.85;
+}
+
+.sp-body .sp-row:hover::before {
+  color: var(--crt-text) !important;
+  opacity: 1;
+}
+
+.sp-label {
+  color: var(--crt-text) !important;
+}
+
+.sp-current {
+  color: var(--crt-text) !important;
+  text-shadow: var(--crt-glow);
+}
+
+.sp-allocated {
+  color: var(--crt-text) !important;
+  opacity: 0.65;
+}
+
+.sp-pp {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+.sp-btn {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+  font-family: 'Courier New', monospace;
+}
+
+.sp-btn:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  text-shadow: var(--crt-glow);
+}
+
+.sp-hint {
+  color: var(--crt-text) !important;
+  opacity: 0.3;
+  border-top: 1px solid var(--crt-border) !important;
+}
+
+/* 确认弹窗 */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.9) !important;
+}
+
+[data-theme="paper"] .modal-overlay {
+  background: rgba(240, 235, 224, 0.95) !important;
+}
+
+[data-theme="amber"] .modal-overlay {
+  background: rgba(13, 7, 0, 0.97) !important;
+}
+
+.modal-frame {
+  background: var(--crt-screen-bg) !important;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid var(--crt-border);
+}
+
+.modal-header {
+  color: var(--crt-text) !important;
+  opacity: 0.6;
+  border-bottom: 1px solid var(--crt-border) !important;
+}
+
+.modal-header b {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  text-shadow: var(--crt-glow);
+}
+
+.modal-message {
+  color: var(--crt-text) !important;
+  opacity: 0.7;
+}
+
+.modal-message::before {
+  color: var(--crt-text) !important;
+  opacity: 0.4;
+}
+
+.modal-btn {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+  border: 1px solid transparent;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s ease;
+}
+
+.modal-btn.ok {
+  color: var(--crt-text) !important;
+  opacity: 0.9;
+  text-shadow: var(--crt-glow);
+}
+
+.modal-btn:hover {
+  color: var(--crt-text) !important;
+  opacity: 1;
+  border-color: var(--crt-border);
+  text-shadow: var(--crt-glow);
+}
+
+/* ========== ② 日志颜色语义化（跟随主题亮度偏移）========== */
+
+/* 基础：所有日志行继承 crt-text */
+#log .log-stdout { color: var(--crt-text); opacity: var(--crt-text-opacity); }
+#log .log-warn   { color: var(--crt-text); opacity: 0.65; font-style: italic; }
+#log .log-err    { color: var(--crt-text); opacity: 1; font-weight: bold; }
+/* loot：亮度最高 + 前缀装饰符，区别于 stdout */
+#log .log-loot   { color: var(--crt-text); opacity: 1; text-shadow: var(--crt-glow); }
+#log .log-kill   { color: var(--crt-text); opacity: 1; }
+
+/* ========== ③ 按钮栏全面接入 CRT 变量 ========== */
+
+/* .key 前缀色（F1 F2 等）*/
+.btn-core .key {
+  color: var(--crt-text) !important;
+  opacity: 0.55;
+  margin-right: 5px;
+  font-weight: 700;
+  transition: opacity 0.2s ease;
+}
+
+/* .cmd 命令文字 */
+.btn-core .cmd {
+  color: var(--crt-text) !important;
+  font-weight: 700;
+  transition: text-shadow 0.2s ease;
+}
+
+.btn-core:hover .cmd {
+  text-shadow: var(--crt-glow) !important;
+}
+
+.btn-core:hover .key {
+  opacity: 1 !important;
+}
+
+/* 工具按钮 */
+.btn-tool .key {
+  color: var(--crt-text) !important;
+  opacity: 0.3;
+  margin-right: 3px;
+  font-size: 10px;
+}
+
+.btn-tool .cmd {
+  color: var(--crt-text) !important;
+  opacity: 0.3;
+}
+
+.btn-tool:hover .cmd,
+.btn-tool:hover .key {
+  opacity: 0.65 !important;
+}
+
+/* 天赋角标 */
+.sp-badge {
+  background: var(--crt-text) !important;
+  color: var(--crt-screen-bg) !important;
+  font-family: 'Courier New', monospace;
+}
+
+/* ========== ④ 头部/分隔线统一（crt.css 接管，覆盖 style.css）========== */
+
+/* 头部：CRT 版本接管字体大小与颜色，消除 style.css 双重定义 */
+.h-left {
+  font-size: 12px !important;
+  letter-spacing: 1.8px;
+  color: var(--crt-text) !important;
+  font-weight: bold;
+}
+
+.h-right {
+  font-size: 11px !important;
+  color: var(--crt-text) !important;
+  opacity: 0.75;
+  letter-spacing: 1.2px;
+}
+
+.h-right::before {
+  content: none; /* 去掉 crt.css 原本的 ● 前缀，header 里的 span 已有 ● */
+}
+
+/* 分隔线跟随 crt-text */
+.separator {
+  color: var(--crt-text) !important;
+  opacity: 0.5;
+}
+
+/* ========== ⑤ Canvas 边框 + 战斗氛围光主题化 ========== */
+
+/* .eye-container 加上与主题一致的细边框 */
+.eye-container {
+  border: 1px solid var(--crt-border) !important;
+  opacity: 0.9;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.25),
+    0 0 8px var(--crt-hud-color) !important;
+}
+
+/* 战斗态氛围光：amber → 橙光，mono → 白光，paper → 黑线 */
+.eye-container.in-combat {
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.25),
+    0 0 16px var(--crt-text),
+    0 0 32px var(--crt-hud-color) !important;
+  border-color: var(--crt-text) !important;
+  opacity: 1;
 }
 
 /* ========== 闪烁点 ========== */

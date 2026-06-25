@@ -44,11 +44,40 @@ function getColorAlpha(name, alpha) {
   return hex;
 }
 
+// ============================================================
+// CRT 战斗颜色系统 — 所有 Canvas 颜色跟随 --crt-text 主题
+// paper → 黑墨(#000)  amber → 橙光(#ffb000)  mono → 白光(#fff)
+// 用 alpha 控制明暗层次，模拟单色 CRT 磷光的不同亮度
+// ============================================================
+const _crtColorCache = { hex: '', valid: false };
+
+/** 刷新 CRT 战斗颜色缓存（主题切换时调用 refreshColorCache 会连带清空） */
+function ensureCrtColor() {
+  if (!_crtColorCache.valid) {
+    const hex = readCssVar('--crt-text');
+    _crtColorCache.hex = hex || '#ffffff';
+    _crtColorCache.valid = true;
+  }
+}
+
+/** 获取 CRT 主题色 rgba（Canvas 绘制的统一颜色） */
+function crt(alpha = 1) {
+  ensureCrtColor();
+  return hexToRgba(_crtColorCache.hex, alpha);
+}
+
+/** 获取 CRT 屏幕底色 rgba */
+function crtBg(alpha = 1) {
+  const hex = readCssVar('--crt-screen-bg') || '#000000';
+  return hexToRgba(hex, alpha);
+}
+
 /** 清除颜色缓存（主题切换时调用） */
 export function refreshColorCache() {
   for (const key of Object.keys(_colorCache)) {
     delete _colorCache[key];
   }
+  _crtColorCache.valid = false;
 }
 
 // ============================================================
@@ -87,7 +116,7 @@ function drawBackground(ctx, now) {
   for (const c of bgChars) {
     c.x -= (SCROLL_SPEED + c.speed) * dt;
     if (c.x < -5) { c.x = (world.canvas?.width || 800) + 5; c.y = Math.random() * (world.canvas?.height || 320); }
-    ctx.fillStyle = `rgba(0, 255, 136, ${c.alpha})`;
+    ctx.fillStyle = crt(c.alpha);
     ctx.fillText(c.symbol, c.x, c.y);
   }
 }
@@ -114,7 +143,7 @@ function drawPlayer(ctx, now) {
   const px = PLAYER_X;
   const py = PLAYER_Y;
 
-  // ── 1. 躯体光晕（装备总稀有度决定亮度） ──
+  // ── 1. 躯体光晕（装备总稀有度决定亮度，CRT 主题色发光）──
   let maxRarity = 0;
   for (const slot of Object.keys(eq)) {
     const item = Array.isArray(eq[slot]) ? eq[slot].find(i => i !== null) : eq[slot];
@@ -124,86 +153,86 @@ function drawPlayer(ctx, now) {
   }
   if (maxRarity >= 3) {
     const pulse = 0.5 + 0.5 * Math.sin(now / 800 + maxRarity);
-    ctx.shadowColor = maxRarity >= 5 ? '#fff' : maxRarity >= 4 ? '#ffa' : '#afa';
+    ctx.shadowColor = crt(1);
     ctx.shadowBlur = 6 + maxRarity * 4 + pulse * 10;
   }
 
-  // ── 2. 胸部装备 — 将符号画在两侧 ──
+  // ── 2. 胸部装备（CRT 主题色 · 中亮）──
   if (eq.chest) {
     ctx.font = 'bold 22px monospace';
-    ctx.fillStyle = '#8888cc';
-    ctx.shadowColor = '#8888cc';
+    ctx.fillStyle = crt(0.6);
+    ctx.shadowColor = crt(0.8);
     ctx.shadowBlur = 2;
     ctx.fillText('[', px - 22, py + 4);
     ctx.fillText(']', px + 8, py + 4);
   }
 
-  // ── 3. 头部 — 冠冕 ──
+  // ── 3. 头部 — 冠冕（CRT 主题色 · 高亮）──
   if (eq.head) {
     ctx.font = 'bold 14px monospace';
-    ctx.fillStyle = eq.head.rarity === 'epic' ? '#ffcc00' : '#aaccff';
-    ctx.shadowColor = ctx.fillStyle;
+    ctx.fillStyle = crt(0.8);
+    ctx.shadowColor = crt(1);
     ctx.shadowBlur = 3;
     ctx.fillText('\u265B', px - 12, py - 18);
   }
 
-  // ── 4. 靴子 ──
+  // ── 4. 靴子（CRT 主题色 · 中亮）──
   if (eq.boots) {
     ctx.font = 'bold 14px monospace';
-    ctx.fillStyle = '#88cc88';
-    ctx.shadowColor = '#88cc88';
+    ctx.fillStyle = crt(0.5);
+    ctx.shadowColor = crt(0.6);
     ctx.shadowBlur = 2;
     ctx.fillText('__', px - 10, py + 18);
   }
 
-  // ── 5. 戒指 — 旋转星点 ──
+  // ── 5. 戒指 — 旋转星点（CRT 主题色 · 中亮 + 脉冲）──
   if (eq.ring && (eq.ring[0] || eq.ring[1])) {
     const ringAngle = now / 600;
     const rx = px + Math.cos(ringAngle) * 24;
     const ry = py + Math.sin(ringAngle) * 14 + 4;
     ctx.font = 'bold 12px monospace';
-    ctx.fillStyle = '#ffdd88';
-    ctx.shadowColor = '#ffdd88';
+    ctx.fillStyle = crt(0.7);
+    ctx.shadowColor = crt(0.9);
     ctx.shadowBlur = 4;
     ctx.fillText('\u25C6', rx - 5, ry);
   }
 
-  // ── 6. 护符 — 旋转星点 ──
+  // ── 6. 护符 — 旋转星点（CRT 主题色 · 高亮 + 大光晕）──
   if (eq.amulet) {
     const amAngle = now / 800 + Math.PI / 2;
     const ax = px + Math.cos(amAngle) * 20;
     const ay = py + Math.sin(amAngle) * 20 - 6;
     ctx.font = 'bold 14px monospace';
-    ctx.fillStyle = '#ffaa44';
-    ctx.shadowColor = '#ffaa44';
+    ctx.fillStyle = crt(0.85);
+    ctx.shadowColor = crt(1);
     ctx.shadowBlur = 6;
     ctx.fillText('\u2726', ax - 6, ay);
   }
 
-  // ── 7. 护身符 — 旋转星点 ──
+  // ── 7. 护身符 — 旋转星点（CRT 主题色 · 中亮）──
   if (eq.charm) {
     const chAngle = now / 1000 + Math.PI;
     const cx = px + Math.cos(chAngle) * 22;
     const cy = py + Math.sin(chAngle) * 18 + 6;
     ctx.font = 'bold 12px monospace';
-    ctx.fillStyle = '#ff88cc';
-    ctx.shadowColor = '#ff88cc';
+    ctx.fillStyle = crt(0.6);
+    ctx.shadowColor = crt(0.8);
     ctx.shadowBlur = 5;
     ctx.fillText('\u22C6', cx - 5, cy);
   }
 
-  // ── 8. 核心符号（武器决定） ──
+  // ── 8. 核心符号（武器决定 · CRT 主题色最大亮度）──
   ctx.shadowBlur = 0;
   ctx.font = 'bold 36px monospace';
-  ctx.fillStyle = wp.glowColor;
-  ctx.shadowColor = wp.glowColor;
-  ctx.shadowBlur = wp.glowRadius;
+  ctx.fillStyle = crt(1);
+  ctx.shadowColor = crt(1);
+  ctx.shadowBlur = wp.glowRadius || 16;
   ctx.fillText(wp.symbol, px - 14, py + 12);
 
-  // ── 9. 武器名(小字,悬浮在符号上方) ──
+  // ── 9. 武器名(小字 · CRT 主题色低亮) ──
   if (eq.weapon && eq.weapon.templateId !== 'default_thought') {
     ctx.font = '10px monospace';
-    ctx.fillStyle = wp.glowColor;
+    ctx.fillStyle = crt(0.5);
     ctx.shadowBlur = 0;
     ctx.fillText(eq.weapon.name, px - 24, py - 28);
   }
@@ -227,12 +256,12 @@ export function render(now) {
   ctx.save();
   ctx.translate(_shakeVec.x, _shakeVec.y);
 
-  // ── 1. 清屏 ──
-  ctx.fillStyle = getColorAlpha('--bg', 0.92);
+  // ── 1. 清屏（CRT 屏幕底色，跟随主题）──
+  ctx.fillStyle = crtBg(1);
   ctx.fillRect(-10, -10, (world.canvas?.width || 800) + 20, (world.canvas?.height || 320) + 20);
 
-  // ── 2. 地面线 ──
-  ctx.strokeStyle = getColor('--dim');
+  // ── 2. 地面线（CRT 文字色 · 低亮）──
+  ctx.strokeStyle = crt(0.3);
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, GROUND_Y);
@@ -245,17 +274,17 @@ export function render(now) {
   // ── 4. 玩家 (装备外观系统 v7.1) ──
   drawPlayer(ctx, now);
 
-  // ── 5. 装备掉落 (在地面上方,脉冲 + 过期警告) ──
+  // ── 5. 装备掉落（CRT 主题色 · 脉冲高亮 + 闪烁警告）──
   ctx.shadowBlur = 0;
   for (const d of world.drops) {
     if (d.dead) continue;
     const pulse = d.landed ? (0.5 + 0.5 * Math.sin(now / 200)) : 1;
     const urgency = d.life < 5000 ? (1 + 0.3 * Math.sin(now / 100)) : 1;
     ctx.font = `bold ${d.landed ? 20 : 18}px monospace`;
-    ctx.fillStyle = d.item.color;
+    ctx.fillStyle = crt(0.9);
     if (d.landed) {
       ctx.globalAlpha = urgency;
-      ctx.shadowColor = d.item.color;
+      ctx.shadowColor = crt(1);
       ctx.shadowBlur = 8 * pulse * urgency;
     }
     ctx.fillText('\u25C6', d.x - 8, d.y);
@@ -263,30 +292,42 @@ export function render(now) {
     ctx.globalAlpha = 1;
     if (d.landed) {
       ctx.font = '10px monospace';
-      ctx.fillStyle = d.item.color;
+      ctx.fillStyle = crt(0.6);
       ctx.fillText(d.item.name, d.x - 30, d.y - 14);
     }
   }
 
-  // ── 6. 血渣 (在敌人下方) ──
+  // ── 6. 血渣（CRT 主题色 · 低亮残影）──
   ctx.font = '12px monospace';
   for (const g of world.gore) {
-    const a = Math.max(0.2, g.life / 2000);
-    ctx.fillStyle = `rgba(180, 30, 30, ${a})`;
+    const a = Math.max(0.1, g.life / 2000);
+    ctx.fillStyle = crt(Math.min(a * 0.5, 0.4));
     ctx.fillText(g.symbol, g.x, g.y);
   }
 
-  // ── 7. 敌人 (含符号+血条+阶段标记+名称) — 单次遍历 ──
+  // ── 7. 敌人（CRT 单色系统：Boss=高亮大光晕 / Elite=中亮 / Normal=低亮）──
   for (const e of world.enemies) {
     if (e.dead) continue;
     const alpha = e.dying ? e.dyingAlpha : 1;
     const flashing = now < e.flashUntil;
     if (alpha < 1) ctx.globalAlpha = alpha;
-    ctx.fillStyle = flashing ? '#fff'
-      : e.type === 'boss' ? getColor('--red')
-      : e.type === 'elite' ? getColor('--amber')
-      : '#ccc';
-    if (flashing) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 6; }
+
+    // 按敌人类型设定 CRT 色亮度层级
+    let enemyAlpha, enemyGlow;
+    if (flashing) {
+      enemyAlpha = 1; enemyGlow = 12;
+    } else if (e.type === 'boss') {
+      enemyAlpha = 1; enemyGlow = 8;
+    } else if (e.type === 'elite') {
+      enemyAlpha = 0.85; enemyGlow = 4;
+    } else {
+      enemyAlpha = 0.6; enemyGlow = 0;
+    }
+    ctx.fillStyle = crt(enemyAlpha);
+    if (enemyGlow > 0 || flashing) {
+      ctx.shadowColor = crt(1);
+      ctx.shadowBlur = flashing ? 6 : enemyGlow;
+    }
     ctx.font = 'bold 22px monospace';
     ctx.fillText(e.symbol, e.x - 10, e.y + 8);
     ctx.shadowBlur = 0;
@@ -294,74 +335,82 @@ export function render(now) {
     if (!e.dying) {
       const hpPct = Math.max(0, e.hp / e.maxHp);
       const barW = e.type === 'boss' ? BOSS_BAR_WIDTH : e.type === 'elite' ? ELITE_BAR_WIDTH : NORMAL_BAR_WIDTH;
-      // 血条底
-      ctx.fillStyle = getColor('--dim');
+      // 血条底（CRT 极低亮背景）
+      ctx.fillStyle = crt(0.12);
       ctx.fillRect(e.x - barW / 2, e.y - 16, barW, 2);
-      // ★ Boss 阶段标记
+      // Boss 阶段标记
       if (e.type === 'boss' && e.phaseData) {
         const phases = e.phaseData.phases;
         for (let i = 1; i < phases.length; i++) {
           const markX = e.x - barW / 2 + barW * phases[i].hpPct;
-          ctx.fillStyle = e.triggeredPhases?.has(i) ? '#fff' : '#666';
+          ctx.fillStyle = e.triggeredPhases?.has(i) ? crt(1) : crt(0.25);
           ctx.fillRect(markX - 0.5, e.y - 18, 1, 5);
         }
       }
-      // 血条填充
-      ctx.fillStyle = e.type === 'boss' ? getColor('--red') : e.type === 'elite' ? getColor('--amber') : getColor('--green-bright');
+      // 血条填充（CRT 主题色 · 按类型分亮度）
+      const barAlpha = e.type === 'boss' ? 1 : e.type === 'elite' ? 0.8 : 0.6;
+      ctx.fillStyle = crt(barAlpha);
       ctx.fillRect(e.x - barW / 2, e.y - 16, barW * hpPct, 2);
-      // ★ Boss 当前阶段名称（右侧小字）
+      // Boss 当前阶段名称
       if (e.type === 'boss' && e.phaseData) {
         const cur = e.phaseData.phases[e.currentPhase];
         ctx.font = '9px monospace';
-        ctx.fillStyle = '#f88';
+        ctx.fillStyle = crt(0.8);
         ctx.textAlign = 'left';
         ctx.fillText(cur.name, e.x + barW / 2 + 4, e.y - 14);
         ctx.textAlign = 'left';
       }
     }
-    // 敌人名称(小字,同上一个循环内完成,避免二次遍历)
+    // 敌人名称（CRT 低亮）
     if (e.dead || e.dying) continue;
     ctx.font = '10px monospace';
-    ctx.fillStyle = e.type === 'boss' ? getColor('--red') : e.type === 'elite' ? getColor('--amber') : '#555';
+    const nameAlpha = e.type === 'boss' ? 0.8 : e.type === 'elite' ? 0.6 : 0.3;
+    ctx.fillStyle = crt(nameAlpha);
     ctx.fillText(e.name, e.x - 18, e.y - 20);
   }
 
-  // ── 8. 投射物 (v7.1 武器特有符号+颜色) ──
+  // ── 8. 投射物（CRT 主题色 · 高亮带光晕）──
   ctx.font = 'bold 22px monospace';
   for (const p of world.projectiles) {
     if (p.dead) continue;
-    ctx.fillStyle = p.color || getColor('--green-bright');
-    ctx.shadowColor = p.color || getColor('--green-bright');
+    ctx.fillStyle = crt(1);
+    ctx.shadowColor = crt(1);
     ctx.shadowBlur = 6;
     ctx.fillText(p.symbol || '*', p.x - 6, p.y + 6);
   }
   ctx.shadowBlur = 0;
 
-  // ── 9. 飘字 ──
+  // ── 9. 飘字 — 伤害/暴击/系统信息（CRT 主题色 · 不同亮度层级）──
   ctx.textAlign = 'center';
   for (const t of world.damageTexts) {
     const a = Math.max(0, t.life / 800);
     if (typeof t.value === 'string') {
-      ctx.fillStyle = `rgba(0, 255, 136, ${a})`;
+      // 系统文字（"DODGE" / "MISS" 等）—— 中亮
+      ctx.fillStyle = crt(a * 0.7);
       ctx.font = 'bold 16px monospace';
       ctx.fillText(t.value, t.x, t.y);
     } else if (t.isCrit) {
-      ctx.fillStyle = `rgba(255, 220, 80, ${a})`;
+      // 暴击数字 —— 最大亮度 + 大光晕
+      ctx.fillStyle = crt(a);
+      ctx.shadowColor = crt(a);
+      ctx.shadowBlur = 10;
       ctx.font = 'bold 22px monospace';
       ctx.fillText(t.value.toString(), t.x, t.y);
+      ctx.shadowBlur = 0;
     } else {
-      ctx.fillStyle = `rgba(255, 255, 255, ${a})`;
+      // 普通伤害 —— 中高亮
+      ctx.fillStyle = crt(a * 0.7);
       ctx.font = 'bold 14px monospace';
       ctx.fillText(t.value.toString(), t.x, t.y);
     }
   }
   ctx.textAlign = 'left';
 
-  // ── 10. 粒子 ──
+  // ── 10. 粒子（CRT 主题色 · 低亮闪烁）──
   ctx.font = '14px monospace';
   for (const p of world.particles) {
     const a = Math.max(0, p.life / 400);
-    ctx.fillStyle = `rgba(255, 240, 180, ${a})`;
+    ctx.fillStyle = crt(a * 0.5);
     ctx.fillText(p.symbol, p.x, p.y);
   }
 

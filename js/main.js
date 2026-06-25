@@ -84,15 +84,19 @@ function updateCanvasSize() {
   const cvs = world.canvas;
   if (!container || !cvs) return;
   const rect = container.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  // 使用整数尺寸，避免子像素模糊
-  const w = Math.floor(rect.width * dpr);
-  const h = Math.floor(rect.height * dpr);
+  // 不用 DPR — Canvas 内部坐标直接用 CSS px，避免坐标空间和显示尺寸的缩放错位
+  // getBoundingClientRect 含 border，canvas 是绝对定位在 padding-box 内，
+  // 所以取 content box 尺寸（减去 border）
+  const style = getComputedStyle(container);
+  const bw = parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+  const bh = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+  const w = Math.floor(rect.width - bw);
+  const h = Math.floor(rect.height - bh);
   if (cvs.width !== w || cvs.height !== h) {
     cvs.width = w;
     cvs.height = h;
-    cvs.style.width = '100%';
-    cvs.style.height = '100%';
+    cvs.style.width = w + 'px';
+    cvs.style.height = h + 'px';
     updateWorldSize();
     initBg();
   }
@@ -129,16 +133,7 @@ function init() {
   world.ctx = world.canvas.getContext('2d');
   updateCanvasSize();
   console.log('[INIT] canvas dims:', world.canvas.width, 'x', world.canvas.height,
-    '| ctx:', !!world.ctx, '| dpr:', window.devicePixelRatio);
-  // 诊断测试：绿框验证 canvas 渲染可用
-  if (world.ctx) {
-    world.ctx.fillStyle = '#00ff00';
-    world.ctx.fillRect(10, 10, 80, 40);
-    world.ctx.fillStyle = '#fff';
-    world.ctx.font = '12px monospace';
-    world.ctx.fillText('CANVAS OK', 14, 36);
-    console.log('[DIAG] green test rect drawn');
-  }
+    '| dpr:', window.devicePixelRatio);
   fitLayout();
   window.addEventListener('resize', () => { updateCanvasSize(); fitLayout(); });
   world.lastTime = performance.now();

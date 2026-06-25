@@ -175,10 +175,13 @@ export function updateHUD() {
   const waveEl = document.getElementById('wave-state');
   if (waveEl) {
     waveEl.classList.toggle('active', isCombat);
-    waveEl.style.color = isCombat ? '#cc0000' : '';
+    // 战斗态颜色跟随 CRT 主题（不再硬编码红色）
   }
 
-  // ── 战斗画布氛围光 ──
+  // ── 战斗画布氛围光（eye-container 跟随 CRT 主题发光）──
+  const eyeEl = document.querySelector('.eye-container');
+  if (eyeEl) eyeEl.classList.toggle('in-combat', isCombat);
+  // 保持旧 #combat 兼容（已隐藏，无妨）
   const combatEl = document.getElementById('combat');
   if (combatEl) combatEl.classList.toggle('in-combat', isCombat);
 
