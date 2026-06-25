@@ -36,7 +36,7 @@
   <div class="crt-vignette"></div>     <!-- 暗角 -->
   <div class="crt-curve"></div>        <!-- 曲面内阴影 -->
   <div class="crt-corners"></div>      <!-- 四角 HUD 框 -->
-  <div class="crt-hud-text hud-tl" id="hud-tl">SCAN: ACTIVE</span>
+  <span class="crt-hud-text hud-tl" id="hud-tl">SCAN: ACTIVE</span>
   <span class="crt-hud-text hud-tr" id="hud-tr">SIGNAL: NOMINAL</span>
   <span class="crt-hud-text hud-bl" id="hud-bl">FREQ: 2.4GHZ</span>
   <span class="crt-hud-text hud-br" id="hud-br">LINK: SECURE</span>
@@ -44,13 +44,13 @@
   <!-- 游戏内容区 -->
   <div class="crt-content" id="app">
 
-    <!-- ═─ 终端页眉 ──╗
+    <!-- ═─ 终端页眉 ──╗ -->
     <header id="terminal-header">
       <span class="h-left">SYS:TERMINAL-OF-BEING v0.19 <span class="h-metrics"><span id="sys-mem">MEM:64M</span> <span id="sys-cpu">CPU:2%</span> <span id="sys-proc">PROC:7</span></span></span>
       <span class="h-right"><span id="terminal-status-text">STATUS:OBSERVING</span> <span class="blink">●</span> <span id="current-time">00:00:00</span></span>
     </header>
 
-    <!-- ═─ 系统状态 + 会话信息 ──╗
+    <!-- ═─ 系统状态 + 会话信息 ──╗ -->
     <div class="info-grid">
       <!-- 左：系统状态 → 玩家核心属性 -->
       <div class="info-section">
@@ -113,21 +113,12 @@
       </div>
     </div>
 
-    <!-- ═─ 游戏画面（替换 SVG 眼睛）──╗
+    <!-- ═─ 游戏画面（替换 SVG 眼睛）──╗ -->
     <div class="eye-container" role="img" aria-label="游戏战斗画面">
       <canvas id="combat-canvas" width="800" height="320"></canvas>
     </div>
 
-    <!-- ═─ 标题 ──╗
-    <div class="title-section">
-      <h1 class="main-title">客体化之視</h1>
-      <p class="subtitle">THE GAZE OF OBJECTIFICATION</p>
-    </div>
-
-    <!-- ═─ 分隔线 ──╗
-    <div class="separator">+----+</div>
-
-    <!-- ═─ 存在强度（经验条）──╗
+    <!-- ═─ 存在强度（经验条）──╗ -->
     <div class="intensity-section">
       <div class="intensity-header">
         <span class="intensity-title">BEING INTENSITY</span>
@@ -141,7 +132,7 @@
       </div>
     </div>
 
-    <!-- ═─ 存在论指标 + 日志输出 ──╗
+    <!-- ═─ 存在论指标 + 日志输出 ──╗ -->
     <div class="bottom-grid">
       <!-- 左：存在论指标 → 战斗属性 -->
       <div class="info-section">
@@ -180,7 +171,7 @@
       </div>
     </div>
 
-    <!-- ═─ 命令行界面 ──╗
+    <!-- ═─ 命令行界面 ──╗ -->
     <div class="command-line-section">
       <div class="command-line-header">
         <span class="command-title">COMMAND LINE INTERFACE</span>
@@ -195,7 +186,7 @@
       </div>
     </div>
 
-    <!-- ═─ 按钮栏 ──╗
+    <!-- ═─ 按钮栏 ──╗ -->
     <div id="button-bar">
       <div class="btn-group-main">
         <button id="btn-inventory" class="btn-core"><span class="key">F1</span><span class="cmd">DEVICE</span></button>
@@ -208,7 +199,7 @@
       </div>
     </div>
 
-    <!-- ═─ 隐藏：JS 依赖但 CRT 布局中不显示的元素 ──╗
+    <!-- ═─ 隐藏：JS 依赖但 CRT 布局中不显示的元素 ──╗ -->
     <div style="display:none">
       <!-- hud.js 依赖的 ASCII 条（旧格式，保留 DOM 节点） -->
       <div id="player-hp-bar"></div>
@@ -236,7 +227,7 @@
   </div><!-- /.crt-content -->
 </div><!-- /.crt-container -->
 
-<!-- ═─ 覆层面板（放在 crt-container 外，避免 overflow:hidden 裁剪）──╗
+<!-- ═─ 覆层面板（放在 crt-container 外，避免 overflow:hidden 裁剪）──╗ -->
 <!-- 装置面板 -->
 <div id="inventory-panel" class="overlay-panel">
   <div class="panel-frame">

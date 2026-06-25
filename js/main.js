@@ -80,10 +80,10 @@ let _saveIntervalId = null;
 // Canvas 尺寸同步 — 战斗区填满可用空间
 // ============================================================
 function updateCanvasSize() {
-  const combat = document.getElementById('combat');
+  const container = document.querySelector('.eye-container');
   const cvs = world.canvas;
-  if (!combat || !cvs) return;
-  const rect = combat.getBoundingClientRect();
+  if (!container || !cvs) return;
+  const rect = container.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   // 使用整数尺寸，避免子像素模糊
   const w = Math.floor(rect.width * dpr);

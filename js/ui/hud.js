@@ -143,11 +143,15 @@ export function refreshHUDLabels() {
 /**
  * 将全部 HUD DOM 元素同步到当前 state
  */
+/** 安全设置元素文本 */
+function safeText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
 export function updateHUD() {
   const s = getStats();
   if (!s) return;
-
-  const safeText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
   // ── SYSTEM STATUS（左栏）──
   safeText('player-hp', `${Math.max(0, Math.floor(state.player.hp))} / ${state.player.maxHp}`);
@@ -188,12 +192,12 @@ export function updateHUD() {
   const expPctStr = (expPct * 100).toFixed(1) + '%';
   safeText('exp-pct-display', expPctStr);
   safeText('exp-pct-display-2', expPctStr);
-  // CRT 信息区：存在指数（HP%）
-  safeText('hp-pct-display', Math.round(hpPct * 100) + '%');
-
   // ── HP / MP 条（ASCII 填充）──
   const hpPct = Math.max(0, state.player.hp / (state.player.maxHp || 1));
   const mpPct = Math.max(0, (state.player.mp || 0) / (state.player.maxMp || 30));
+
+  // CRT 信息区：存在指数（HP%）
+  safeText('hp-pct-display', Math.round(hpPct * 100) + '%');
   updateAsciiBar('player-hp-bar', hpPct);
   updateAsciiBar('player-mp-bar', mpPct);
 
