@@ -125,8 +125,20 @@ function init() {
 
   // Canvas — 填满战斗区，像素尺寸 = CSS 尺寸
   world.canvas = document.getElementById('combat-canvas');
+  if (!world.canvas) { console.error('[FATAL] combat-canvas not found in DOM'); return; }
   world.ctx = world.canvas.getContext('2d');
   updateCanvasSize();
+  console.log('[INIT] canvas dims:', world.canvas.width, 'x', world.canvas.height,
+    '| ctx:', !!world.ctx, '| dpr:', window.devicePixelRatio);
+  // 诊断测试：绿框验证 canvas 渲染可用
+  if (world.ctx) {
+    world.ctx.fillStyle = '#00ff00';
+    world.ctx.fillRect(10, 10, 80, 40);
+    world.ctx.fillStyle = '#fff';
+    world.ctx.font = '12px monospace';
+    world.ctx.fillText('CANVAS OK', 14, 36);
+    console.log('[DIAG] green test rect drawn');
+  }
   fitLayout();
   window.addEventListener('resize', () => { updateCanvasSize(); fitLayout(); });
   world.lastTime = performance.now();
