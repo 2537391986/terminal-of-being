@@ -836,101 +836,319 @@ body {
   }
 }
 
-/* ========== 响应式 ========== */
+/* ========== 响应式 — 多设备 CRT 特效分级适配 ========== */
+/* 核心理念：不砍特效，只缩强度。桌面 > 平板 > 手机 > 小屏，逐级降低 */
+/* 每级保留扫描线/网格/噪点/暗角/Glitch/角标，只调 opacity/size/frequency */
+
+/* ── 700px：平板/大手机，特效强度 ×0.6 ── */
 @media (max-width: 700px) {
+  /* CRT 容器：更紧凑内边距 */
   .crt-container {
-    padding: 16px 14px;
-    border-radius: 12px;
+    padding: 12px 12px;
+    border-radius: 10px;
+    max-width: 100%;
+    margin: 0;
+    min-height: 0;
   }
+  .crt-container { animation-duration: 0.5s; }
 
+  /* 主题按钮缩小 */
   .theme-switcher {
-    font-size: 9px;
-    padding: 6px 10px;
-    letter-spacing: 0.5px;
+    font-size: 8px;
+    padding: 5px 8px;
+    letter-spacing: 0.3px;
+    top: 6px; right: 6px;
+    border-radius: 3px;
+    min-height: 32px;
+    gap: 3px;
   }
+  .theme-switcher .theme-dot { width: 6px; height: 6px; }
+  .theme-switcher .theme-name-display { display: none; }
 
-  .info-grid,
-  .bottom-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .main-title {
-    font-size: 30px;
-    letter-spacing: 8px;
-  }
-
-  /* 手机上取消右列缩进 */
-  .info-grid > .info-section:last-child,
-  .bottom-grid > .info-section:last-child {
-    padding-left: 0;
-  }
-
-  .info-label {
-    width: 18ch;
-  }
-
-  .progress-terminal {
-    font-size: 11px;
-  }
-
+  /* 头部导航 */
   .header {
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     text-align: center;
-    font-size: 11px;
-  }
-
-  #log {
-    max-height: 90px;
-  }
-
-  .command-input {
+    margin-bottom: 8px;
+    padding-bottom: 5px;
     font-size: 10px;
+    letter-spacing: 1px;
   }
+  .h-left { font-size: 10px !important; letter-spacing: 1.2px; }
+  .h-right { font-size: 9px !important; letter-spacing: 0.8px; opacity: 0.6; }
 
-  .btn-core,
-  .btn-tool {
+  /* 信息网格：单列 */
+  .info-grid,
+  .bottom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .info-grid > .info-section:last-child,
+  .bottom-grid > .info-section:last-child {
+    padding-left: 0 !important;
+  }
+  .info-section h3 {
     font-size: 9px;
-    padding: 5px 10px;
+    margin-bottom: 3px;
+    letter-spacing: 1px;
   }
-
-  /* 手机上隐藏耗性能的覆盖层 */
-  .crt-grid,
-  .crt-glitch {
-    display: none !important;
+  .info-row {
+    font-size: 9px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+  .info-label { width: 16ch; font-size: 8px; }
+  .info-value { font-size: 9px; }
 
+  /* 游戏画面 */
   .eye-container {
-    min-height: 180px;
+    min-height: 160px;
+    margin: 4px 0;
+    border-radius: 3px;
+  }
+
+  /* 标题与分隔线 */
+  .title-section { margin: 2px 0; }
+  .subtitle {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    padding: 0 18px;
+  }
+  .subtitle::before, .subtitle::after { width: 14px; }
+  .separator {
+    font-size: 9px;
+    margin: 2px 0;
+  }
+
+  /* 存在强度条 */
+  .intensity-section { margin: 4px 0; }
+  .intensity-title { font-size: 8px; }
+  .intensity-value { font-size: 9px; }
+  .progress-terminal { font-size: 9px; }
+  .progress-meta { font-size: 7px; flex-wrap: wrap; gap: 4px; }
+
+  /* 底部网格：日志 */
+  .bottom-grid { margin-top: 6px; }
+  #log {
+    max-height: 100px;
+    min-height: 60px;
+    font-size: 8px;
+    line-height: 1.5;
+    padding: 2px 0;
+    height: auto !important;
+  }
+
+  /* 命令行 */
+  .command-line-section { margin-top: 6px; padding-top: 5px; }
+  .command-title { font-size: 8px; }
+  .command-meta { font-size: 7px; }
+  .command-input { font-size: 9px; }
+
+  /* 按钮栏 */
+  #button-bar {
+    margin-top: 8px;
+    padding-top: 6px;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center !important;
+  }
+  .btn-core, .btn-tool {
+    font-size: 8px;
+    padding: 4px 8px;
+    letter-spacing: 0.5px;
+    min-height: 32px;
+  }
+  .btn-core .key { font-size: 8px; margin-right: 3px; }
+  .btn-tool .key { font-size: 7px; }
+
+  /* ── CRT 特效：强度 ×0.6，全部保留 ── */
+  .crt-grid {
+    opacity: 0.4;
+    animation-duration: 6s;
+  }
+  .crt-grid {
+    background:
+      repeating-linear-gradient(0deg, transparent 0px, transparent 47px, var(--crt-grid-color) 47px, var(--crt-grid-color) 48px),
+      repeating-linear-gradient(90deg, transparent 0px, transparent 69px, var(--crt-grid-color) 69px, var(--crt-grid-color) 70px),
+      radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.015) 0%, transparent 70%);
+  }
+  .crt-noise { opacity: 0.04; }
+  .crt-scanroll { opacity: 0.7; animation-duration: 8s; }
+  .crt-glitch { animation-duration: 12s; opacity: 0.5; }
+  .crt-corners {
+    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    border-radius: 10px;
+  }
+  .crt-corners {
+    background:
+      linear-gradient(to right,  var(--crt-hud-color) 2px, transparent 2px) 0 0 / 14px 2px no-repeat,
+      linear-gradient(to bottom, var(--crt-hud-color) 2px, transparent 2px) 0 0 / 2px 14px no-repeat,
+      linear-gradient(to left,   var(--crt-hud-color) 2px, transparent 2px) 100% 0 / 14px 2px no-repeat,
+      linear-gradient(to bottom, var(--crt-hud-color) 2px, transparent 2px) 100% 0 / 2px 14px no-repeat,
+      linear-gradient(to right,  var(--crt-hud-color) 2px, transparent 2px) 0 100% / 14px 2px no-repeat,
+      linear-gradient(to top,    var(--crt-hud-color) 2px, transparent 2px) 0 100% / 2px 14px no-repeat,
+      linear-gradient(to left,   var(--crt-hud-color) 2px, transparent 2px) 100% 100% / 14px 2px no-repeat,
+      linear-gradient(to top,    var(--crt-hud-color) 2px, transparent 2px) 100% 100% / 2px 14px no-repeat;
+  }
+  .crt-hud-text {
+    font-size: 7px;
+    letter-spacing: 1px;
+    opacity: 0.15;
+  }
+  .crt-hud-text.hud-tl { top: 10px; left: 24px; }
+  .crt-hud-text.hud-tr { top: 10px; right: 24px; }
+  .crt-hud-text.hud-bl { bottom: 10px; left: 24px; }
+  .crt-hud-text.hud-br { bottom: 10px; right: 24px; }
+  .crt-curve { opacity: 0.6; }
+  .crt-vignette { opacity: 0.7; }
+  /* 扫描线间距略增大 */
+  .crt-container::before {
+    background: repeating-linear-gradient(0deg, var(--crt-scanline) 0px, var(--crt-scanline) 1px, transparent 1px, transparent 4px);
+  }
+
+  /* 去掉 body 暗角（CRT 容器内已有） */
+  body::after { display: none; }
+
+  /* 面板手机适配 */
+  .panel-frame { max-width: 100vw; width: 100vw; border-radius: 0; max-height: 100dvh; }
+  .panel-body { grid-template-columns: 1fr; padding: 8px 10px; }
+  #inv-content, #codex-content { max-height: 35vh; }
+  .equip-slot, .inv-item, .codex-card { min-height: 32px; font-size: 11px; }
+  .detail-name { font-size: 16px; }
+  #item-detail, #codex-detail { max-width: none; padding-left: 0; border-left: none !important; }
+  .sp-row { flex-wrap: wrap; gap: 2px; }
+  .sp-btn { width: 30px; height: 30px; font-size: 16px; }
+}
+
+/* ── 480px：小手机，特效强度 ×0.35 ── */
+@media (max-width: 480px) {
+  .crt-container { padding: 8px 8px; border-radius: 6px; }
+  .theme-switcher { font-size: 7px; padding: 3px 6px; top: 4px; right: 4px; min-height: 28px; }
+  .header { margin-bottom: 6px; font-size: 9px; }
+  .h-left { font-size: 9px !important; }
+  .h-right { font-size: 8px !important; }
+  .info-label { width: 14ch; font-size: 7px; }
+  .info-row { font-size: 8px; line-height: 1.4; }
+  .info-value { font-size: 8px; }
+  .info-grid, .bottom-grid { gap: 4px; }
+  .info-section h3 { font-size: 8px; }
+  .eye-container { min-height: 130px; }
+  .separator { font-size: 7px; }
+  .subtitle { font-size: 7px; letter-spacing: 1px; padding: 0 10px; }
+  .subtitle::before, .subtitle::after { width: 8px; }
+  .intensity-title { font-size: 7px; }
+  .intensity-value { font-size: 8px; }
+  .progress-terminal { font-size: 7px; }
+  .progress-meta { font-size: 6px; }
+  #log { max-height: 80px; min-height: 50px; font-size: 7px; }
+  .command-title { font-size: 7px; }
+  .command-input { font-size: 8px; }
+  .btn-core, .btn-tool { font-size: 7px; padding: 3px 6px; min-height: 28px; }
+  .btn-core .key { font-size: 7px; }
+
+  /* CRT 特效：强度 ×0.35 */
+  .crt-grid {
+    opacity: 0.25;
+    animation-duration: 8s;
+  }
+  .crt-grid {
+    background:
+      repeating-linear-gradient(0deg, transparent 0px, transparent 59px, var(--crt-grid-color) 59px, var(--crt-grid-color) 60px),
+      repeating-linear-gradient(90deg, transparent 0px, transparent 89px, var(--crt-grid-color) 89px, var(--crt-grid-color) 90px),
+      radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.01) 0%, transparent 70%);
+  }
+  .crt-noise { opacity: 0.03; }
+  .crt-scanroll { opacity: 0.5; animation-duration: 10s; }
+  .crt-glitch { animation-duration: 16s; opacity: 0.3; }
+  .crt-corners {
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border-radius: 8px;
+  }
+  .crt-corners {
+    background:
+      linear-gradient(to right,  var(--crt-hud-color) 1.5px, transparent 1.5px) 0 0 / 10px 1.5px no-repeat,
+      linear-gradient(to bottom, var(--crt-hud-color) 1.5px, transparent 1.5px) 0 0 / 1.5px 10px no-repeat,
+      linear-gradient(to left,   var(--crt-hud-color) 1.5px, transparent 1.5px) 100% 0 / 10px 1.5px no-repeat,
+      linear-gradient(to bottom, var(--crt-hud-color) 1.5px, transparent 1.5px) 100% 0 / 1.5px 10px no-repeat,
+      linear-gradient(to right,  var(--crt-hud-color) 1.5px, transparent 1.5px) 0 100% / 10px 1.5px no-repeat,
+      linear-gradient(to top,    var(--crt-hud-color) 1.5px, transparent 1.5px) 0 100% / 1.5px 10px no-repeat,
+      linear-gradient(to left,   var(--crt-hud-color) 1.5px, transparent 1.5px) 100% 100% / 10px 1.5px no-repeat,
+      linear-gradient(to top,    var(--crt-hud-color) 1.5px, transparent 1.5px) 100% 100% / 1.5px 10px no-repeat;
+  }
+  .crt-hud-text {
+    font-size: 5.5px;
+    letter-spacing: 0.8px;
+    opacity: 0.12;
+  }
+  .crt-hud-text.hud-tl { top: 7px; left: 16px; }
+  .crt-hud-text.hud-tr { top: 7px; right: 16px; }
+  .crt-hud-text.hud-bl { bottom: 7px; left: 16px; }
+  .crt-hud-text.hud-br { bottom: 7px; right: 16px; }
+  .crt-curve { opacity: 0.4; }
+  .crt-vignette { opacity: 0.5; }
+  .crt-container::before {
+    background: repeating-linear-gradient(0deg, var(--crt-scanline) 0px, var(--crt-scanline) 1px, transparent 1px, transparent 5px);
   }
 }
 
+/* ── 380px：极小屏，特效强度 ×0.2 —— 保留骨架，削减填充 ── */
 @media (max-width: 380px) {
-  .crt-container {
-    padding: 14px 11px;
-  }
+  .crt-container { padding: 5px 5px; }
+  .eye-container { min-height: 110px; }
+  .info-label { width: 12ch; font-size: 6.5px; }
+  .info-row { font-size: 7px; line-height: 1.3; white-space: normal; }
+  .info-value { font-size: 7px; }
+  #log { max-height: 64px; min-height: 40px; font-size: 6.5px; }
+  .btn-core { font-size: 6.5px; padding: 2px 4px; min-height: 26px; }
+  .btn-core .key { display: none; }
+  .btn-tool { display: none; }
+  .subtitle { font-size: 6px; padding: 0 6px; }
+  .subtitle::before, .subtitle::after { width: 6px; }
+  .command-input { font-size: 7px; }
+  .progress-terminal { font-size: 6px; }
+  .progress-meta { font-size: 5.5px; }
+  .separator { font-size: 6px; }
 
-  .main-title {
-    font-size: 24px;
-    letter-spacing: 6px;
-    padding-left: 6px;
+  /* CRT 特效：骨架保留（×0.2），只留最主要的 */
+  .crt-grid {
+    opacity: 0.15;
+    animation-duration: 10s;
   }
-
-  .info-label {
-    width: 15ch;
+  .crt-grid {
+    background:
+      repeating-linear-gradient(0deg, transparent 0px, transparent 79px, var(--crt-grid-color) 79px, var(--crt-grid-color) 80px),
+      repeating-linear-gradient(90deg, transparent 0px, transparent 119px, var(--crt-grid-color) 119px, var(--crt-grid-color) 120px),
+      radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.008) 0%, transparent 70%);
   }
-
-  .info-row {
-    white-space: normal;
+  .crt-noise { opacity: 0.02; }
+  .crt-scanroll { opacity: 0.35; animation-duration: 12s; }
+  .crt-glitch { animation-duration: 20s; opacity: 0.2; }
+  .crt-corners {
+    top: 3px; left: 3px; right: 3px; bottom: 3px;
+    border-radius: 6px;
   }
-
-  .progress-terminal {
-    font-size: 9px;
+  .crt-corners {
+    background:
+      linear-gradient(to right,  var(--crt-hud-color) 1px, transparent 1px) 0 0 / 8px 1px no-repeat,
+      linear-gradient(to bottom, var(--crt-hud-color) 1px, transparent 1px) 0 0 / 1px 8px no-repeat,
+      linear-gradient(to left,   var(--crt-hud-color) 1px, transparent 1px) 100% 0 / 8px 1px no-repeat,
+      linear-gradient(to bottom, var(--crt-hud-color) 1px, transparent 1px) 100% 0 / 1px 8px no-repeat,
+      linear-gradient(to right,  var(--crt-hud-color) 1px, transparent 1px) 0 100% / 8px 1px no-repeat,
+      linear-gradient(to top,    var(--crt-hud-color) 1px, transparent 1px) 0 100% / 1px 8px no-repeat,
+      linear-gradient(to left,   var(--crt-hud-color) 1px, transparent 1px) 100% 100% / 8px 1px no-repeat,
+      linear-gradient(to top,    var(--crt-hud-color) 1px, transparent 1px) 100% 100% / 1px 8px no-repeat;
   }
-
-  .header {
-    font-size: 10px;
+  .crt-hud-text {
+    display: none; /* 380px 以下文字无法辨认，隐藏但保留角框 */
+  }
+  .crt-curve { opacity: 0.3; }
+  .crt-vignette { opacity: 0.35; }
+  .crt-container::before {
+    background: repeating-linear-gradient(0deg, var(--crt-scanline) 0px, var(--crt-scanline) 1px, transparent 1px, transparent 6px);
   }
 }
 

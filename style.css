@@ -37,6 +37,17 @@ html, body {
   letter-spacing:0.4px;
 }
 
+/* 手机端：解除固定定位，允许滚动 */
+@media (max-width: 700px) {
+  html, body {
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100dvh;
+  }
+}
+
 /* ═══ CRT 全局特效：被 crt.css 中的 .crt-container::before 替代
    body::before 扫描线效果已移至 CRT 容器内，避免双重扫描线 ═══
    保留此区块仅供旧版兼容，新 CRT 主题下不生效 */
@@ -759,72 +770,9 @@ body::after {
   justify-content:center;
 }
 
-/* ═══ 响应式 ═══ */
-@media (max-width:1080px) {
-  #top-row { grid-template-columns:180px 1fr; }
-  .col-right { display:none; }
-  #stats-strip { display:flex; }
-}
-@media (max-width:900px) {
-  #top-row { grid-template-columns:160px 1fr; }
-  .btn-core .key { display:none; }
-  .btn-tool { display:none; }
-  .panel-body { grid-template-columns:1fr; }
-  #inv-content, #codex-content {
-    padding-right:0;
-    padding-bottom:12px;
-    max-height:220px;
-  }
-}
+/* ═══ 响应式 — 旧布局回退（CRT 模式下不生效，因为旧 DOM 已 display:none）═══ */
+/* 只保留面板相关的通用响应式（面板在 CRT 模式下也会显示） */
 @media (max-width:768px) {
-  html, body { font-size:14px; }
-  #app { animation:none; }
-  #terminal-header { padding:6px 12px; }
-  .h-left { font-size:13px; letter-spacing:2px; }
-  .h-metrics { display:none; }
-  .h-right { font-size:11px; }
-  #top-row {
-    grid-template-columns:1fr;
-    grid-template-rows:auto 1fr auto;
-    gap:0;
-  }
-  .col-left, .col-right {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:0 12px;
-    padding:4px 10px;
-    font-size:12px;
-    line-height:1.4;
-    overflow-y:visible;
-  }
-  .col-left .ct, .col-right .ct {
-    grid-column:1 / -1;
-    font-size:11px;
-    padding-bottom:2px;
-    margin-bottom:4px;
-  }
-  .bar { font-size:11px; }
-  #combat { min-height:180px; flex:1; }
-  #log { height:100px; font-size:12px; padding:4px 12px; }
-  .cli { padding:4px 12px; font-size:13px; }
-  #button-bar {
-    overflow-x:auto;
-    flex-wrap:nowrap;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    padding:6px 8px;
-    gap:6px;
-    min-height:44px;
-  }
-  #button-bar::-webkit-scrollbar { display:none; }
-  #button-bar button {
-    flex-shrink:0;
-    min-width:54px;
-    min-height:36px;
-    font-size:11px;
-    padding:4px 8px;
-  }
-  #button-bar .key { font-size:9px; }
   .overlay-panel .panel-frame {
     max-height:98vh;
     max-width:100vw;
@@ -855,32 +803,11 @@ body::after {
     padding-bottom:6px;
   }
 }
-@media (max-height:900px) and (min-height:751px) {
-  #log { height:150px; }
-}
-@media (max-height:750px) {
-  #log { height:130px; }
-}
 @media (max-width:540px) {
-  .col-left { grid-template-columns:1fr 1fr; }
-  .col-right { grid-template-columns:1fr 1fr; }
   .panel-frame { max-height:94vh; }
   .sp-pp { display:none; }
 }
 @media (max-width:480px) {
-  html { font-size:13px; }
-  #terminal-header { padding:5px 8px; font-size:12px; }
-  .h-left { letter-spacing:1px; font-size:12px; }
-  .h-right { font-size:10px; }
-  .col-left, .col-right { grid-template-columns:1fr; }
-  .col-left .ct, .col-right .ct { grid-column:auto; }
-  #button-bar button {
-    min-width:48px;
-    min-height:36px;
-    font-size:10px;
-    padding:3px 6px;
-  }
-  #log { height:80px; font-size:11px; }
   .sp-label { font-size:12px; min-width:55px; }
   .sp-current { font-size:13px; min-width:45px; }
 }
