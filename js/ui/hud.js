@@ -89,34 +89,52 @@ function detectLogType(msg) {
   return 'stdout';
 }
 
-let _prevLogVersion = 0;
+let _prevLogVersion = -1;
 const MAX_LOG_DISPLAY = 50;
 
 export function updateLog() {
-  const curVersion = state._logVersion || 0;
-  if (curVersion === _prevLogVersion) return;
-
   const logBox = document.getElementById('log');
   if (!logBox) return;
 
+  // 版本号增量检测 — 解决 ring buffer 满 80 时 .length 不变导致漏掉新条目的 bug
+  const curVersion = state._logVersion || 0;
+  if (curVersion === _prevLogVersion) return;
   _prevLogVersion = curVersion;
 
-  // 全量重建：始终用最新的 MAX_LOG_DISPLAY 条重建 DOM
-  // 不用增量渲染——日志是高频变化的文本流，增量 DOM 操作反而复杂且易出错
-  const recent = state.logs.slice(-MAX_LOG_DISPLAY);
-  logBox.innerHTML = recent.map(l => buildLogLine(l)).join('');
-  logBox.scrollTop = logBox.scrollHeight;
+  const logs = state.logs;
+  // 只渲染最近 MAX_LOG_DISPLAY 条 — ring buffer 环境下索引不可靠，全量重建
+  const start = Math.max(0, logs.length - MAX_LOG_DISPLAY);
+  const entries = logs.slice(start);
+
+  // 溢出移除 + 全量替换
+  while (logBox.firstChild) logBox.removeChild(logBox.firstChild);
+  const frag = document.createDocumentFragment();
+  for (const entry of entries) {
+    const div = buildLogElement(entry);
+    div.classList.add('log-enter');
+    frag.appendChild(div);
+  }
+  logBox.appendChild(frag);
+
+  // 统一在下一帧移除入场类
+  requestAnimationFrame(() => {
+    const all = logBox.querySelectorAll('.log-enter');
+    for (let i = 0; i < all.length; i++) all[i].classList.remove('log-enter');
+    logBox.scrollTop = logBox.scrollHeight;
+  });
 }
 
 /**
- * 构建单条日志的 HTML（已转义，防 XSS）
+ * 构建单条日志的 DOM 元素（已转义，防 XSS）
  */
-function buildLogLine(l) {
+function buildLogElement(l) {
   const msg = typeof l === 'string' ? l : l.msg;
   const type = typeof l === 'string' ? detectLogType(msg) : (l.type || 'stdout');
-  const cls = ` class="log-${type}"`;
   const prefix = msg.startsWith('>') || msg.startsWith('[') ? '' : '> ';
-  return `<div${cls}>${escapeHtml(prefix)}${escapeHtml(msg)}</div>`;
+  const div = document.createElement('div');
+  div.className = `log-${type}`;
+  div.textContent = prefix + msg;
+  return div;
 }
 
 // ============================================================
@@ -143,14 +161,18 @@ export function refreshHUDLabels() {
 /**
  * 将全部 HUD DOM 元素同步到当前 state
  */
-/** 安全设置元素文本 */
+/** 带缓存的 safeText —— 只在值变化时写入 DOM，避免每帧无效重绘 */
+const _textCache = {};
 function safeText(id, val) {
+  const str = String(val);
+  if (_textCache[id] === str) return;
+  _textCache[id] = str;
   const el = document.getElementById(id);
-  if (el) el.textContent = val;
+  if (el) el.textContent = str;
 }
 
-export function updateHUD() {
-  const s = getStats();
+export function updateHUD(stats) {
+  const s = stats || getStats();
   if (!s) return;
 
   // ── SYSTEM STATUS（左栏）──
@@ -249,17 +271,23 @@ function updateAsciiBar(id, pct) {
   el.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
 }
 
-/** CRT 风格进度条：[████░░] XX.X%  · 32 格 */
+/** CRT 风格进度条：[████░░] XX.X%  · 20 格（桌面端减半以降低 innerHTML 成本） */
+let _lastExpPct = -1;
 function updateCrtProgressBar(id, pct) {
+  const clamped = Math.max(0, Math.min(1, pct));
+  // 精度到 0.5%，只在变化时重绘
+  const rounded = Math.round(clamped * 200) / 200;
+  if (rounded === _lastExpPct) return;
+  _lastExpPct = rounded;
+
   const el = document.getElementById(id);
   if (!el) return;
-  const clamped = Math.max(0, Math.min(1, pct));
-  const totalSlots = 32;
+  const totalSlots = 20;
   const filledSlots = Math.round(clamped * totalSlots);
   const emptySlots = totalSlots - filledSlots;
   let html = '<span class="bar-bracket">[</span>';
-  html += '<span class="bar-fill">' + '█'.repeat(filledSlots) + '</span>';
-  html += '<span class="bar-empty">' + '░'.repeat(emptySlots) + '</span>';
+  html += '<span class="bar-fill">' + '\u2588'.repeat(filledSlots) + '</span>';
+  html += '<span class="bar-empty">' + '\u2591'.repeat(emptySlots) + '</span>';
   html += '<span class="bar-bracket">]</span> ' + (pct * 100).toFixed(1) + '%';
   el.innerHTML = html;
 }

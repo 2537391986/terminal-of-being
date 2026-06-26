@@ -28,19 +28,27 @@ function getColor(name) {
   return _colorCache[name];
 }
 
-/** 将 hex 颜色转为 rgba 字符串 */
-function hexToRgba(hex, alpha) {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+/** 将 hex 颜色转为 rgba 字符串 — 预解析 RGB 分量到缓存，消除每帧 420 次 parseInt */
+const _hexRgbCache = {};
+
+function hexToRgbaCached(hex, alpha) {
+  let rgb = _hexRgbCache[hex];
+  if (!rgb) {
+    const h = hex.replace('#', '');
+    rgb = {
+      r: parseInt(h.substring(0, 2), 16),
+      g: parseInt(h.substring(2, 4), 16),
+      b: parseInt(h.substring(4, 6), 16),
+    };
+    _hexRgbCache[hex] = rgb;
+  }
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
 }
 
 /** 获取带透明度的 CSS 变量颜色 */
 function getColorAlpha(name, alpha) {
   const hex = getColor(name);
-  if (hex.startsWith('#')) return hexToRgba(hex, alpha);
+  if (hex.startsWith('#')) return hexToRgbaCached(hex, alpha);
   return hex;
 }
 
@@ -63,13 +71,15 @@ function ensureCrtColor() {
 /** 获取 CRT 主题色 rgba（Canvas 绘制的统一颜色） */
 function crt(alpha = 1) {
   ensureCrtColor();
-  return hexToRgba(_crtColorCache.hex, alpha);
+  return hexToRgbaCached(_crtColorCache.hex, alpha);
 }
 
-/** 获取 CRT 屏幕底色 rgba */
+/** 获取 CRT 屏幕底色 rgba — 预热缓存避免 getComputedStyle 每帧调用 */
 function crtBg(alpha = 1) {
-  const hex = readCssVar('--crt-screen-bg') || '#000000';
-  return hexToRgba(hex, alpha);
+  if (!_crtColorCache.bgHex) {
+    _crtColorCache.bgHex = readCssVar('--crt-screen-bg') || '#000000';
+  }
+  return hexToRgbaCached(_crtColorCache.bgHex, alpha);
 }
 
 /** 清除颜色缓存（主题切换时调用） */
@@ -77,7 +87,11 @@ export function refreshColorCache() {
   for (const key of Object.keys(_colorCache)) {
     delete _colorCache[key];
   }
+  for (const key of Object.keys(_hexRgbCache)) {
+    delete _hexRgbCache[key];
+  }
   _crtColorCache.valid = false;
+  _crtColorCache.bgHex = null;
 }
 
 // ============================================================
@@ -305,105 +319,79 @@ export function render(now) {
     ctx.fillText(g.symbol, g.x, g.y);
   }
 
-  // ── 7. 敌人（CRT 单色系统：Boss=高亮大光晕 / Elite=中亮 / Normal=低亮）──
+  // ── 7. 敌人（CRT 单色系统·阴影批量渲染：将敌人分两组避免频繁切换 shadowBlur）──
+  // 先画无光晕敌人（shadowBlur=0），再画有光晕敌人（shadowBlur 只设一次）
+  const enemiesNoGlow = [];
+  const enemiesGlow = [];
   for (const e of world.enemies) {
     if (e.dead) continue;
-    const alpha = e.dying ? e.dyingAlpha : 1;
+    if (e.dying) { enemiesNoGlow.push(e); continue; }
     const flashing = now < e.flashUntil;
-    if (alpha < 1) ctx.globalAlpha = alpha;
-
-    // 按敌人类型设定 CRT 色亮度层级
-    let enemyAlpha, enemyGlow;
-    if (flashing) {
-      enemyAlpha = 1; enemyGlow = 12;
-    } else if (e.type === 'boss') {
-      enemyAlpha = 1; enemyGlow = 8;
-    } else if (e.type === 'elite') {
-      enemyAlpha = 0.85; enemyGlow = 4;
-    } else {
-      enemyAlpha = 0.6; enemyGlow = 0;
-    }
-    ctx.fillStyle = crt(enemyAlpha);
-    if (enemyGlow > 0 || flashing) {
-      ctx.shadowColor = crt(1);
-      ctx.shadowBlur = flashing ? 6 : enemyGlow;
-    }
-    ctx.font = 'bold 22px monospace';
-    ctx.fillText(e.symbol, e.x - 10, e.y + 8);
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
-    if (!e.dying) {
-      const hpPct = Math.max(0, e.hp / e.maxHp);
-      const barW = e.type === 'boss' ? BOSS_BAR_WIDTH : e.type === 'elite' ? ELITE_BAR_WIDTH : NORMAL_BAR_WIDTH;
-      // 血条底（CRT 极低亮背景）
-      ctx.fillStyle = crt(0.12);
-      ctx.fillRect(e.x - barW / 2, e.y - 16, barW, 2);
-      // Boss 阶段标记
-      if (e.type === 'boss' && e.phaseData) {
-        const phases = e.phaseData.phases;
-        for (let i = 1; i < phases.length; i++) {
-          const markX = e.x - barW / 2 + barW * phases[i].hpPct;
-          ctx.fillStyle = e.triggeredPhases?.has(i) ? crt(1) : crt(0.25);
-          ctx.fillRect(markX - 0.5, e.y - 18, 1, 5);
-        }
-      }
-      // 血条填充（CRT 主题色 · 按类型分亮度）
-      const barAlpha = e.type === 'boss' ? 1 : e.type === 'elite' ? 0.8 : 0.6;
-      ctx.fillStyle = crt(barAlpha);
-      ctx.fillRect(e.x - barW / 2, e.y - 16, barW * hpPct, 2);
-      // Boss 当前阶段名称
-      if (e.type === 'boss' && e.phaseData) {
-        const cur = e.phaseData.phases[e.currentPhase];
-        ctx.font = '9px monospace';
-        ctx.fillStyle = crt(0.8);
-        ctx.textAlign = 'left';
-        ctx.fillText(cur.name, e.x + barW / 2 + 4, e.y - 14);
-        ctx.textAlign = 'left';
-      }
-    }
-    // 敌人名称（CRT 低亮）
-    if (e.dead || e.dying) continue;
-    ctx.font = '10px monospace';
-    const nameAlpha = e.type === 'boss' ? 0.8 : e.type === 'elite' ? 0.6 : 0.3;
-    ctx.fillStyle = crt(nameAlpha);
-    ctx.fillText(e.name, e.x - 18, e.y - 20);
+    const needGlow = flashing || e.type === 'boss' || e.type === 'elite';
+    if (needGlow) enemiesGlow.push(e); else enemiesNoGlow.push(e);
   }
 
-  // ── 8. 投射物（CRT 主题色 · 高亮带光晕）──
+  // 批次 A：无光晕敌人（shadowBlur = 0，最快路径）
+  ctx.shadowBlur = 0;
+  for (const e of enemiesNoGlow) {
+    drawEnemySymbol(ctx, e, now);
+    drawEnemyHpBar(ctx, e);
+    drawEnemyName(ctx, e);
+  }
+
+  // 批次 B：有光晕敌人（统一设 shadowBlur，避免每个敌人 toggle）
+  if (enemiesGlow.length > 0) {
+    ctx.shadowColor = crt(1);
+    for (const e of enemiesGlow) {
+      const flashing = now < e.flashUntil;
+      // 只在不同 glow 值时才切换 shadowBlur（boss 8 / elite 4 / normal flash 6）
+      const targetBlur = flashing ? 6 : e.type === 'boss' ? 8 : 4;
+      if (ctx.shadowBlur !== targetBlur) ctx.shadowBlur = targetBlur;
+      drawEnemySymbol(ctx, e, now, false);
+    }
+    ctx.shadowBlur = 0;
+    // 血条和名字画在光晕之外（避免阴影干扰）
+    for (const e of enemiesGlow) {
+      drawEnemyHpBar(ctx, e);
+      drawEnemyName(ctx, e);
+    }
+  }
+
+  // ── 8. 投射物（全部有光晕，统一设一次 shadowBlur）──
   ctx.font = 'bold 22px monospace';
+  ctx.shadowColor = crt(1);
+  ctx.shadowBlur = 6;
   for (const p of world.projectiles) {
     if (p.dead) continue;
     ctx.fillStyle = crt(1);
-    ctx.shadowColor = crt(1);
-    ctx.shadowBlur = 6;
     ctx.fillText(p.symbol || '*', p.x - 6, p.y + 6);
   }
   ctx.shadowBlur = 0;
 
-  // ── 9. 飘字 — 伤害/暴击/系统信息（CRT 主题色 · 不同亮度层级）──
+  // ── 9. 飘字 — 伤害/暴击/系统信息（暴击有光晕，归并到一次 shadowBlur 批量）──
   ctx.textAlign = 'center';
   for (const t of world.damageTexts) {
     const a = Math.max(0, t.life / 800);
     if (typeof t.value === 'string') {
-      // 系统文字（"DODGE" / "MISS" 等）—— 中亮
       ctx.fillStyle = crt(a * 0.7);
       ctx.font = 'bold 16px monospace';
       ctx.fillText(t.value, t.x, t.y);
     } else if (t.isCrit) {
-      // 暴击数字 —— 最大亮度 + 大光晕
       ctx.fillStyle = crt(a);
-      ctx.shadowColor = crt(a);
-      ctx.shadowBlur = 10;
+      if (ctx.shadowBlur !== 10) {
+        ctx.shadowColor = crt(a);
+        ctx.shadowBlur = 10;
+      }
       ctx.font = 'bold 22px monospace';
       ctx.fillText(t.value.toString(), t.x, t.y);
-      ctx.shadowBlur = 0;
     } else {
-      // 普通伤害 —— 中高亮
+      if (ctx.shadowBlur !== 0) ctx.shadowBlur = 0;
       ctx.fillStyle = crt(a * 0.7);
       ctx.font = 'bold 14px monospace';
       ctx.fillText(t.value.toString(), t.x, t.y);
     }
   }
+  ctx.shadowBlur = 0;
   ctx.textAlign = 'left';
 
   // ── 10. 粒子（CRT 主题色 · 低亮闪烁）──
@@ -415,4 +403,58 @@ export function render(now) {
   }
 
   ctx.restore();
+}
+
+// ════════════════════════════════════════════════════════════
+// 敌人绘制辅助函数（批量渲染优化：分离 symbol / hp bar / name）
+// ════════════════════════════════════════════════════════════
+
+function drawEnemySymbol(ctx, e, now, includeGlow = true) {
+  const alpha = e.dying ? e.dyingAlpha : 1;
+  if (alpha < 1) ctx.globalAlpha = alpha;
+  const flashing = now < e.flashUntil;
+  let enemyAlpha;
+  if (flashing) enemyAlpha = 1;
+  else if (e.type === 'boss') enemyAlpha = 1;
+  else if (e.type === 'elite') enemyAlpha = 0.85;
+  else enemyAlpha = 0.6;
+  ctx.fillStyle = crt(enemyAlpha);
+  ctx.font = 'bold 22px monospace';
+  ctx.fillText(e.symbol, e.x - 10, e.y + 8);
+  if (alpha < 1) ctx.globalAlpha = 1;
+}
+
+function drawEnemyHpBar(ctx, e) {
+  if (e.dead || e.dying) return;
+  const hpPct = Math.max(0, e.hp / e.maxHp);
+  const barW = e.type === 'boss' ? BOSS_BAR_WIDTH : e.type === 'elite' ? ELITE_BAR_WIDTH : NORMAL_BAR_WIDTH;
+  ctx.fillStyle = crt(0.12);
+  ctx.fillRect(e.x - barW / 2, e.y - 16, barW, 2);
+  if (e.type === 'boss' && e.phaseData) {
+    const phases = e.phaseData.phases;
+    for (let i = 1; i < phases.length; i++) {
+      const markX = e.x - barW / 2 + barW * phases[i].hpPct;
+      ctx.fillStyle = e.triggeredPhases?.has(i) ? crt(1) : crt(0.25);
+      ctx.fillRect(markX - 0.5, e.y - 18, 1, 5);
+    }
+  }
+  const barAlpha = e.type === 'boss' ? 1 : e.type === 'elite' ? 0.8 : 0.6;
+  ctx.fillStyle = crt(barAlpha);
+  ctx.fillRect(e.x - barW / 2, e.y - 16, barW * hpPct, 2);
+  if (e.type === 'boss' && e.phaseData) {
+    const cur = e.phaseData.phases[e.currentPhase];
+    ctx.font = '9px monospace';
+    ctx.fillStyle = crt(0.8);
+    ctx.textAlign = 'left';
+    ctx.fillText(cur.name, e.x + barW / 2 + 4, e.y - 14);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawEnemyName(ctx, e) {
+  if (e.dead || e.dying) return;
+  ctx.font = '10px monospace';
+  const nameAlpha = e.type === 'boss' ? 0.8 : e.type === 'elite' ? 0.6 : 0.3;
+  ctx.fillStyle = crt(nameAlpha);
+  ctx.fillText(e.name, e.x - 18, e.y - 20);
 }
